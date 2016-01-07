@@ -1,8 +1,8 @@
 MetaDisk API
 ============
 
-[![Build Status](https://img.shields.io/travis/storj/metadisk-api.svg?style=flat-square)](https://travis-ci.org/storj/metadisk-api)
-[![Coverage Status](https://img.shields.io/coveralls/storj/metadisk-api.svg?style=flat-square)](https://coveralls.io/r/storj/metadisk-api)
+[![Build Status](https://img.shields.io/travis/Storj/metadisk-api.svg?style=flat-square)](https://travis-ci.org/Storj/metadisk-api)
+[![Coverage Status](https://img.shields.io/coveralls/Storj/metadisk-api.svg?style=flat-square)](https://coveralls.io/r/Storj/metadisk-api)
 
 Access the [Storj](http://storj.io) network via simple REST API.
 
