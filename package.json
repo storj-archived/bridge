@@ -11,7 +11,10 @@
     "metadisk": "bin/metadisk.js"
   },
   "scripts": {
-    "test": "mocha test/**"
+    "testsuite": "mocha test/**",
+    "coverage": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- --recursive",
+    "linter": "./node_modules/.bin/jshint --config .jshintrc ./index.js ./lib ./test",
+    "test": "npm run testsuite && npm run linter"
   },
   "repository": {
     "type": "git",
@@ -31,6 +34,7 @@
     "chai": "^3.4.1",
     "coveralls": "^2.11.6",
     "istanbul": "^0.4.1",
+    "jshint": "^2.8.0",
     "mocha": "^2.3.4",
     "proxyquire": "^1.7.3",
     "sinon": "^1.17.2"
