@@ -6,7 +6,7 @@
 
 'use strict';
 
-var Config = require('../lib/config');
-var Engine = require('../lib/engine');
+const Config = require('../lib/config');
+const Engine = require('../lib/engine');
 
 module.exports = Engine(Config(process.argv[2])).start();

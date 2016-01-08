@@ -41,6 +41,7 @@
   },
   "dependencies": {
     "express": "^4.13.3",
+    "kad": "^1.2.1",
     "merge": "^1.2.0",
     "mongoose": "^4.3.4"
   }
