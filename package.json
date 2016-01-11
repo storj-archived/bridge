@@ -42,7 +42,9 @@
   "dependencies": {
     "express": "^4.13.3",
     "kad": "^1.2.1",
+    "kad-spartacus": "0.0.3",
     "merge": "^1.2.0",
-    "mongoose": "^4.3.4"
+    "mongoose": "^4.3.4",
+    "readable-stream": "^2.0.5"
   }
 }
