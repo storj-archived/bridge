@@ -40,6 +40,8 @@
     "sinon": "^1.17.2"
   },
   "dependencies": {
+    "body-parser": "^1.14.2",
+    "concat-stream": "^1.5.1",
     "express": "^4.13.3",
     "kad": "^1.2.1",
     "kad-spartacus": "0.0.3",
