@@ -40,6 +40,7 @@
     "sinon": "^1.17.2"
   },
   "dependencies": {
+    "async": "^1.5.2",
     "basic-auth": "^1.0.3",
     "body-parser": "^1.14.2",
     "concat-stream": "^1.5.1",
@@ -51,6 +52,7 @@
     "merge": "^1.2.0",
     "mongoose": "^4.3.4",
     "mongoose-types": "^1.0.3",
-    "readable-stream": "^2.0.5"
+    "readable-stream": "^2.0.5",
+    "through": "^2.3.8"
   }
 }
