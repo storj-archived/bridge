@@ -40,13 +40,17 @@
     "sinon": "^1.17.2"
   },
   "dependencies": {
+    "basic-auth": "^1.0.3",
     "body-parser": "^1.14.2",
     "concat-stream": "^1.5.1",
+    "cors": "^2.7.1",
+    "elliptic": "^6.0.2",
     "express": "^4.13.3",
     "kad": "^1.2.1",
     "kad-spartacus": "0.0.3",
     "merge": "^1.2.0",
     "mongoose": "^4.3.4",
+    "mongoose-types": "^1.0.3",
     "readable-stream": "^2.0.5"
   }
 }
