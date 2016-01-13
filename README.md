@@ -30,4 +30,4 @@ Start the local server:
 metadisk <env_name>
 ```
 
-For more information, see the [documentation](docs/).
+For more information, see the [documentation](doc/).
