@@ -42,7 +42,6 @@
   "dependencies": {
     "async": "^1.5.2",
     "basic-auth": "^1.0.3",
-    "body-parser": "^1.14.2",
     "concat-stream": "^1.5.1",
     "cors": "^2.7.1",
     "elliptic": "^6.0.2",
