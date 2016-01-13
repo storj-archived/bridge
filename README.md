@@ -30,27 +30,4 @@ Start the local server:
 metadisk <env_name>
 ```
 
-Configuration
--------------
-
-MetaDisk API loads configuration from `$HOME/.metadisk/config/<env_name>`. To
-override the default configuration, create a file named `<env_name>` and then
-specify that name when running `metadisk`.
-
-For instance, to create a customn development configuration, you might create
-`$HOME/.metadisk/config/devel` with the following contents:
-
-```json
-{
-  "storage": {
-    "name": "metadisk-devel"
-  },
-  "server": {
-    "port": "8443"
-  }
-}
-```
-
-The configuration supplied in this file will *override* the defaults. If you
-omit a property, it will use the default. Defaults can be viewed in
-`lib/config.js`.
+For more information, see the [documentation](docs/).
