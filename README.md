@@ -31,4 +31,4 @@ metadisk <env_name>
 ```
 
 For more information, see the [documentation](doc/). If you are looking for
-API documentation, [go here](doc/api.md).
+API documentation, [go here](doc/api.md). 
