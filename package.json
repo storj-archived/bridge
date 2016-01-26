@@ -46,12 +46,15 @@
     "cors": "^2.7.1",
     "elliptic": "^6.0.2",
     "express": "^4.13.3",
+    "handlebars": "^4.0.5",
+    "hat": "0.0.3",
     "kad": "^1.2.1",
     "kad-spartacus": "0.0.3",
     "merge": "^1.2.0",
     "mongoose": "^4.3.4",
     "mongoose-types": "^1.0.3",
     "ms": "^0.7.1",
+    "nodemailer": "^2.0.0",
     "readable-stream": "^2.0.5",
     "through": "^2.3.8"
   }

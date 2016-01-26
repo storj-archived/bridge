@@ -94,6 +94,13 @@ Public Endpoints
   * `email` - (String) valid email address
   * `password` - (String) SHA-256 hash of password
 
+### Activate User
+
+* **Method:** `GET`
+* **Path:** `/activations/:token`
+* **Parameters:**
+  * `redirect` - (String) redirect url - *optional*
+
 Private Endpoints
 -----------------
 

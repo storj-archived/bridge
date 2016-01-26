@@ -1,0 +1,18 @@
+<h1>Welcome to MetaDisk!</h1>
+
+<p>
+  Before you can begin using MetaDisk, please
+  {{#if redirect}}
+    <a href="{{url}}/activations/{{token}}">click here to activate your account</a>.
+  {{else}}
+    <a href="{{url}}/activations/{{token}}?redirect={{redirect}}">click here to activate your account</a>.
+  {{/if}}
+</p>
+
+<hr/>
+
+<p>
+  <em>
+    Cheers,<br/>The MetaDisk Team
+  </em>
+</p>

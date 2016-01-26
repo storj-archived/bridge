@@ -1,0 +1,15 @@
+Welcome to MetaDisk!
+====================
+
+Copy and paste the link below into a web browser to activate your account:
+
+{{#if redirect}}
+  {{url}}/activations/{{token}}
+{{else}}
+  {{url}}/activations/{{token}}?redirect={{redirect}}
+{{/if}}
+
+---
+
+Cheers,
+The MetaDisk Team
