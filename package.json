@@ -42,19 +42,20 @@
   "dependencies": {
     "async": "^1.5.2",
     "basic-auth": "^1.0.3",
+    "busboy": "^0.2.12",
     "concat-stream": "^1.5.1",
     "cors": "^2.7.1",
     "elliptic": "^6.0.2",
     "express": "^4.13.3",
     "handlebars": "^4.0.5",
     "hat": "0.0.3",
-    "storj": "storj/node-storj",
     "merge": "^1.2.0",
     "mongoose": "^4.3.4",
     "mongoose-types": "^1.0.3",
     "ms": "^0.7.1",
     "nodemailer": "^2.0.0",
     "readable-stream": "^2.0.5",
+    "storj": "storj/node-storj",
     "throttle": "^1.0.3",
     "through": "^2.3.8"
   }
