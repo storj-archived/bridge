@@ -56,7 +56,6 @@
     "nodemailer": "^2.0.0",
     "readable-stream": "^2.0.5",
     "storj": "storj/node-storj",
-    "throttle": "^1.0.3",
     "through": "^2.3.8"
   }
 }
