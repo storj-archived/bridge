@@ -9,4 +9,4 @@
 const Config = require('../lib/config');
 const Engine = require('../lib/engine');
 
-module.exports = Engine(Config(process.argv[2])).start();
+module.exports = Engine(Config(process.env.NODE_ENV || 'devel')).start();
