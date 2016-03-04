@@ -163,16 +163,8 @@
             "name": "key",
             "in": "body",
             "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "key": {
-                  "description": "Hexidecimal encoded ECDSA public key",
-                  "required": true,
-                  "type": "string"
-                }
-              }
-            }
+            "type": "string",
+            "description": "Hexidecimal encoded ECDSA public key"
           }
         ],
         "responses": {
