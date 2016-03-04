@@ -1,7 +1,7 @@
 {
   "name": "metadisk-api",
   "version": "0.1.0",
-  "description": "access the storj network via simple rest api",
+  "description": "Access the Storj network using a simple REST API.",
   "main": "index.js",
   "directories": {
     "doc": "doc",
@@ -24,7 +24,10 @@
     "storj",
     "metadisk"
   ],
-  "author": "Gordon Hall <gordon@gordonwritescode.com>",
+  "author": {
+    "name": "Gordon Hall",
+    "email": "gordon@storj.io"
+  },
   "license": "AGPL-3.0",
   "bugs": {
     "url": "https://github.com/Storj/metadisk-api/issues"
