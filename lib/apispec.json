@@ -131,6 +131,7 @@
         "summary": "Lists the public ECDSA keys associated with the user",
         "responses": {
           "200": {
+            "description": "Keys successfully returned",
             "schema": {
               "type": "array",
               "items": {
@@ -176,6 +177,7 @@
         ],
         "responses": {
           "200": {
+            "description": "Key successfully registered",
             "schema": {
               "type": "object",
               "properties": {
@@ -208,7 +210,12 @@
             "type": "string",
             "required": true
           }
-        ]
+        ],
+        "responses": {
+          "200": {
+            "description": "Key successfully destroyed"
+          }
+        }
       }
     },
     "/buckets": {
@@ -221,6 +228,7 @@
         "summary": "Lists all of the buckets belonging to the user",
         "responses": {
           "200": {
+            "description": "Buckets successfully returned",
             "schema": {
               "type": "array",
               "items": {
@@ -319,6 +327,7 @@
         ],
         "responses": {
           "200": {
+            "description": "Bucket successfully created",
             "schema": {
               "type": "object",
               "properties": {
@@ -390,6 +399,7 @@
         ],
         "responses": {
           "200": {
+            "description": "Bucket successfully returned",
             "schema": {
               "type": "object",
               "properties": {
@@ -491,6 +501,7 @@
         ],
         "responses": {
           "200": {
+            "description": "Bucket successfully updated",
             "schema": {
               "type": "object",
               "properties": {
@@ -557,7 +568,12 @@
             "required": true,
             "description": "Unique ID of the bucket to destroy"
           }
-        ]
+        ],
+        "responses": {
+          "200": {
+            "description": "Bucket successfully destroyed",
+          }
+        }
       }
     },
     "/buckets/{id}/tokens": {
@@ -592,6 +608,7 @@
         ],
         "responses": {
           "200": {
+            "description": "Token successfully created",
             "schema": {
               "type": "object",
               "properties": {
@@ -651,6 +668,7 @@
         ],
         "responses": {
           "200": {
+            "description": "File successfully uploaded",
             "schema": {
               "type": "object",
               "properties": {
@@ -697,6 +715,7 @@
         ],
         "responses": {
           "200": {
+            "description": "Buckets successfully returned",
             "schema": {
               "type": "array",
               "items": {
@@ -762,6 +781,7 @@
         ],
         "responses": {
           "200": {
+            "description": "File pointers successfully returned",
             "schema": {
               "type": "array",
               "items": {
