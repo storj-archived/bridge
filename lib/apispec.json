@@ -653,7 +653,7 @@
           },
           {
             "type": "file",
-            "in": "body",
+            "in": "formData",
             "name": "file",
             "description": "The file to upload to the network",
             "required": true
