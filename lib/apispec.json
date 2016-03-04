@@ -385,7 +385,6 @@
             "type": "string",
             "in": "path",
             "description": "Unique ID of the bucket to retrieve",
-            "example": "507f1f77bcf86cd799439011",
             "required": true
           }
         ],
@@ -455,7 +454,6 @@
             "type": "string",
             "in": "path",
             "description": "Unique ID of the bucket to update",
-            "example": "507f1f77bcf86cd799439011",
             "required": true
           },
           {
@@ -558,7 +556,6 @@
             "in": "path",
             "required": true,
             "description": "Unique ID of the bucket to destroy",
-            "example": "507f1f77bcf86cd799439011"
           }
         ]
       }
