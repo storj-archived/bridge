@@ -65,7 +65,7 @@
                   "example": "gordon@storj.io"
                 },
                 "created": {
-                  "type": "date-time",
+                  "type": "string",
                   "example": "2016-03-04T17:01:02.629Z"
                 },
                 "activated": {
@@ -99,7 +99,24 @@
         ],
         "responses": {
           "200": {
-            "description": "User successfully activated"
+            "description": "User successfully activated",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "example": "gordon@storj.io"
+                },
+                "created": {
+                  "type": "string",
+                  "example": "2016-03-04T17:01:02.629Z"
+                },
+                "activated": {
+                  "type": "boolean",
+                  "example": true
+                }
+              }
+            }
           }
         }
       }
@@ -251,7 +268,7 @@
                     "default": "New Bucket"
                   },
                   "created": {
-                    "type": "date-time",
+                    "type": "string",
                     "description": "The date and time the bucket was created",
                     "example": "2016-03-04T17:01:02.629Z"
                   },
@@ -348,7 +365,7 @@
                   "default": "New Bucket"
                 },
                 "created": {
-                  "type": "date-time",
+                  "type": "string",
                   "description": "The date and time the bucket was created",
                   "example": "2016-03-04T17:01:02.629Z"
                 },
@@ -420,7 +437,7 @@
                   "default": "New Bucket"
                 },
                 "created": {
-                  "type": "date-time",
+                  "type": "string",
                   "description": "The date and time the bucket was created",
                   "example": "2016-03-04T17:01:02.629Z"
                 },
@@ -522,7 +539,7 @@
                   "default": "New Bucket"
                 },
                 "created": {
-                  "type": "date-time",
+                  "type": "string",
                   "description": "The date and time the bucket was created",
                   "example": "2016-03-04T17:01:02.629Z"
                 },
@@ -604,7 +621,7 @@
                   "description": "The bucket ID the token is for"
                 },
                 "expires": {
-                  "type": "date-time",
+                  "type": "string",
                   "description": "The time the token will expire"
                 },
                 "operation": {
