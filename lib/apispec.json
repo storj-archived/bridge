@@ -571,7 +571,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Bucket successfully destroyed",
+            "description": "Bucket successfully destroyed"
           }
         }
       }
