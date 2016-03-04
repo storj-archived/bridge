@@ -632,7 +632,6 @@
             "in": "path",
             "name": "id",
             "description": "The unique bucket ID for the request",
-            "example": "507f1f77bcf86cd799439011",
             "required": true
           },
           {
@@ -693,7 +692,6 @@
             "in": "path",
             "name": "id",
             "description": "The unique bucket ID for the request",
-            "example": "507f1f77bcf86cd799439011",
             "required": true
           }
         ],
@@ -745,7 +743,6 @@
             "in": "path",
             "name": "id",
             "description": "The unique bucket ID for the request",
-            "example": "507f1f77bcf86cd799439011",
             "required": true
           },
           {
@@ -753,7 +750,6 @@
             "in": "path",
             "name": "hash",
             "description": "The file hash to get pointers for",
-            "example": "9c1185a5c5e9fc54612808977ee8f548b2258d31",
             "required": true
           },
           {
