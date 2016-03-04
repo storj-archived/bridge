@@ -99,24 +99,7 @@
         ],
         "responses": {
           "200": {
-            "description": "User successfully activated",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "email": {
-                  "type": "string",
-                  "example": "gordon@storj.io"
-                },
-                "created": {
-                  "type": "date-time",
-                  "example": "2016-03-04T17:01:02.629Z"
-                },
-                "activated": {
-                  "type": "boolean",
-                  "example": true
-                }
-              }
-            }
+            "description": "User successfully activated"
           }
         }
       }
