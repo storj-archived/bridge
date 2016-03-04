@@ -788,23 +788,7 @@
                 "type": "object",
                 "properties": {
                   "destination": {
-                    "schema": {
-                      "type": "object",
-                      "properties": {
-                        "address": {
-                          "type": "string",
-                          "example": "162.243.48.250"
-                        },
-                        "port": {
-                          "type": "number",
-                          "example": 4000
-                        },
-                        "nodeID": {
-                          "type": "string",
-                          "example": "ff4a7c814c37f81cdc13c5254a2ca43b747d0395"
-                        }
-                      }
-                    },
+                    "type": "object",
                     "description": "The contact information for the farmer this payload should be sent to"
                   },
                   "payload": {
