@@ -583,7 +583,7 @@
           { "basic": [] },
           { "ecdsa": [] }
         ],
-        "summary": "Destroys the bucket with the given ID",
+        "summary": "Creates a token for the specified operation",
         "parameters": [
           {
             "name": "id",
