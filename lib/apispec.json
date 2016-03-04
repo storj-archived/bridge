@@ -577,7 +577,6 @@
             "type": "string",
             "in": "path",
             "description": "Unique ID of the bucket for the desired token",
-            "example": "507f1f77bcf86cd799439011",
             "required": true
           },
           {
@@ -588,7 +587,6 @@
               "properties": {
                 "operation": {
                   "type": "string",
-                  "example": "PUSH",
                   "description": "PUSH or PULL operation"
                 }
               }
@@ -602,23 +600,19 @@
               "properties": {
                 "token": {
                   "type": "string",
-                  "description": "The unique one-time-use token",
-                  "example": "0e3fbf295e37e376284dcd6e784725ba4f905846401491d23b91d616f61d968e"
+                  "description": "The unique one-time-use token"
                 },
                 "bucket": {
                   "type": "string",
-                  "description": "The bucket ID the token is for",
-                  "example": "507f1f77bcf86cd799439011"
+                  "description": "The bucket ID the token is for"
                 },
                 "expires": {
                   "type": "date-time",
-                  "description": "The time the token will expire",
-                  "example": "2016-03-04T17:01:02.629Z"
+                  "description": "The time the token will expire"
                 },
                 "operation": {
                   "type": "string",
-                  "description": "The operation the token is for",
-                  "example": "PUSH"
+                  "description": "The operation the token is for"
                 }
               }
             }
