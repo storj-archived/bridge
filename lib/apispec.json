@@ -555,7 +555,7 @@
             "type": "string",
             "in": "path",
             "required": true,
-            "description": "Unique ID of the bucket to destroy",
+            "description": "Unique ID of the bucket to destroy"
           }
         ]
       }
