@@ -656,7 +656,7 @@
             "in": "body",
             "name": "file",
             "description": "The file to upload to the network",
-            "required": true
+            "required": false
           },
           {
             "type": "string",
