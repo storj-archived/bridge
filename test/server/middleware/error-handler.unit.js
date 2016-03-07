@@ -4,7 +4,7 @@ const expect = require('chai').expect;
 const sinon = require('sinon');
 const proxyquire = require('proxyquire');
 
-const Engine = require('..').Engine;
+const errorhandler = require('..').Server.middleware.errorhandler;
 
 before(function(done) {
 
@@ -14,7 +14,7 @@ after(function(done) {
 
 });
 
-describe('Engine', function() {
+describe('Server/middleware/errorhandler', function() {
 
 
 

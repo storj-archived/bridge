@@ -1,6 +1,6 @@
 {
   "name": "metadisk-api",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Access the Storj network using a simple REST API.",
   "main": "index.js",
   "directories": {
@@ -14,7 +14,9 @@
     "testsuite": "mocha test/**",
     "coverage": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- --recursive",
     "linter": "./node_modules/.bin/jshint --config .jshintrc ./index.js ./lib ./test",
-    "test": "npm run testsuite && npm run linter"
+    "test": "npm run testsuite && npm run linter",
+    "make-docs": "./node_modules/.bin/jsdoc index.js lib -r -R README.md -u ./doc -c .jsdoc.json --verbose -d ./jsdoc",
+    "publish-docs": "npm run make-docs && node script/publishdoc.js"
   },
   "repository": {
     "type": "git",
@@ -36,7 +38,9 @@
   "devDependencies": {
     "chai": "^3.4.1",
     "coveralls": "^2.11.6",
+    "ink-docstrap": "^1.1.4",
     "istanbul": "^0.4.1",
+    "jsdoc": "^3.4.0",
     "jshint": "2.8.0",
     "mocha": "^2.3.4",
     "proxyquire": "^1.7.3",

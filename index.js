@@ -12,6 +12,8 @@ module.exports.Config = require('./lib/config');
 module.exports.Storage = require('./lib/storage');
 /** {@link Server} */
 module.exports.Server = require('./lib/server');
+/** {@link Mailer} */
+module.exports.Mailer = require('./lib/mailer');
 /** {@link Network} */
 module.exports.Network = require('./lib/network');
 /** {@link Logger} */
