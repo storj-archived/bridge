@@ -4,7 +4,7 @@ const expect = require('chai').expect;
 const sinon = require('sinon');
 const proxyquire = require('proxyquire');
 
-const authenticate = require('..').Server.middleware.authenticate;
+const authenticate = require('../../..').Server.middleware.authenticate;
 
 before(function(done) {
 
