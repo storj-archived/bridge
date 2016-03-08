@@ -9,18 +9,18 @@ Access the [Storj](http://storj.io) network via simple REST API.
 Quick Start
 -----------
 
+Install MongoDB, Git and Wget:
+
+```
+apt-get install mongodb git wget
+```
+
 Install NVM, Node.js and NPM:
 
 ```
 wget -qO- https://raw.githubusercontent.com/creationix/nvm/v0.30.1/install.sh | bash
 source ~/.profile
 nvm install 4.2.3
-```
-
-Install MongoDB:
-
-```
-apt-get install mongodb git
 ```
 
 Clone the repository, install dependencies:
