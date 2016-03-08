@@ -20,7 +20,7 @@ nvm install 4.2.3
 Install MongoDB:
 
 ```
-apt-get install mongodb
+apt-get install mongodb git
 ```
 
 Clone the repository, install dependencies:
