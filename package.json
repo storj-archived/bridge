@@ -11,8 +11,8 @@
     "metadisk": "bin/metadisk.js"
   },
   "scripts": {
-    "testsuite": "mocha test/**",
-    "coverage": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- --recursive",
+    "testsuite": "NODE_ENV=test mocha test/**",
+    "coverage": "NODE_ENV=test ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- --recursive",
     "linter": "./node_modules/.bin/jshint --config .jshintrc ./index.js ./lib ./test",
     "test": "npm run testsuite && npm run linter",
     "make-docs": "./node_modules/.bin/jsdoc index.js lib -r -R README.md -u ./doc -c .jsdoc.json --verbose -d ./jsdoc",
@@ -42,6 +42,7 @@
     "istanbul": "^0.4.1",
     "jsdoc": "^3.4.0",
     "jshint": "2.8.0",
+    "metadisk-client": "^0.1.1",
     "mocha": "^2.3.4",
     "proxyquire": "^1.7.3",
     "sinon": "^1.17.2"
