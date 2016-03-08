@@ -156,8 +156,6 @@ describe('Engine/Integration', function() {
       }).then(function(bucket) {
         expect(bucket.name).to.equal('Test Bucket');
         done();
-      }, function(err) {
-        console.log(err)
       });
     });
 
