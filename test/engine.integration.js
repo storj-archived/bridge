@@ -111,6 +111,12 @@ describe('Engine/Integration', function() {
       });
     });
 
+    after(function() {
+      client = metadisk.Client('http://127.0.0.1:6382', {
+        keypair: keypair
+      });
+    });
+
   });
 
   describe('GET /keys', function() {
@@ -150,6 +156,8 @@ describe('Engine/Integration', function() {
       }).then(function(bucket) {
         expect(bucket.name).to.equal('Test Bucket');
         done();
+      }, function(err) {
+        console.log(err)
       });
     });
 
