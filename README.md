@@ -11,14 +11,20 @@ Quick Start
 
 Install NVM, Node.js and NPM:
 
-```bash
+```
 wget -qO- https://raw.githubusercontent.com/creationix/nvm/v0.30.1/install.sh | bash
 nvm install 4.2.3
 ```
 
+Install MongoDB:
+
+```
+apt-get install mongodb
+```
+
 Clone the repository, install dependencies:
 
-```bash
+```
 git clone https://github.com/Storj/metadisk-api.git
 cd metadisk-api
 npm install && npm link
@@ -26,9 +32,8 @@ npm install && npm link
 
 Start the local server:
 
-```bash
-metadisk <env_name>
+```
+metadisk
 ```
 
-For more information, see the [documentation](doc/). If you are looking for
-API documentation, [go here](doc/api.md). 
+For more information, see [the documentation](http://storj.github.io/metadisk-api).
