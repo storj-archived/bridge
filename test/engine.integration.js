@@ -50,7 +50,9 @@ describe('Engine/Integration', function() {
       engine.storage.models[model].remove({}, next);
     }, function() {
       // Close down farmer
-      farmer.leave(done);
+      farmer.leave(function() {
+        engine.storage.connection.close(done);
+      });
     });
   });
 
