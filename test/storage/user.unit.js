@@ -1,5 +1,6 @@
 'use strict';
 
+const crypto = require('crypto');
 const expect = require('chai').expect;
 const mongoose = require('mongoose');
 
@@ -26,12 +27,16 @@ after(function(done) {
   });
 });
 
+function sha256(i) {
+  return crypto.createHash('sha256').update(i).digest('hex');
+}
+
 describe('Storage/models/User', function() {
 
   describe('#create', function() {
 
     it('should create the user account in inactive state', function(done) {
-      User.create('user@domain.tld', 'password', function(err, user) {
+      User.create('user@domain.tld', sha256('password'), function(err, user) {
         expect(err).to.not.be.instanceOf(Error);
         expect(user.activated).to.equal(false);
         done();
@@ -39,8 +44,15 @@ describe('Storage/models/User', function() {
     });
 
     it('should not create a duplicate user account', function(done) {
-      User.create('user@domain.tld', 'password', function(err) {
+      User.create('user@domain.tld', sha256('password'), function(err) {
         expect(err.message).to.equal('Email is already registered');
+        done();
+      });
+    });
+
+    it('should not create a user account with bad password', function(done) {
+      User.create('wrong@domain.tld', 'password', function(err) {
+        expect(err.message).to.equal('Password must be hex encoded SHA-256 hash');
         done();
       });
     });
@@ -78,7 +90,7 @@ describe('Storage/models/User', function() {
   describe('#lookup', function() {
 
     it('should return the user account', function(done) {
-      User.lookup('user@domain.tld', 'password', function(err, user) {
+      User.lookup('user@domain.tld', sha256('password'), function(err, user) {
         expect(err).to.not.be.instanceOf(Error);
         expect(user.id).to.equal('user@domain.tld');
         done();
