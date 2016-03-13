@@ -787,30 +787,25 @@
               "items": {
                 "type": "object",
                 "properties": {
-                  "destination": {
-                    "schema": {
-                      "type": "object",
-                      "properties": {
-                        "address": {
-                          "type": "string",
-                          "example": "162.243.48.250"
-                        },
-                        "port": {
-                          "type": "number",
-                          "example": 4000
-                        },
-                        "nodeID": {
-                          "type": "string",
-                          "example": "ff4a7c814c37f81cdc13c5254a2ca43b747d0395"
-                        }
-                      }
-                    },
-                    "description": "The contact information for the farmer this payload should be sent to"
-                  },
-                  "payload": {
+                  "hash": {
                     "type": "string",
-                    "description": "The JSON payload that should be sent to the destination to retrieve the shard",
-                    "example": "{..signed payload...}"
+                    "example": "ba084d3f143f2896809d3f1d7dffed472b39d8de",
+                    "description": "The hash of the file to retrieve"
+                  },
+                  "token": {
+                    "type": "string",
+                    "example": "99cf1af00b552113a856f8ef44f58d22269389e8009d292bafd10af7cc30dcfa",
+                    "description": "The token the farmer expects for this operation"
+                  },
+                  "operation": {
+                    "type": "string",
+                    "example": "PULL",
+                    "description": "The operation type"
+                  },
+                  "channel": {
+                    "type": "string",
+                    "example": "ws://farmer.hostname:4000",
+                    "description": "The farmer's websocket URL for data channel"
                   }
                 }
               }
