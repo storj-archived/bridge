@@ -26,13 +26,15 @@ describe('Engine/Integration', function() {
         // Set up Storj Farmer
         farmer = storj.Network({
           keypair: storj.KeyPair(),
-          manager: storj.Manager(storj.RAMStorageAdapter()),
+          manager: storj.Manager(storj.FSStorageAdapter(
+            require('os').tmpdir() + '/metadisk-testrunner-' + Date.now())
+          ),
           contact: {
             address: '127.0.0.1',
             port: 4000
           },
           seeds: [engine.getSpecification().info['x-network-seed']],
-          loglevel: 0,
+          loglevel: 1,
           datadir: require('os').tmpdir(),
           farmer: true,
           noforward: true
