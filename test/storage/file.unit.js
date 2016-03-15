@@ -35,33 +35,13 @@ after(function(done) {
 describe('Storage/models/File', function() {
 
   it('should create the file metadata', function(done) {
-    Bucket.create({ _id: 'user@domain.tld' }, {}, function(err, bucket) {
-      var file = new FilePointer({
-        _id: storj.utils.rmd160sha256('file'),
-        bucket: bucket.id,
-        filename: 'file.txt',
-        size: Buffer('file').length
-      });
-      file.save(function(err) {
-        expect(err).to.not.be.instanceOf(Error);
-        done();
-      });
+    var file = new FilePointer({
+      _id: storj.utils.rmd160sha256('another file'),
+      size: Buffer('another file').length
     });
-  });
-
-  it('should fail with invalid mimetype', function(done) {
-    Bucket.create({ _id: 'user@domain.tld' }, {}, function(err, bucket) {
-      var file = new FilePointer({
-        _id: storj.utils.rmd160sha256('invalid'),
-        bucket: bucket.id,
-        mimetype: 'invalid/mimetype',
-        filename: 'invalid.txt',
-        size: Buffer('invalid').length
-      });
-      file.save(function(err) {
-        expect(err).to.be.instanceOf(Error);
-        done();
-      });
+    file.save(function(err) {
+      expect(err).to.not.be.instanceOf(Error);
+      done();
     });
   });
 

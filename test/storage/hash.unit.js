@@ -40,17 +40,13 @@ after(function(done) {
 describe('Storage/models/Hash', function() {
 
   it('should create the hash metadata', function(done) {
-    Bucket.create({ _id: 'user@domain.tld' }, {}, function(err, bucket) {
-      var file = new FilePointer({
-        _id: storj.utils.rmd160sha256('somefile'),
-        bucket: bucket.id,
-        filename: 'somefile.txt',
-        size: Buffer('somefile').length
-      });
-      file.save(function(err) {
-        expect(err).to.not.be.instanceOf(Error);
-        Hash.create(file, storj.utils.rmd160sha256('somefile'), 0, done);
-      });
+    var file = new FilePointer({
+      _id: storj.utils.rmd160sha256('somefile'),
+      size: Buffer('somefile').length
+    });
+    file.save(function(err) {
+      expect(err).to.not.be.instanceOf(Error);
+      Hash.create(file, storj.utils.rmd160sha256('somefile'), 0, done);
     });
   });
 

@@ -258,8 +258,28 @@ describe('Engine/Integration', function() {
           ).then(function(file) {
             expect(file.hash).to.equal('d72d91d8ec94f89f5b6b84be2a03ba661a34c1e2');
             expect(file.size).to.equal(19);
+            expect().to.equal();
             done();
-          });
+          }, done);
+        });
+      });
+    });
+
+    it('should put a duplicate file in another bucket', function(done) {
+      this.timeout(8000);
+      client.createBucket().then(function(bucket) {
+        client.createToken(bucket.id, 'PUSH').then(function(token) {
+          client.storeFileInBucket(
+            token.bucket,
+            token.token,
+            new Buffer('Hello MetaDisk API!')
+          ).then(function(file) {
+            expect(file.bucket).to.equal(bucket.id);
+            expect(file.hash).to.equal('d72d91d8ec94f89f5b6b84be2a03ba661a34c1e2');
+            expect(file.size).to.equal(19);
+            expect().to.equal();
+            done();
+          }, done);
         });
       });
     });
@@ -273,7 +293,7 @@ describe('Engine/Integration', function() {
         client.listFilesInBucket(buckets[0].id).then(function(files) {
           expect(files).to.have.lengthOf(1);
           done();
-        });
+        }, done);
       });
     });
 
@@ -294,8 +314,25 @@ describe('Engine/Integration', function() {
               expect(pointers).to.have.lengthOf(1);
               client.resolveFileFromPointers(pointers).on('data', function(chunk) {
                 expect(chunk.toString()).to.equal('Hello MetaDisk API!');
-              }).on('end', done);
-            });
+              }).on('end', done).on('error', done);
+            }, done);
+          });
+        });
+      });
+    });
+
+    it('should return an error if hash is not found', function(done) {
+      client.getBuckets().then(function(buckets) {
+        client.createToken(buckets[0].id, 'PULL').then(function(token) {
+          client.getFilePointer(
+            buckets[0].id,
+            token.token,
+            'INVALIDHASH'
+          ).then(function() {
+            done(new Error('Error was not returned'));
+          }, function(err) {
+            expect(err.message).to.equal('The requested file was not found');
+            done();
           });
         });
       });
