@@ -340,4 +340,21 @@ describe('Engine/Integration', function() {
 
   });
 
+  describe('Authentication/PublicKey', function() {
+
+    it('should verify the signature', function(done) {
+      var kp = metadisk.KeyPair();
+      var newclient = metadisk.Client('http://127.0.0.1:6382', {
+        keypair: kp
+      });
+      client.addPublicKey(kp.getPublicKey()).then(function() {
+        newclient.getPublicKeys().then(function(keys) {
+          expect(Array.isArray(keys)).to.equal(true);
+          done();
+        }, done);
+      }, done);
+    });
+
+  });
+
 });

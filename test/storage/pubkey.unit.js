@@ -40,4 +40,13 @@ describe('Storage/models/PublicKey', function() {
     });
   });
 
+  it('should reject an invalid ecdsa key', function(done) {
+    PublicKey.create({
+      _id: 'user@domain.tld'
+    }, 'testkey', function(err) {
+      expect(err).to.be.instanceOf(Error);
+      done();
+    });
+  });
+
 });
