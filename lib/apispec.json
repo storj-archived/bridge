@@ -1,0 +1,818 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "MetaDisk API"
+  },
+  "host": "api.metadisk.org",
+  "basePath": "/",
+  "schemes": ["https"],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "securityDefinitions": {
+    "basic": {
+      "type": "basic",
+      "description": "HTTP Basic Authentication with email:sha256password",
+      "name": "Authorization",
+      "in": "header"
+    },
+    "ecdsa": {
+      "type": "apiKey",
+      "description": "ECDSA pubkey header and x-signature of the request body including nonce",
+      "name": "x-pubkey",
+      "in": "header"
+    }
+  },
+  "tags": ["users", "keys", "buckets"],
+  "paths": {
+    "/users": {
+      "post": {
+        "tags": ["users"],
+        "summary": "Registers a new user account with MetaDisk",
+        "parameters": [
+          {
+            "name": "user",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "description": "Email address for account activation and login",
+                  "required": true,
+                  "type": "string"
+                },
+                "password": {
+                  "description": "SHA-256 hash of your plaintext password",
+                  "required": true,
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User successfully registered and activation email sent",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "example": "gordon@storj.io"
+                },
+                "created": {
+                  "type": "string",
+                  "example": "2016-03-04T17:01:02.629Z"
+                },
+                "activated": {
+                  "type": "boolean",
+                  "example": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/activations/{token}": {
+      "get": {
+        "tags": ["users"],
+        "summary": "Activates a registered user and optionally redirects",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "type": "string",
+            "description": "Activation token sent to user's email address",
+            "required": true
+          },
+          {
+            "name": "redirect",
+            "in": "query",
+            "type": "string",
+            "description": "Optional redirect URL for successful activation"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User successfully activated",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "example": "gordon@storj.io"
+                },
+                "created": {
+                  "type": "string",
+                  "example": "2016-03-04T17:01:02.629Z"
+                },
+                "activated": {
+                  "type": "boolean",
+                  "example": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/keys": {
+      "get": {
+        "tags": ["keys"],
+        "security": [
+          { "basic": [] },
+          { "ecdsa": [] }
+        ],
+        "summary": "Lists the public ECDSA keys associated with the user",
+        "responses": {
+          "200": {
+            "description": "Keys successfully returned",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "key": {
+                    "type": "string",
+                    "example": "031a259ee122414f57a63bbd6887ee17960e9106b0adcf89a298cdad2108adf4d9"
+                  },
+                  "user": {
+                    "type": "string",
+                    "example": "gordon@storj.io"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["keys"],
+        "security": [
+          { "basic": [] },
+          { "ecdsa": [] }
+        ],
+        "summary": "Registers a ECDSA public key for the user account",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "description": "Hexidecimal encoded ECDSA public key",
+                  "required": true,
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Key successfully registered",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "example": "031a259ee122414f57a63bbd6887ee17960e9106b0adcf89a298cdad2108adf4d9"
+                },
+                "user": {
+                  "type": "string",
+                  "example": "gordon@storj.io"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/keys/{pubkey}": {
+      "delete": {
+        "tags": ["keys"],
+        "security": [
+          { "basic": [] },
+          { "ecdsa": [] }
+        ],
+        "summary": "Destroys a ECDSA public key for the user account",
+        "parameters": [
+          {
+            "name": "pubkey",
+            "in": "path",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Key successfully destroyed"
+          }
+        }
+      }
+    },
+    "/buckets": {
+      "get": {
+        "tags": ["buckets"],
+        "security": [
+          { "basic": [] },
+          { "ecdsa": [] }
+        ],
+        "summary": "Lists all of the buckets belonging to the user",
+        "responses": {
+          "200": {
+            "description": "Buckets successfully returned",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "storage": {
+                    "type": "number",
+                    "description": "Amount of storage space in GB",
+                    "example": 10
+                  },
+                  "transfer": {
+                    "type": "number",
+                    "description": "Amount of transfer in GB",
+                    "example": 30
+                  },
+                  "status": {
+                    "type": "string",
+                    "description": "State of the bucket",
+                    "example": "Active"
+                  },
+                  "pubkeys": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "description": "Public ECDSA keys associated with the bucket",
+                      "example": "031a259ee122414f57a63bbd6887ee17960e9106b0adcf89a298cdad2108adf4d9"
+                    }
+                  },
+                  "user": {
+                    "type": "string",
+                    "description": "User account to which the bucket belongs",
+                    "example": "gordon@storj.io"
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "Name of the bucket",
+                    "default": "New Bucket"
+                  },
+                  "created": {
+                    "type": "string",
+                    "description": "The date and time the bucket was created",
+                    "example": "2016-03-04T17:01:02.629Z"
+                  },
+                  "id": {
+                    "type": "string",
+                    "description": "Unique ID for the bucket",
+                    "example": "507f1f77bcf86cd799439011"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["buckets"],
+        "security": [
+          { "basic": [] },
+          { "ecdsa": [] }
+        ],
+        "summary": "Creates a new bucket with the given parameters",
+        "parameters": [
+          {
+            "name": "bucket",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "storage": {
+                  "type": "number",
+                  "description": "Amount of storage space in GB",
+                  "example": 10
+                },
+                "transfer": {
+                  "type": "number",
+                  "description": "Amount of transfer in GB",
+                  "example": 30
+                },
+                "pubkeys": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "description": "Public ECDSA keys associated with the bucket",
+                    "example": "031a259ee122414f57a63bbd6887ee17960e9106b0adcf89a298cdad2108adf4d9"
+                  }
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Name of the bucket",
+                  "default": "New Bucket"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bucket successfully created",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "storage": {
+                  "type": "number",
+                  "description": "Amount of storage space in GB",
+                  "example": 10
+                },
+                "transfer": {
+                  "type": "number",
+                  "description": "Amount of transfer in GB",
+                  "example": 30
+                },
+                "status": {
+                  "type": "string",
+                  "description": "State of the bucket",
+                  "example": "Active"
+                },
+                "pubkeys": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "description": "Public ECDSA keys associated with the bucket",
+                    "example": "031a259ee122414f57a63bbd6887ee17960e9106b0adcf89a298cdad2108adf4d9"
+                  }
+                },
+                "user": {
+                  "type": "string",
+                  "description": "User account to which the bucket belongs",
+                  "example": "gordon@storj.io"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Name of the bucket",
+                  "default": "New Bucket"
+                },
+                "created": {
+                  "type": "string",
+                  "description": "The date and time the bucket was created",
+                  "example": "2016-03-04T17:01:02.629Z"
+                },
+                "id": {
+                  "type": "string",
+                  "description": "Unique ID for the bucket",
+                  "example": "507f1f77bcf86cd799439011"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/buckets/{id}": {
+      "get": {
+        "tags": ["buckets"],
+        "security": [
+          { "basic": [] },
+          { "ecdsa": [] }
+        ],
+        "summary": "Returns the bucket object by the given ID",
+        "parameters": [
+          {
+            "name": "id",
+            "type": "string",
+            "in": "path",
+            "description": "Unique ID of the bucket to retrieve",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bucket successfully returned",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "storage": {
+                  "type": "number",
+                  "description": "Amount of storage space in GB",
+                  "example": 30
+                },
+                "transfer": {
+                  "type": "number",
+                  "description": "Amount of transfer in GB",
+                  "example": 50
+                },
+                "status": {
+                  "type": "string",
+                  "description": "State of the bucket",
+                  "example": "Active"
+                },
+                "pubkeys": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "description": "Public ECDSA keys associated with the bucket",
+                    "example": "031a259ee122414f57a63bbd6887ee17960e9106b0adcf89a298cdad2108adf4d9"
+                  }
+                },
+                "user": {
+                  "type": "string",
+                  "description": "User account to which the bucket belongs",
+                  "example": "gordon@storj.io"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Name of the bucket",
+                  "default": "New Bucket"
+                },
+                "created": {
+                  "type": "string",
+                  "description": "The date and time the bucket was created",
+                  "example": "2016-03-04T17:01:02.629Z"
+                },
+                "id": {
+                  "type": "string",
+                  "description": "Unique ID for the bucket",
+                  "example": "507f1f77bcf86cd799439011"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": ["buckets"],
+        "security": [
+          { "basic": [] },
+          { "ecdsa": [] }
+        ],
+        "summary": "Updates the bucket with the given properties",
+        "parameters": [
+          {
+            "name": "id",
+            "type": "string",
+            "in": "path",
+            "description": "Unique ID of the bucket to update",
+            "required": true
+          },
+          {
+            "name": "bucket",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "storage": {
+                  "type": "number",
+                  "description": "Amount of storage space in GB",
+                  "example": 10
+                },
+                "transfer": {
+                  "type": "number",
+                  "description": "Amount of transfer in GB",
+                  "example": 30
+                },
+                "pubkeys": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "description": "Public ECDSA keys associated with the bucket",
+                    "example": "031a259ee122414f57a63bbd6887ee17960e9106b0adcf89a298cdad2108adf4d9"
+                  }
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Name of the bucket",
+                  "default": "New Bucket"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bucket successfully updated",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "storage": {
+                  "type": "number",
+                  "description": "Amount of storage space in GB",
+                  "example": 30
+                },
+                "transfer": {
+                  "type": "number",
+                  "description": "Amount of transfer in GB",
+                  "example": 50
+                },
+                "status": {
+                  "type": "string",
+                  "description": "State of the bucket",
+                  "example": "Active"
+                },
+                "pubkeys": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "description": "Public ECDSA keys associated with the bucket",
+                    "example": "031a259ee122414f57a63bbd6887ee17960e9106b0adcf89a298cdad2108adf4d9"
+                  }
+                },
+                "user": {
+                  "type": "string",
+                  "description": "User account to which the bucket belongs",
+                  "example": "gordon@storj.io"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Name of the bucket",
+                  "default": "New Bucket"
+                },
+                "created": {
+                  "type": "string",
+                  "description": "The date and time the bucket was created",
+                  "example": "2016-03-04T17:01:02.629Z"
+                },
+                "id": {
+                  "type": "string",
+                  "description": "Unique ID for the bucket",
+                  "example": "507f1f77bcf86cd799439011"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["buckets"],
+        "security": [
+          { "basic": [] },
+          { "ecdsa": [] }
+        ],
+        "summary": "Destroys the bucket with the given ID",
+        "parameters": [
+          {
+            "name": "id",
+            "type": "string",
+            "in": "path",
+            "required": true,
+            "description": "Unique ID of the bucket to destroy"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bucket successfully destroyed"
+          }
+        }
+      }
+    },
+    "/buckets/{id}/tokens": {
+      "post": {
+        "tags": ["buckets"],
+        "security": [
+          { "basic": [] },
+          { "ecdsa": [] }
+        ],
+        "summary": "Creates a token for the specified operation",
+        "parameters": [
+          {
+            "name": "id",
+            "type": "string",
+            "in": "path",
+            "description": "Unique ID of the bucket for the desired token",
+            "required": true
+          },
+          {
+            "name": "operation",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "operation": {
+                  "type": "string",
+                  "description": "PUSH or PULL operation"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Token successfully created",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "token": {
+                  "type": "string",
+                  "description": "The unique one-time-use token"
+                },
+                "bucket": {
+                  "type": "string",
+                  "description": "The bucket ID the token is for"
+                },
+                "expires": {
+                  "type": "string",
+                  "description": "The time the token will expire"
+                },
+                "operation": {
+                  "type": "string",
+                  "description": "The operation the token is for"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/buckets/{id}/files": {
+      "put": {
+        "consumes": ["multipart/form-data"],
+        "tags": ["buckets"],
+        "security": [
+          { "basic": [] },
+          { "ecdsa": [] }
+        ],
+        "summary": "Store a file in the Storj network through MetaDisk",
+        "parameters": [
+          {
+            "type": "string",
+            "in": "path",
+            "name": "id",
+            "description": "The unique bucket ID for the request",
+            "required": true
+          },
+          {
+            "type": "file",
+            "in": "formData",
+            "name": "file",
+            "description": "The file to upload to the network",
+            "required": true
+          },
+          {
+            "type": "string",
+            "in": "header",
+            "name": "x-token",
+            "description": "A valid PUSH token for this bucket",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File successfully uploaded",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "hash": {
+                  "type": "string",
+                  "example": "9c1185a5c5e9fc54612808977ee8f548b2258d31"
+                },
+                "bucket": {
+                  "type": "string",
+                  "example": "507f1f77bcf86cd799439011"
+                },
+                "mimetype": {
+                  "type": "string",
+                  "example": "video/mpeg"
+                },
+                "filename": {
+                  "type": "string",
+                  "example": "big_buck_bunny.mp4"
+                },
+                "size": {
+                  "type": "number",
+                  "example": 5071076
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": ["buckets"],
+        "security": [
+          { "basic": [] },
+          { "ecdsa": [] }
+        ],
+        "summary": "List the all the file metadata stored in the bucket",
+        "parameters": [
+          {
+            "type": "string",
+            "in": "path",
+            "name": "id",
+            "description": "The unique bucket ID for the request",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Buckets successfully returned",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "hash": {
+                    "type": "string",
+                    "example": "9c1185a5c5e9fc54612808977ee8f548b2258d31"
+                  },
+                  "bucket": {
+                    "type": "string",
+                    "example": "507f1f77bcf86cd799439011"
+                  },
+                  "mimetype": {
+                    "type": "string",
+                    "example": "video/mpeg"
+                  },
+                  "filename": {
+                    "type": "string",
+                    "example": "big_buck_bunny.mp4"
+                  },
+                  "size": {
+                    "type": "number",
+                    "example": 5071076
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/buckets/{id}/files/{hash}": {
+      "get": {
+        "tags": ["buckets"],
+        "security": [
+          { "basic": [] },
+          { "ecdsa": [] }
+        ],
+        "summary": "Retrieve a series of file pointers for retrieval of file from the Storj network",
+        "parameters": [
+          {
+            "type": "string",
+            "in": "path",
+            "name": "id",
+            "description": "The unique bucket ID for the request",
+            "required": true
+          },
+          {
+            "type": "string",
+            "in": "path",
+            "name": "hash",
+            "description": "The file hash to get pointers for",
+            "required": true
+          },
+          {
+            "type": "string",
+            "in": "header",
+            "name": "x-token",
+            "description": "A valid PULL token for this bucket",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File pointers successfully returned",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "hash": {
+                    "type": "string",
+                    "example": "ba084d3f143f2896809d3f1d7dffed472b39d8de",
+                    "description": "The hash of the file to retrieve"
+                  },
+                  "token": {
+                    "type": "string",
+                    "example": "99cf1af00b552113a856f8ef44f58d22269389e8009d292bafd10af7cc30dcfa",
+                    "description": "The token the farmer expects for this operation"
+                  },
+                  "operation": {
+                    "type": "string",
+                    "example": "PULL",
+                    "description": "The operation type"
+                  },
+                  "channel": {
+                    "type": "string",
+                    "example": "ws://farmer.hostname:4000",
+                    "description": "The farmer's websocket URL for data channel"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

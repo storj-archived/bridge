@@ -1,7 +1,7 @@
 {
   "name": "metadisk-api",
-  "version": "0.0.0",
-  "description": "access the storj network via simple rest api",
+  "version": "0.2.2",
+  "description": "Access the Storj network using a simple REST API.",
   "main": "index.js",
   "directories": {
     "doc": "doc",
@@ -11,10 +11,13 @@
     "metadisk": "bin/metadisk.js"
   },
   "scripts": {
-    "testsuite": "mocha test/**",
-    "coverage": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- --recursive",
+    "testsuite": "NODE_ENV=test mocha test/**",
+    "coverage": "NODE_ENV=test ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- --recursive",
     "linter": "./node_modules/.bin/jshint --config .jshintrc ./index.js ./lib ./test",
-    "test": "npm run testsuite && npm run linter"
+    "test": "npm run testsuite && npm run linter",
+    "develop": "node script/develop.js",
+    "make-docs": "./node_modules/.bin/jsdoc index.js lib -r -R README.md -u ./doc -c .jsdoc.json --verbose -d ./jsdoc",
+    "publish-docs": "npm run make-docs && node script/publishdoc.js"
   },
   "repository": {
     "type": "git",
@@ -24,7 +27,10 @@
     "storj",
     "metadisk"
   ],
-  "author": "Gordon Hall <gordon@gordonwritescode.com>",
+  "author": {
+    "name": "Gordon Hall",
+    "email": "gordon@storj.io"
+  },
   "license": "AGPL-3.0",
   "bugs": {
     "url": "https://github.com/Storj/metadisk-api/issues"
@@ -33,8 +39,11 @@
   "devDependencies": {
     "chai": "^3.4.1",
     "coveralls": "^2.11.6",
+    "ink-docstrap": "^1.1.4",
     "istanbul": "^0.4.1",
+    "jsdoc": "^3.4.0",
     "jshint": "2.8.0",
+    "metadisk-client": "^0.2.0",
     "mocha": "^2.3.4",
     "proxyquire": "^1.7.3",
     "sinon": "^1.17.2"
@@ -50,12 +59,13 @@
     "handlebars": "^4.0.5",
     "hat": "0.0.3",
     "merge": "^1.2.0",
+    "mime-db": "^1.22.0",
     "mongoose": "^4.3.4",
     "mongoose-types": "^1.0.3",
     "ms": "^0.7.1",
     "nodemailer": "^2.0.0",
     "readable-stream": "^2.0.5",
-    "storj": "storj/node-storj",
+    "storj": "^0.2.0",
     "through": "^2.3.8"
   }
 }
