@@ -212,7 +212,7 @@
           }
         ],
         "responses": {
-          "200": {
+          "204": {
             "description": "Key successfully destroyed"
           }
         }
@@ -570,7 +570,7 @@
           }
         ],
         "responses": {
-          "200": {
+          "204": {
             "description": "Bucket successfully destroyed"
           }
         }
@@ -810,6 +810,35 @@
                 }
               }
             }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["buckets"],
+        "security": [
+          { "basic": [] },
+          { "ecdsa": [] }
+        ],
+        "summary": "Destroy the file pointer from the bucket and allow data to expire in network",
+        "parameters": [
+          {
+            "type": "string",
+            "in": "path",
+            "name": "id",
+            "description": "The unique bucket ID for the request",
+            "required": true
+          },
+          {
+            "type": "string",
+            "in": "path",
+            "name": "hash",
+            "description": "The file hash to destroy pointers",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "File pointers successfully destroyed"
           }
         }
       }
