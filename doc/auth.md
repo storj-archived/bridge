@@ -55,18 +55,26 @@ In addition you must supply the public key for verifying the signature in the
 MetaDisk will first lookup the user account to which the supplied public key is
 registered and then use it to verify the signature.
 
-### Openssl example
-```
+### OpenSSL example
+
 Create ECDSA private key and print out public key
-$ openssl ecparam -genkey -name secp256k1 -noout -outform DER -out private.key
-$ openssl ec -inform DER -in private.key -noout -text
+
+```
+openssl ecparam -genkey -name secp256k1 -noout -outform DER -out private.key
+openssl ec -inform DER -in private.key -noout -text
+```
 
 Register public key (HTTP basic auth)
-$ curl -u user:password -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d '{ "key": "043874de22536decc5508257cc806a9e5af5e8be6a80056843d5c0c2b112903430f9a46c128ca17e30e2fb54f541416185dda2df878adbb90d66811452f4162125" }' 'https://api.metadisk.org/keys'
+
+```
+curl -u user:password -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d '{ "key": "043874de22536decc5508257cc806a9e5af5e8be6a80056843d5c0c2b112903430f9a46c128ca17e30e2fb54f541416185dda2df878adbb90d66811452f4162125" }' 'https://api.metadisk.org/keys'
+```
 
 Generate signature and use it for API call
-$ printf "POST\n/buckets\n{\"storage\":10,\"transfer\":30,\"name\":\"MyBucket\",\"__nonce\":1453222669376}" | openssl dgst -sha256 -hex -sign private.key -keyform DER
-$ curl --header "x-signature:3046022100e5b534eba11f19d4e3e92398e4ffdf8195041a7de13a1ffe8eb3baf66eb694b8022100982837e3b449fc9e4524009acd03800abf6447cf225a83d6f21bfa67a8326465" --header "x-pubkey:043874de22536decc5508257cc806a9e5af5e8be6a80056843d5c0c2b112903430f9a46c128ca17e30e2fb54f541416185dda2df878adbb90d66811452f4162125" -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d '{"storage":10,"transfer":30,"name":"MyBucket","__nonce":1453222669376}' 'https://api.metadisk.org/buckets'
+
+```
+printf "POST\n/buckets\n{\"storage\":10,\"transfer\":30,\"name\":\"MyBucket\",\"__nonce\":1453222669376}" | openssl dgst -sha256 -hex -sign private.key -keyform DER
+curl --header "x-signature:3046022100e5b534eba11f19d4e3e92398e4ffdf8195041a7de13a1ffe8eb3baf66eb694b8022100982837e3b449fc9e4524009acd03800abf6447cf225a83d6f21bfa67a8326465" --header "x-pubkey:043874de22536decc5508257cc806a9e5af5e8be6a80056843d5c0c2b112903430f9a46c128ca17e30e2fb54f541416185dda2df878adbb90d66811452f4162125" -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d '{"storage":10,"transfer":30,"name":"MyBucket","__nonce":1453222669376}' 'https://api.metadisk.org/buckets'
 ```
 
 ### Single Use Tokens
