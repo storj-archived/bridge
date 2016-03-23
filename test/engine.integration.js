@@ -250,7 +250,7 @@ describe('Engine/Integration', function() {
           expect(token.operation).to.equal('PULL');
           expect(token.bucket).to.equal(buckets[0].id);
           done();
-        });
+        }, done);
       });
     });
 
@@ -259,6 +259,37 @@ describe('Engine/Integration', function() {
         client.createToken(buckets[0].id, 'PUSH').then(function(token) {
           expect(token.operation).to.equal('PUSH');
           expect(token.bucket).to.equal(buckets[0].id);
+          done();
+        }, done);
+      });
+    });
+
+    it('should allow authorized unregistered key create token', function(done) {
+      client.getBuckets().then(function(buckets) {
+        let unregkp = metadisk.KeyPair();
+        client.updateBucketById(buckets[0].id, {
+          pubkeys: buckets[0].pubkeys.concat([unregkp.getPublicKey()])
+        }).then(function(bucket) {
+          let tmpclient = metadisk.Client('http://127.0.0.1:6382', {
+            keypair: unregkp
+          });
+          tmpclient.createToken(bucket.id, 'PULL').then(function(token) {
+            expect(token.operation).to.equal('PULL');
+            expect(token.bucket).to.equal(bucket.id);
+            done();
+          }, done);
+        });
+      });
+    });
+
+    it('should not allow unauthorized key create token', function(done) {
+      client.getBuckets().then(function(buckets) {
+        let unregkp = metadisk.KeyPair();
+        let tmpclient = metadisk.Client('http://127.0.0.1:6382', {
+          keypair: unregkp
+        });
+        tmpclient.createToken(buckets[0].id, 'PULL').catch(function(err) {
+          expect(err.message).to.equal('Bucket not found');
           done();
         });
       });
@@ -282,7 +313,7 @@ describe('Engine/Integration', function() {
             expect().to.equal();
             done();
           }, done);
-        });
+        }).catch(done);
       });
     });
 
