@@ -76,6 +76,25 @@ describe('Engine/Integration', function() {
       });
     });
 
+    it('should register the user account with a pubkey', function(done) {
+      let keypair = metadisk.KeyPair();
+      client.createUser(
+        'test2@domain.tld',
+        'password',
+        null,
+        keypair.getPublicKey()
+      ).then(function(result) {
+        expect(result.pubkey).to.equal(keypair.getPublicKey());
+        let tmpclient = metadisk.Client('http://127.0.0.1:6382', {
+          keypair: keypair
+        });
+        tmpclient.getPublicKeys().then(function(keys) {
+          expect(keys).to.have.lengthOf(1);
+          done();
+        });
+      });
+    });
+
   });
 
   describe('POST /activations/:token', function() {

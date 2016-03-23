@@ -49,6 +49,11 @@
                   "description": "SHA-256 hash of your plaintext password",
                   "required": true,
                   "type": "string"
+                },
+                "pubkey": {
+                  "description": "ECDSA key to initially register",
+                  "required": false,
+                  "type": "string"
                 }
               }
             }
