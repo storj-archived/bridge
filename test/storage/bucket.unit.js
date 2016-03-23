@@ -33,6 +33,8 @@ describe('Storage/models/Bucket', function() {
     it('should create the bucket with the default props', function(done) {
       Bucket.create({ _id: 'user@domain.tld' }, {}, function(err, bucket) {
         expect(err).to.equal(null);
+        expect(bucket.storage).to.equal(10);
+        expect(bucket.transfer).to.equal(30);
         Bucket.findOne({ _id: bucket.id }, function(err, bucket) {
           expect(bucket.storage).to.equal(10);
           expect(bucket.transfer).to.equal(30);
