@@ -310,11 +310,10 @@ describe('Engine/Integration', function() {
           ).then(function(file) {
             expect(file.hash).to.equal('d72d91d8ec94f89f5b6b84be2a03ba661a34c1e2');
             expect(file.size).to.equal(19);
-            expect().to.equal();
             done();
           }, done);
-        }).catch(done);
-      });
+        }, done);
+      }, done);
     });
 
     it('should put a duplicate file in another bucket', function(done) {
@@ -332,8 +331,8 @@ describe('Engine/Integration', function() {
             expect().to.equal();
             done();
           }, done);
-        });
-      });
+        }, done);
+      }, done);
     });
 
   });
@@ -346,7 +345,7 @@ describe('Engine/Integration', function() {
           expect(files).to.have.lengthOf(1);
           done();
         }, done);
-      });
+      }, done);
     });
 
   });
@@ -368,9 +367,9 @@ describe('Engine/Integration', function() {
                 expect(chunk.toString()).to.equal('Hello MetaDisk API!');
               }).on('end', done).on('error', done);
             }, done);
-          });
-        });
-      });
+          }, done);
+        }, done);
+      }, done);
     });
 
     it('should return an error if hash is not found', function(done) {
