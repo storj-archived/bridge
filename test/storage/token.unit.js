@@ -46,6 +46,15 @@ describe('Storage/models/Token', function() {
       });
     });
 
+    it('should not create the token for invalid operation', function(done) {
+      Bucket.create({ _id: 'user@domain.tld' }, {}, function(err, bucket) {
+        Token.create(bucket, 'Push', function(err) {
+          expect(err.message).to.equal('Token validation failed');
+          done();
+        });
+      });
+    });
+
   });
 
   describe('#generate', function() {

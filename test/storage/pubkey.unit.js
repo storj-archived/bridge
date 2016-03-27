@@ -29,8 +29,9 @@ after(function(done) {
 
 describe('Storage/models/PublicKey', function() {
 
+  var publicKey = storj.KeyPair().getPublicKey();
+  
   it('should create the public key', function(done) {
-    var publicKey = storj.KeyPair().getPublicKey();
     PublicKey.create({
       _id: 'user@domain.tld'
     }, publicKey, function(err, pubkey) {
@@ -40,11 +41,24 @@ describe('Storage/models/PublicKey', function() {
     });
   });
 
+  it('should not create duplicate key', function(done) {
+    PublicKey.create({
+      _id: 'user@domain.tld'
+    }, publicKey, function(err) {
+      expect(err.message).to.equal(
+        'Public key is already registered'
+      );
+      done();
+    });
+  });
+
   it('should reject an invalid ecdsa key', function(done) {
     PublicKey.create({
       _id: 'user@domain.tld'
     }, 'testkey', function(err) {
-      expect(err).to.be.instanceOf(Error);
+      expect(err.message).to.equal(
+        'Invalid public key supplied: Invalid hex string'
+      );
       done();
     });
   });
