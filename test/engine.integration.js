@@ -69,13 +69,6 @@ describe('Engine/Integration', function() {
       });
     });
 
-    it('should fail to register a duplicate email', function(done) {
-      client.createUser('test@domain.tld', 'password').catch(function(err) {
-        expect(err.message).to.equal('Email is already registered');
-        done();
-      });
-    });
-
     it('should register the user account with a pubkey', function(done) {
       let keypair = metadisk.KeyPair();
       client.createUser(

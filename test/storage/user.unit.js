@@ -50,6 +50,13 @@ describe('Storage/models/User', function() {
       });
     });
 
+    it('should not create a invalid email', function(done) {
+      User.create('wrong@domain', sha256('password'), function(err) {
+        expect(err.message).to.equal('User validation failed');
+        done();
+      });
+    });
+
     it('should not create a user account with bad password', function(done) {
       User.create('wrong@domain.tld', 'password', function(err) {
         expect(err.message).to.equal('Password must be hex encoded SHA-256 hash');
@@ -63,6 +70,7 @@ describe('Storage/models/User', function() {
 
     it('should activate the user account', function(done) {
       User.findOne({}, function(err, user) {
+        expect(err).to.not.be.instanceOf(Error);
         expect(user.activated).to.equal(false);
         user.activate(function() {
           expect(user.activated).to.equal(true);
@@ -77,6 +85,7 @@ describe('Storage/models/User', function() {
 
     it('should activate the user account', function(done) {
       User.findOne({}, function(err, user) {
+        expect(err).to.not.be.instanceOf(Error);
         expect(user.activated).to.equal(true);
         user.deactivate(function() {
           expect(user.activated).to.equal(false);
