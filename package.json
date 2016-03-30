@@ -1,6 +1,6 @@
 {
   "name": "metadisk-api",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Access the Storj network using a simple REST API.",
   "main": "index.js",
   "directories": {
@@ -43,7 +43,7 @@
     "istanbul": "^0.4.1",
     "jsdoc": "^3.4.0",
     "jshint": "2.8.0",
-    "metadisk-client": "^0.3.0",
+    "metadisk-client": "^0.3.1",
     "mocha": "^2.3.4",
     "proxyquire": "^1.7.3",
     "sinon": "^1.17.2"
@@ -65,7 +65,7 @@
     "ms": "^0.7.1",
     "nodemailer": "^2.0.0",
     "readable-stream": "^2.0.5",
-    "storj": "^0.3.0",
+    "storj": "^0.4.0",
     "through": "^2.3.8"
   }
 }

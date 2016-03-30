@@ -36,7 +36,7 @@ describe('Engine/Integration', function() {
           seeds: [engine.getSpecification().info['x-network-seed']],
           loglevel: 1,
           datadir: require('os').tmpdir(),
-          farmer: true,
+          farmer: ['01020202'],
           noforward: true
         });
         // Seed metadisk
