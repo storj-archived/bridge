@@ -1,6 +1,6 @@
 {
   "name": "metadisk-api",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "Access the Storj network using a simple REST API.",
   "main": "index.js",
   "directories": {
