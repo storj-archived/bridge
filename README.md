@@ -27,7 +27,7 @@ Clone the repository, install dependencies:
 
 ```
 git clone https://github.com/Storj/bridge.git
-cd metadisk-api
+cd bridge
 npm install && npm link
 ```
 
