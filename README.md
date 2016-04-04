@@ -1,8 +1,8 @@
-MetaDisk API
+Storj Bridge
 ============
 
-[![Build Status](https://img.shields.io/travis/Storj/metadisk-api.svg?style=flat-square)](https://travis-ci.org/Storj/metadisk-api)
-[![Coverage Status](https://img.shields.io/coveralls/Storj/metadisk-api.svg?style=flat-square)](https://coveralls.io/r/Storj/metadisk-api)
+[![Build Status](https://img.shields.io/travis/Storj/bridge.svg?style=flat-square)](https://travis-ci.org/Storj/bridge)
+[![Coverage Status](https://img.shields.io/coveralls/Storj/bridge.svg?style=flat-square)](https://coveralls.io/r/Storj/bridge)
 
 Access the [Storj](http://storj.io) network via simple REST API.
 
@@ -26,7 +26,7 @@ nvm install 4.2.3
 Clone the repository, install dependencies:
 
 ```
-git clone https://github.com/Storj/metadisk-api.git
+git clone https://github.com/Storj/bridge.git
 cd metadisk-api
 npm install && npm link
 ```
@@ -34,25 +34,25 @@ npm install && npm link
 Start the server (set the `NODE_ENV` environment variable to specify the config):
 
 ```
-NODE_ENV=develop metadisk
+NODE_ENV=develop storj-bridge
 ```
 
-This will use the configuration file located at `~/.metadisk/config/develop.json`.
-For local testing and development, you can run MetaDisk API and a farmer to seed
+This will use the configuration file located at `~/.storj-bridge/config/develop.json`.
+For local testing and development, you can run Storj Bridge and a farmer to seed
 it using the included development script:
 
 ```
-cd /path/to/metadisk-api
+cd /path/to/storj-bridge
 npm run develop
 ```
 
-For more information, see [the documentation](http://storj.github.io/metadisk-api).
+For more information, see [the documentation](http://storj.github.io/bridge).
 
 License
 -------
 
 ```
-MetaDisk - Access The Storj Network via REST Interface  
+Storj Bridge - Access The Storj Network via REST Interface  
 Copyright (C) 2016  Storj Labs, Inc
 
 This program is free software: you can redistribute it and/or modify

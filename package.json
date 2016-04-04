@@ -1,5 +1,5 @@
 {
-  "name": "metadisk-api",
+  "name": "storj-bridge",
   "version": "0.4.3",
   "description": "Access the Storj network using a simple REST API.",
   "main": "index.js",
@@ -8,7 +8,7 @@
     "test": "test"
   },
   "bin": {
-    "metadisk": "bin/metadisk.js"
+    "storj-bridge": "bin/storj-bridge.js"
   },
   "scripts": {
     "testsuite": "NODE_ENV=test mocha test/**",
@@ -21,7 +21,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Storj/metadisk-api.git"
+    "url": "git+https://github.com/Storj/bridge.git"
   },
   "keywords": [
     "storj",
@@ -33,9 +33,9 @@
   },
   "license": "AGPL-3.0",
   "bugs": {
-    "url": "https://github.com/Storj/metadisk-api/issues"
+    "url": "https://github.com/Storj/bridge/issues"
   },
-  "homepage": "https://github.com/Storj/metadisk-api#readme",
+  "homepage": "https://github.com/Storj/bridge#readme",
   "devDependencies": {
     "chai": "^3.4.1",
     "coveralls": "^2.11.6",
