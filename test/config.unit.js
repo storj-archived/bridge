@@ -11,7 +11,7 @@ describe('Config', function() {
 
   const ENV = process.env;
   const PLATFORM = os.platform();
-  const DIRNAME = '.metadisk';
+  const DIRNAME = '.storj-bridge';
   const HOME = PLATFORM === 'win32' ? ENV.USER_PROFILE : ENV.HOME;
   const DATADIR = path.join(HOME, DIRNAME);
   const CONFDIR = path.join(DATADIR, 'config');
