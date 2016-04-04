@@ -3,7 +3,7 @@
 const async = require('async');
 const expect = require('chai').expect;
 const storj = require('storj');
-const metadisk = require('metadisk-client');
+const bridge = require('storj-bridge-client');
 
 const Config = require('..').Config;
 const Engine = require('..').Engine;
@@ -11,8 +11,8 @@ const Engine = require('..').Engine;
 describe('Engine/Integration', function() {
 
   var engine, farmer;
-  var keypair = metadisk.KeyPair();
-  var client = metadisk.Client('http://127.0.0.1:6382');
+  var keypair = bridge.KeyPair();
+  var client = bridge.Client('http://127.0.0.1:6382');
 
   before(function(done) {
     // Set up MetaDisk API Server
@@ -70,7 +70,7 @@ describe('Engine/Integration', function() {
     });
 
     it('should register the user account with a pubkey', function(done) {
-      let keypair = metadisk.KeyPair();
+      let keypair = bridge.KeyPair();
       client.createUser(
         'test2@domain.tld',
         'password',
@@ -78,7 +78,7 @@ describe('Engine/Integration', function() {
         keypair.getPublicKey()
       ).then(function(result) {
         expect(result.pubkey).to.equal(keypair.getPublicKey());
-        let tmpclient = metadisk.Client('http://127.0.0.1:6382', {
+        let tmpclient = bridge.Client('http://127.0.0.1:6382', {
           keypair: keypair
         });
         tmpclient.getPublicKeys().then(function(keys) {
@@ -113,7 +113,7 @@ describe('Engine/Integration', function() {
   describe('POST /keys', function() {
 
     before(function() {
-      client = metadisk.Client('http://127.0.0.1:6382', {
+      client = bridge.Client('http://127.0.0.1:6382', {
         basicauth: {
           email: 'test@domain.tld',
           password: 'password'
@@ -129,7 +129,7 @@ describe('Engine/Integration', function() {
     });
 
     after(function() {
-      client = metadisk.Client('http://127.0.0.1:6382', {
+      client = bridge.Client('http://127.0.0.1:6382', {
         keypair: keypair
       });
     });
@@ -151,7 +151,7 @@ describe('Engine/Integration', function() {
 
     it('should invalidate the supplied public key', function(done) {
       client.addPublicKey(
-        metadisk.KeyPair().getPublicKey()
+        bridge.KeyPair().getPublicKey()
       ).then(function(key) {
         client.destroyPublicKey(key.key).then(function(result) {
           expect(result).to.equal(undefined);
@@ -259,11 +259,11 @@ describe('Engine/Integration', function() {
 
     it('should allow authorized unregistered key create token', function(done) {
       client.getBuckets().then(function(buckets) {
-        let unregkp = metadisk.KeyPair();
+        let unregkp = bridge.KeyPair();
         client.updateBucketById(buckets[0].id, {
           pubkeys: buckets[0].pubkeys.concat([unregkp.getPublicKey()])
         }).then(function(bucket) {
-          let tmpclient = metadisk.Client('http://127.0.0.1:6382', {
+          let tmpclient = bridge.Client('http://127.0.0.1:6382', {
             keypair: unregkp
           });
           tmpclient.createToken(bucket.id, 'PULL').then(function(token) {
@@ -277,8 +277,8 @@ describe('Engine/Integration', function() {
 
     it('should not allow unauthorized key create token', function(done) {
       client.getBuckets().then(function(buckets) {
-        let unregkp = metadisk.KeyPair();
-        let tmpclient = metadisk.Client('http://127.0.0.1:6382', {
+        let unregkp = bridge.KeyPair();
+        let tmpclient = bridge.Client('http://127.0.0.1:6382', {
           keypair: unregkp
         });
         tmpclient.createToken(buckets[0].id, 'PULL').catch(function(err) {
@@ -387,8 +387,8 @@ describe('Engine/Integration', function() {
   describe('Authentication/PublicKey', function() {
 
     it('should verify the signature', function(done) {
-      var kp = metadisk.KeyPair();
-      var newclient = metadisk.Client('http://127.0.0.1:6382', {
+      var kp = bridge.KeyPair();
+      var newclient = bridge.Client('http://127.0.0.1:6382', {
         keypair: kp
       });
       client.addPublicKey(kp.getPublicKey()).then(function() {
