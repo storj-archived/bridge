@@ -60,12 +60,14 @@ describe('pubkey/Integration', function() {
 
   describe('POST /buckets', function() {
 
-    it('should not create duplicate key', function(done) {
+    it('should allow duplicate key', function(done) {
       client.createBucket({
         name: 'Test Bucket duplicate key',
         pubkeys: [ keypair.getPublicKey() ]
       }).then(function(bucket) {
         expect(bucket.name).to.equal('Test Bucket duplicate key');
+        expect(bucket.pubkeys).to.have.lengthOf(1);
+        expect(bucket.pubkeys[0]).to.equal(keypair.getPublicKey());
         done();
       });
     });
@@ -81,6 +83,24 @@ describe('pubkey/Integration', function() {
         done();
       });
 
+    });
+
+  });
+
+  describe('PATCH /buckets/:id', function() {
+
+    it('should update the bucket information', function(done) {
+      client.getBuckets().then(function(buckets) {
+        client.updateBucketById(buckets[0].id, {
+          name: 'Test Bucket invalid ecdsa key',
+          pubkeys: [ 'testkey' ]
+        }).catch(function(err) {
+          expect(err.message).to.equal(
+            'Invalid public key supplied'
+          );
+          done();
+        });
+      });
     });
 
   });
