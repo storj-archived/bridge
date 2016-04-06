@@ -63,7 +63,7 @@ describe('pubkey/Integration', function() {
     it('should not create duplicate key', function(done) {
       client.createBucket({
         name: 'Test Bucket duplicate key',
-        pubkey: [ keypair.getPublicKey() ]
+        pubkeys: [ keypair.getPublicKey() ]
       }).then(function(bucket) {
         expect(bucket.name).to.equal('Test Bucket duplicate key');
         done();
@@ -73,11 +73,14 @@ describe('pubkey/Integration', function() {
     it('should reject an invalid ecdsa key', function(done) {
       client.createBucket({
         name: 'Test Bucket invalid ecdsa key',
-        pubkey: [ 'testkey' ]
-      }).then(function(bucket) {
-        expect(bucket.name).to.equal('Test Bucket invalid ecdsa key');
+        pubkeys: [ 'testkey' ]
+      }).catch(function(err) {
+        expect(err.message).to.equal(
+          'Invalid public key supplied'
+        );
         done();
       });
+
     });
 
   });
