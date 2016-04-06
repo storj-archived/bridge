@@ -8,7 +8,7 @@ var config = Config({
   storage: {
     host: '127.0.0.1',
     port: 27017,
-    name: '__metadisk-develop'
+    name: '__storj-bridge-develop'
   },
   server: {
     host: '127.0.0.1',
@@ -31,16 +31,16 @@ var config = Config({
       user: 'username',
       pass: 'password'
     },
-    from: 'robot@metadisk.org'
+    from: 'robot@storj.io'
   }
 });
 
-console.log('MetaDisk API in DEVELOP mode with configuration:');
+console.log('Storj Bridge in DEVELOP mode with configuration:');
 console.log('');
 console.log(config);
 console.log('');
 
-// Set up MetaDisk API Server
+// Set up Storj Bridge Server
 var engine = Engine(config);
 
 // Start the service
@@ -57,11 +57,11 @@ engine.start(function() {
     seeds: [engine.getSpecification().info['x-network-seed']],
     loglevel: 4,
     datadir: require('os').tmpdir(),
-    farmer: true,
+    farmer: ['01010202'],
     noforward: true
   });
 
-  // Seed metadisk
+  // Seed the Bridge
   farmer.join(function(err) {
     if (err) {
       console.log(err);

@@ -15,7 +15,7 @@ describe('Engine/Integration', function() {
   var client = bridge.Client('http://127.0.0.1:6382');
 
   before(function(done) {
-    // Set up MetaDisk API Server
+    // Set up Bridge Server
     engine = Engine(Config('__tmptest'));
     // Start the service
     engine.start(function() {
@@ -27,7 +27,7 @@ describe('Engine/Integration', function() {
         farmer = storj.Network({
           keypair: storj.KeyPair(),
           manager: storj.Manager(storj.FSStorageAdapter(
-            require('os').tmpdir() + '/metadisk-testrunner-' + Date.now())
+            require('os').tmpdir() + '/storj-bridge-testrunner-' + Date.now())
           ),
           contact: {
             address: '127.0.0.1',
@@ -36,17 +36,17 @@ describe('Engine/Integration', function() {
           seeds: [engine.getSpecification().info['x-network-seed']],
           loglevel: 1,
           datadir: require('os').tmpdir(),
-          farmer: ['01020202'],
+          farmer: ['01020202', '02020202', '03020202'],
           noforward: true
         });
-        // Seed metadisk
+        // Seed Bridge
         farmer.join(done);
       });
     });
   });
 
   after(function(done) {
-    // Close down MetaDisk API Server
+    // Close down Bridge Server
     engine.server.server.close();
     // Drop the local database again
     async.each(Object.keys(engine.storage.models), function(model, next) {
@@ -299,9 +299,9 @@ describe('Engine/Integration', function() {
           client.storeFileInBucket(
             token.bucket,
             token.token,
-            new Buffer('Hello MetaDisk API!')
+            new Buffer('Hello Storj Bridge!')
           ).then(function(file) {
-            expect(file.hash).to.equal('d72d91d8ec94f89f5b6b84be2a03ba661a34c1e2');
+            expect(file.hash).to.equal('303369f06308090293c6e4661b4c049d6bde1464');
             expect(file.size).to.equal(19);
             done();
           }, done);
@@ -316,10 +316,10 @@ describe('Engine/Integration', function() {
           client.storeFileInBucket(
             token.bucket,
             token.token,
-            new Buffer('Hello MetaDisk API!')
+            new Buffer('Hello Storj Bridge!')
           ).then(function(file) {
             expect(file.bucket).to.equal(bucket.id);
-            expect(file.hash).to.equal('d72d91d8ec94f89f5b6b84be2a03ba661a34c1e2');
+            expect(file.hash).to.equal('303369f06308090293c6e4661b4c049d6bde1464');
             expect(file.size).to.equal(19);
             expect().to.equal();
             done();
@@ -357,7 +357,7 @@ describe('Engine/Integration', function() {
               expect(Array.isArray(pointers)).to.equal(true);
               expect(pointers).to.have.lengthOf(1);
               client.resolveFileFromPointers(pointers).on('data', function(chunk) {
-                expect(chunk.toString()).to.equal('Hello MetaDisk API!');
+                expect(chunk.toString()).to.equal('Hello Storj Bridge!');
               }).on('end', done).on('error', done);
             }, done);
           }, done);

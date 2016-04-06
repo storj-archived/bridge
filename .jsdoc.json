@@ -3,7 +3,7 @@
     "template": "node_modules/ink-docstrap/template"
   },
   "templates": {
-    "systemName": "MetaDisk API",
+    "systemName": "Storj Bridge",
     "copyright":  "Copyright 2016 Storj Labs",
     "includeDate": false,
     "navType": "vertical",

@@ -1,9 +1,9 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "MetaDisk API"
+    "title": "Storj Bridge"
   },
-  "host": "api.metadisk.org",
+  "host": "api.storj.io",
   "basePath": "/",
   "schemes": ["https"],
   "consumes": [
@@ -31,7 +31,7 @@
     "/users": {
       "post": {
         "tags": ["users"],
-        "summary": "Registers a new user account with MetaDisk",
+        "summary": "Registers a new user account with Storj Bridge",
         "parameters": [
           {
             "name": "user",
@@ -647,7 +647,7 @@
           { "basic": [] },
           { "ecdsa": [] }
         ],
-        "summary": "Store a file in the Storj network through MetaDisk",
+        "summary": "Store a file in the Storj network through Storj Bridge",
         "parameters": [
           {
             "type": "string",

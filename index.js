@@ -1,5 +1,5 @@
 /**
- * @module metadisk
+ * @module storj-bridge
  */
 
 'use strict';

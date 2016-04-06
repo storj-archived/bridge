@@ -17,7 +17,7 @@ var connection;
 
 before(function(done) {
   connection = mongoose.createConnection(
-    'mongodb://127.0.0.1:27017/__metadisk-test',
+    'mongodb://127.0.0.1:27017/__storj-bridge-test',
     function() {
       FilePointer = FileSchema(connection);
       Bucket = BucketSchema(connection);

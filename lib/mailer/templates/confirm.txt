@@ -1,4 +1,4 @@
-Welcome to MetaDisk!
+Welcome to Storj!
 ====================
 
 Copy and paste the link below into a web browser to activate your account:
@@ -12,4 +12,4 @@ Copy and paste the link below into a web browser to activate your account:
 ---
 
 Cheers,
-The MetaDisk Team
+The Storj Team
