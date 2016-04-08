@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "Storj Bridge"
+    "title": "Storj API"
   },
   "host": "api.storj.io",
   "basePath": "/",
