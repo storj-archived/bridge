@@ -46,6 +46,8 @@ var engine = Engine(config);
 // Start the service
 engine.start(function() {
 
+
+
   // Set up Storj Farmer
   var farmer = storj.Network({
     keypair: storj.KeyPair('71b742ba25efaef1fffc1d9c9574c3260787628f5c3f43089e0b3a6bdc123a52'),
@@ -57,7 +59,7 @@ engine.start(function() {
     seeds: [engine.getSpecification().info['x-network-seed']],
     loglevel: 4,
     datadir: require('os').tmpdir(),
-    farmer: ['01010202'],
+    farmer: ['01020202', '02020202', '03020202'],
     noforward: true
   });
 
