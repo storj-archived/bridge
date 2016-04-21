@@ -60,6 +60,8 @@ describe('Engine/Integration', function() {
   });
 
   describe('POST /users', function() {
+    
+    let keypair = bridge.KeyPair();
 
     it('should register the user account', function(done) {
       client.createUser('test@domain.tld', 'password').then(function(user) {
@@ -70,7 +72,6 @@ describe('Engine/Integration', function() {
     });
 
     it('should register the user account with a pubkey', function(done) {
-      let keypair = bridge.KeyPair();
       client.createUser(
         'test2@domain.tld',
         'password',
@@ -78,13 +79,30 @@ describe('Engine/Integration', function() {
         keypair.getPublicKey()
       ).then(function(result) {
         expect(result.pubkey).to.equal(keypair.getPublicKey());
-        let tmpclient = bridge.Client('http://127.0.0.1:6382', {
-          keypair: keypair
-        });
-        tmpclient.getPublicKeys().then(function(keys) {
-          expect(keys).to.have.lengthOf(1);
-          done();
-        });
+        done();
+      });
+    });
+
+    it('should fail to use inactive user account basicauth', function(done) {
+      let tmpclient = bridge.Client('http://127.0.0.1:6382', {
+        basicauth: {
+          email: 'test2@domain.tld',
+          password: 'password'
+        }
+      });
+      tmpclient.getPublicKeys().catch(function(err) {
+        expect(err.message).to.equal('User account has not been activated');
+        done();
+      });
+    });
+
+    it('should fail to use inactive user account pubkey', function(done) {
+      let tmpclient = bridge.Client('http://127.0.0.1:6382', {
+        keypair: keypair
+      });
+      tmpclient.getPublicKeys().catch(function(err) {
+        expect(err.message).to.equal('User account has not been activated');
+        done();
       });
     });
 

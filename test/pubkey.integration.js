@@ -2,11 +2,32 @@
 
 const expect = require('chai').expect;
 const bridge = require('storj-bridge-client');
+const mongoose = require('mongoose');
+
+const UserSchema = require('../lib/storage/models/user');
+
+var User;
+var connection;
+var client = bridge.Client('http://127.0.0.1:6382');
+var keypair = bridge.KeyPair();
 
 describe('pubkey/Integration', function() {
 
-  var client = bridge.Client('http://127.0.0.1:6382');
-  var keypair = bridge.KeyPair();
+  before(function(done) {
+    connection = mongoose.createConnection(
+      'mongodb://127.0.0.1:27017/__storj-bridge-test',
+      function() {
+        User = UserSchema(connection);
+        done();
+      }
+    );
+  });
+
+  after(function(done) {
+    User.remove({}, function() {
+      connection.close(done);
+    });
+  });
 
   describe('POST /users', function() {
 
@@ -21,9 +42,14 @@ describe('pubkey/Integration', function() {
         client = bridge.Client('http://127.0.0.1:6382', {
           keypair: keypair
         });
-        client.getPublicKeys().then(function(keys) {
-          expect(keys).to.have.lengthOf(1);
-          done();
+        User.findOne({}, function(err, user) {
+          user.activate(function() {
+            expect(user.activated).to.equal(true);
+            client.getPublicKeys().then(function(keys) {
+              expect(keys).to.have.lengthOf(1);
+              done();
+            });
+          });
         });
       });
     });
