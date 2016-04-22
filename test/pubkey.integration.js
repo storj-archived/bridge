@@ -3,7 +3,7 @@
 const expect = require('chai').expect;
 const bridge = require('storj-bridge-client');
 
-describe('pubkey/Integration', function() {
+describe('PublicKey/Integration', function() {
 
   var client = bridge.Client('http://127.0.0.1:6382');
   var keypair = bridge.KeyPair();
@@ -106,4 +106,3 @@ describe('pubkey/Integration', function() {
   });
 
 });
-

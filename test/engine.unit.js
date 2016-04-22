@@ -46,7 +46,10 @@ describe('Engine', function() {
   describe('#start', function() {
 
     it('should setup storage, mailer, server, and network', function(done) {
-      var engine = new Engine(Config('__tmptest'));
+      var config = Config('__tmptest');
+      // TODO: Somewhere in the tests we aren't closing a server down
+      config.network.port = 6384;
+      var engine = new Engine(config);
       engine.start(function(err) {
         expect(err).to.equal(null);
         expect(engine.storage).to.be.instanceOf(Storage);

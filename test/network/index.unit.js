@@ -36,7 +36,7 @@ describe('Network', function() {
     it('should call the storj.Network#join', function(done) {
       var StubNetwork = proxyquire('../../lib/network', {
         storj: {
-          Network: function() {
+          RenterInterface: function() {
             return {
               _router: new EventEmitter(),
               join: sinon.stub().callsArg(0)
@@ -51,7 +51,7 @@ describe('Network', function() {
       var _router = new EventEmitter();
       var StubNetwork = proxyquire('../../lib/network', {
         storj: {
-          Network: function() {
+          RenterInterface: function() {
             return {
               _router: _router,
               join: sinon.stub().callsArg(0)
