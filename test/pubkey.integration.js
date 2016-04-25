@@ -11,7 +11,7 @@ var connection;
 var client = bridge.Client('http://127.0.0.1:6382');
 var keypair = bridge.KeyPair();
 
-describe('pubkey/Integration', function() {
+describe('PublicKey/Integration', function() {
 
   before(function(done) {
     connection = mongoose.createConnection(
@@ -132,4 +132,3 @@ describe('pubkey/Integration', function() {
   });
 
 });
-

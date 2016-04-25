@@ -5,6 +5,7 @@ const expect = require('chai').expect;
 const storj = require('storj');
 const bridge = require('storj-bridge-client');
 
+const logger = require('..').logger;
 const Config = require('..').Config;
 const Engine = require('..').Engine;
 
@@ -24,19 +25,16 @@ describe('Engine/Integration', function() {
         engine.storage.models[model].remove({}, next);
       }, function() {
         // Set up Storj Farmer
-        farmer = storj.Network({
+        farmer = storj.FarmerInterface({
           keypair: storj.KeyPair(),
           manager: storj.Manager(storj.FSStorageAdapter(
             require('os').tmpdir() + '/storj-bridge-testrunner-' + Date.now())
           ),
-          contact: {
-            address: '127.0.0.1',
-            port: 4000
-          },
+          address: '127.0.0.1',
+          port: 4000,
           seeds: [engine.getSpecification().info['x-network-seed']],
-          loglevel: 1,
-          datadir: require('os').tmpdir(),
-          farmer: ['01020202', '02020202', '03020202'],
+          logger: logger,
+          opcodes: ['0f01020202', '0f02020202', '0f03020202'],
           noforward: true
         });
         // Seed Bridge

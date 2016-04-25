@@ -1,6 +1,7 @@
 'use strict';
 
 const storj = require('storj');
+const logger = require('../lib/logger');
 const Config = require('../lib/config');
 const Engine = require('../lib/engine');
 
@@ -46,20 +47,15 @@ var engine = Engine(config);
 // Start the service
 engine.start(function() {
 
-
-
   // Set up Storj Farmer
-  var farmer = storj.Network({
+  var farmer = storj.FarmerInterface({
     keypair: storj.KeyPair('71b742ba25efaef1fffc1d9c9574c3260787628f5c3f43089e0b3a6bdc123a52'),
     manager: storj.Manager(storj.RAMStorageAdapter()),
-    contact: {
-      address: '127.0.0.1',
-      port: 4000
-    },
+    address: '127.0.0.1',
+    port: 4000,
     seeds: [engine.getSpecification().info['x-network-seed']],
-    loglevel: 4,
-    datadir: require('os').tmpdir(),
-    farmer: ['01020202', '02020202', '03020202'],
+    logger: logger,
+    opcodes: ['0f01020202', '0f02020202', '0f03020202'],
     noforward: true
   });
 
