@@ -5,7 +5,7 @@ const expect = require('chai').expect;
 const storj = require('storj');
 const bridge = require('storj-bridge-client');
 
-const Logger = require('..').Logger;
+const logger = require('..').logger;
 const Config = require('..').Config;
 const Engine = require('..').Engine;
 
@@ -33,7 +33,7 @@ describe('Engine/Integration', function() {
           address: '127.0.0.1',
           port: 4000,
           seeds: [engine.getSpecification().info['x-network-seed']],
-          logger: Logger(0),
+          logger: logger,
           opcodes: ['0f01020202', '0f02020202', '0f03020202'],
           noforward: true
         });

@@ -58,6 +58,7 @@
     "express": "^4.13.3",
     "handlebars": "^4.0.5",
     "hat": "0.0.3",
+    "kad-logger-json": "^0.1.1",
     "merge": "^1.2.0",
     "mime-db": "^1.22.0",
     "mongoose": "^4.3.4",

@@ -1,6 +1,7 @@
 'use strict';
 
 const storj = require('storj');
+const logger = require('../lib/logger');
 const Config = require('../lib/config');
 const Engine = require('../lib/engine');
 
@@ -53,8 +54,8 @@ engine.start(function() {
     address: '127.0.0.1',
     port: 4000,
     seeds: [engine.getSpecification().info['x-network-seed']],
-    loglevel: 4,
-    farmer: ['0f01020202', '0f02020202', '0f03020202'],
+    logger: logger,
+    opcodes: ['0f01020202', '0f02020202', '0f03020202'],
     noforward: true
   });
 
