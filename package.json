@@ -1,6 +1,6 @@
 {
   "name": "storj-bridge",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Access the Storj network using a simple REST API.",
   "main": "index.js",
   "directories": {
@@ -66,7 +66,7 @@
     "ms": "^0.7.1",
     "nodemailer": "^2.0.0",
     "readable-stream": "^2.0.5",
-    "storj": "^0.6.0",
+    "storj": "^0.6.1",
     "through": "^2.3.8"
   }
 }
