@@ -58,7 +58,7 @@ describe('Engine/Integration', function() {
   });
 
   describe('POST /users', function() {
-    
+
     let keypair = bridge.KeyPair();
 
     it('should register the user account', function(done) {
@@ -306,49 +306,9 @@ describe('Engine/Integration', function() {
 
   });
 
-  describe('PUT /buckets/:id/files', function() {
-
-    it('should store the file in the bucket', function(done) {
-      this.timeout(8000);
-      client.getBuckets().then(function(buckets) {
-        client.createToken(buckets[0].id, 'PUSH').then(function(token) {
-          client.storeFileInBucket(
-            token.bucket,
-            token.token,
-            new Buffer('Hello Storj Bridge!')
-          ).then(function(file) {
-            expect(file.hash).to.equal('303369f06308090293c6e4661b4c049d6bde1464');
-            expect(file.size).to.equal(19);
-            done();
-          }, done);
-        }, done);
-      }, done);
-    });
-
-    it('should put a duplicate file in another bucket', function(done) {
-      this.timeout(8000);
-      client.createBucket().then(function(bucket) {
-        client.createToken(bucket.id, 'PUSH').then(function(token) {
-          client.storeFileInBucket(
-            token.bucket,
-            token.token,
-            new Buffer('Hello Storj Bridge!')
-          ).then(function(file) {
-            expect(file.bucket).to.equal(bucket.id);
-            expect(file.hash).to.equal('303369f06308090293c6e4661b4c049d6bde1464');
-            expect(file.size).to.equal(19);
-            expect().to.equal();
-            done();
-          }, done);
-        }, done);
-      }, done);
-    });
-
-  });
-
   describe('GET /buckets/:id/files', function() {
 
-    it('should list the files in the bucket', function(done) {
+    it.skip('should list the files in the bucket', function(done) {
       client.getBuckets().then(function(buckets) {
         client.listFilesInBucket(buckets[0].id).then(function(files) {
           expect(files).to.have.lengthOf(1);
@@ -361,7 +321,7 @@ describe('Engine/Integration', function() {
 
   describe('GET /buckets/:id/files/:hash', function() {
 
-    it('should return the file pointer payloads for the file', function(done) {
+    it.skip('should return the file pointer payloads for the file', function(done) {
       client.getBuckets().then(function(buckets) {
         client.listFilesInBucket(buckets[0].id).then(function(files) {
           client.createToken(buckets[0].id, 'PULL').then(function(token) {
@@ -381,7 +341,7 @@ describe('Engine/Integration', function() {
       }, done);
     });
 
-    it('should return an error if hash is not found', function(done) {
+    it.skip('should return an error if hash is not found', function(done) {
       client.getBuckets().then(function(buckets) {
         client.createToken(buckets[0].id, 'PULL').then(function(token) {
           client.getFilePointer(
