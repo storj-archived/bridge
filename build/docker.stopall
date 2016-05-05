@@ -1,0 +1,10 @@
+#!/bin/bash
+
+source ./vars
+IMAGE=$NAMESPACE/$APP
+CONTAINER_NAMES=$(docker ps --format "{{.Names}}" | grep $APP)
+IMAGE_IDS=$(docker images | grep $IMAGE | tr -s ' ' | cut -d ' ' -f 3)
+
+for container in $CONTAINER_NAMES; do
+  docker kill $container
+done

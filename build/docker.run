@@ -1,0 +1,10 @@
+#!/bin/bash
+
+source ./vars
+VERSION=$(git rev-parse --short HEAD)
+IMAGE=$NAMESPACE/$APP
+
+# Check if the docker image exists, if not, run docker.build
+
+# Run the docker container
+docker run -p 8080:8080 --name $APP -d $IMAGE

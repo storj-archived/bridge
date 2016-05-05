@@ -1,0 +1,15 @@
+#!/bin/bash
+
+source ./vars
+IMAGE=$NAMESPACE/$APP
+CONTAINER_NAMES=$(docker ps -a --format "{{.Names}}" | grep $APP)
+IMAGE_IDS=$(docker images | grep $IMAGE | tr -s ' ' | cut -d ' ' -f 3)
+
+./docker.stopall
+
+./docker.clean
+
+for image in $IMAGE_IDS; do
+  echo "Removing image $image"
+  docker rmi -f $image
+done

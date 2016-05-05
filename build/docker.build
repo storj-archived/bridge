@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Should pull these from docker.env file or something so all docker wrapper scritps can use it
+source ./vars
+VERSION=$(git rev-parse --short HEAD)
+IMAGE=$NAMESPACE/$APP
+echo "Building docker image for $APP under namespace $NAMESPACE with version $VERSION";
+echo "Please wait...";
+
+docker build -t ${IMAGE}:${VERSION} . | tee build.log 2>&1 > /dev/null || exit 1
+ID=$(tail -1 build.log | awk '{print $3;}')
+echo "ID for this docker build is $ID";
+docker tag $ID ${IMAGE}:latest 2>&1 > /dev/null
+echo "Tagged image with version and latest";
+
+docker images | grep ${IMAGE}
