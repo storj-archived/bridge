@@ -959,13 +959,6 @@
                 }
               }
             }
-          },
-          {
-            "type": "string",
-            "in": "header",
-            "name": "x-token",
-            "description": "A valid PUSH token for this bucket",
-            "required": true
           }
         ],
         "responses": {
