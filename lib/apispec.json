@@ -460,7 +460,12 @@
                   "description": "The shard's RIPEMD-160 SHA-256 hash",
                   "example": "fde400fe0b6a5488e10d7317274a096aaa57914d"
                 },
-                "farmer": {
+                "operation": {
+                  "type": "string",
+                  "description": "The operation type (PUSH or PULL)",
+                  "example": "PUSH"
+                },
+                "channel": {
                   "type": "string",
                   "description": "The farmer datachannel URI for storing the shard",
                   "example": "ws://farmer.hostname:1337"
@@ -1097,7 +1102,7 @@
                   "operation": {
                     "type": "string",
                     "example": "PULL",
-                    "description": "The operation type"
+                    "description": "The operation type (PUSH or PULL)"
                   },
                   "channel": {
                     "type": "string",
