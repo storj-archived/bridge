@@ -1,7 +1,8 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "Storj API"
+    "title": "Storj API",
+    "version": "0.7.0"
   },
   "host": "api.storj.io",
   "basePath": "/",
@@ -15,18 +16,39 @@
   "securityDefinitions": {
     "basic": {
       "type": "basic",
-      "description": "HTTP Basic Authentication with email:sha256password",
-      "name": "Authorization",
+      "description": "Username should equal the registered email address and password must be SHA-256 hash of the cleartext password"
+    },
+    "ecdsa public key": {
+      "type": "apiKey",
+      "description": "See: https://github.com/Storj/bridge/blob/master/doc/auth.md",
+      "name": "x-pubkey",
       "in": "header"
     },
-    "ecdsa": {
+    "ecdsa signature": {
       "type": "apiKey",
-      "description": "ECDSA pubkey header and x-signature of the request body including nonce",
-      "name": "x-pubkey",
+      "description": "See: https://github.com/Storj/bridge/blob/master/doc/auth.md",
+      "name": "x-signature",
       "in": "header"
     }
   },
-  "tags": ["users", "keys", "buckets"],
+  "tags": [
+    {
+      "name": "users",
+      "description": "User and account management operations"
+    },
+    {
+      "name": "keys",
+      "description": "Public key and authentication operations"
+    },
+    {
+      "name": "buckets",
+      "description": "Bucket or file operations"
+    },
+    {
+      "name": "frames",
+      "description": "File staging operations"
+    }
+  ],
   "paths": {
     "/users": {
       "post": {
@@ -42,17 +64,14 @@
               "properties": {
                 "email": {
                   "description": "Email address for account activation and login",
-                  "required": true,
                   "type": "string"
                 },
                 "password": {
                   "description": "SHA-256 hash of your plaintext password",
-                  "required": true,
                   "type": "string"
                 },
                 "pubkey": {
                   "description": "ECDSA key to initially register",
-                  "required": false,
                   "type": "string"
                 }
               }
@@ -131,7 +150,8 @@
         "tags": ["keys"],
         "security": [
           { "basic": [] },
-          { "ecdsa": [] }
+          { "ecdsa public key": [] },
+          { "ecdsa signature": [] }
         ],
         "summary": "Lists the public ECDSA keys associated with the user",
         "responses": {
@@ -160,7 +180,8 @@
         "tags": ["keys"],
         "security": [
           { "basic": [] },
-          { "ecdsa": [] }
+          { "ecdsa public key": [] },
+          { "ecdsa signature": [] }
         ],
         "summary": "Registers a ECDSA public key for the user account",
         "parameters": [
@@ -173,7 +194,6 @@
               "properties": {
                 "key": {
                   "description": "Hexidecimal encoded ECDSA public key",
-                  "required": true,
                   "type": "string"
                 }
               }
@@ -205,7 +225,8 @@
         "tags": ["keys"],
         "security": [
           { "basic": [] },
-          { "ecdsa": [] }
+          { "ecdsa public key": [] },
+          { "ecdsa signature": [] }
         ],
         "summary": "Destroys a ECDSA public key for the user account",
         "parameters": [
@@ -223,12 +244,263 @@
         }
       }
     },
+    "/frames": {
+      "get": {
+        "tags": ["frames"],
+        "security": [
+          { "basic": [] },
+          { "ecdsa public key": [] },
+          { "ecdsa signature": [] }
+        ],
+        "summary": "Returns all of the open file stages for the caller",
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "description": "The list of file staging frames",
+                "properties": {
+                  "created": {
+                    "type": "string",
+                    "description": "The date and time the frame was created",
+                    "example": "2016-03-04T17:01:02.629Z"
+                  },
+                  "id": {
+                    "type": "string",
+                    "description": "The unique identifier of the frame",
+                    "example": "507f1f77bcf86cd799439011"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["frames"],
+        "security": [
+          { "basic": [] },
+          { "ecdsa public key": [] },
+          { "ecdsa signature": [] }
+        ],
+        "summary": "Creates a new file staging frame",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "File staging frame successfully created",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "created": {
+                  "type": "string",
+                  "description": "The date and time the frame was created",
+                  "example": "2016-03-04T17:01:02.629Z"
+                },
+                "id": {
+                  "type": "string",
+                  "description": "The unique identifier of the frame",
+                  "example": "507f1f77bcf86cd799439011"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/frames/{frame_id}": {
+      "get": {
+        "tags": ["frames"],
+        "security": [
+          { "basic": [] },
+          { "ecdsa public key": [] },
+          { "ecdsa signature": [] }
+        ],
+        "summary": "Fetches the file staging frame by it's unique ID",
+        "parameters": [
+          {
+            "name": "frame_id",
+            "in": "path",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File staging frame successfully returned",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "created": {
+                  "type": "string",
+                  "description": "The date and time the frame was created",
+                  "example": "2016-03-04T17:01:02.629Z"
+                },
+                "id": {
+                  "type": "string",
+                  "description": "The unique identifier of the frame",
+                  "example": "507f1f77bcf86cd799439011"
+                },
+                "shards": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "description": "Metadata for a shard in the frame",
+                    "properties": {
+                      "hash": {
+                        "type": "string",
+                        "description": "The RIPEMD-160 SHA-256 hash of the shard",
+                        "example": "fde400fe0b6a5488e10d7317274a096aaa57914d"
+                      },
+                      "size": {
+                        "type": "number",
+                        "description": "The number of bytes in the shard",
+                        "example": 4096
+                      },
+                      "index": {
+                        "type": "number",
+                        "description": "The order index of the shard in the file",
+                        "example": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["frames"],
+        "security": [
+          { "basic": [] },
+          { "ecdsa public key": [] },
+          { "ecdsa signature": [] }
+        ],
+        "summary": "Adds a shard item to the staging frame and negotiates a storage contract",
+        "parameters": [
+          {
+            "name": "frame_id",
+            "in": "path",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "shard",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "hash": {
+                  "type": "string",
+                  "description": "The RIPEMD-160 SHA-256 hash of the shard",
+                  "example": "fde400fe0b6a5488e10d7317274a096aaa57914d"
+                },
+                "size": {
+                  "type": "number",
+                  "description": "The number of bytes in the shard",
+                  "example": 4096
+                },
+                "index": {
+                  "type": "number",
+                  "description": "The order index of the shard in the file",
+                  "example": 0
+                },
+                "audits": {
+                  "type": "object",
+                  "description": "The private audit data for the shard",
+                  "properties": {
+                    "root": {
+                      "type": "string",
+                      "description": "The root of the audit merkle tree",
+                      "example": "c09cc0600226922e4969375993d563c6be522835"
+                    },
+                    "depth": {
+                      "type": "number",
+                      "description": "The depth of the audit merkle tree",
+                      "example": 3
+                    },
+                    "challenges": {
+                      "type": "array",
+                      "description": "Series of audit challenges",
+                      "items": {
+                        "type": "string",
+                        "example": "2128bc38ed5140bb9ba8ddac16183eecc4c9ef63b0cd46b30f49b578737a7a52"
+                      }
+                    }
+                  }
+                },
+                "tree": {
+                  "type": "array",
+                  "description": "The bottom leaves of the audit merkle tree",
+                  "items": {
+                    "type": "string",
+                    "example": "507f1f77bcf86cd799439011"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The shard was successfully added and contract negotiated",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "token": {
+                  "type": "string",
+                  "description": "The datachannel token for authorizing transfer to the farmer",
+                  "example": "032130ba09cbac408d48a60a190c65b592b59853"
+                },
+                "hash": {
+                  "type": "string",
+                  "description": "The shard's RIPEMD-160 SHA-256 hash",
+                  "example": "fde400fe0b6a5488e10d7317274a096aaa57914d"
+                },
+                "farmer": {
+                  "type": "string",
+                  "description": "The farmer datachannel URI for storing the shard",
+                  "example": "ws://farmer.hostname:1337"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["frames"],
+        "security": [
+          { "basic": [] },
+          { "ecdsa public key": [] },
+          { "ecdsa signature": [] }
+        ],
+        "summary": "Destroys the file staging frame by it's unique ID",
+        "parameters": [
+          {
+            "name": "frame_id",
+            "in": "path",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "File staging frame successfully destroyed",
+            "schema": {}
+          }
+        }
+      }
+    },
     "/buckets": {
       "get": {
         "tags": ["buckets"],
         "security": [
           { "basic": [] },
-          { "ecdsa": [] }
+          { "ecdsa public key": [] },
+          { "ecdsa signature": [] }
         ],
         "summary": "Lists all of the buckets belonging to the user",
         "responses": {
@@ -292,7 +564,8 @@
         "tags": ["buckets"],
         "security": [
           { "basic": [] },
-          { "ecdsa": [] }
+          { "ecdsa public key": [] },
+          { "ecdsa signature": [] }
         ],
         "summary": "Creates a new bucket with the given parameters",
         "parameters": [
@@ -390,7 +663,8 @@
         "tags": ["buckets"],
         "security": [
           { "basic": [] },
-          { "ecdsa": [] }
+          { "ecdsa public key": [] },
+          { "ecdsa signature": [] }
         ],
         "summary": "Returns the bucket object by the given ID",
         "parameters": [
@@ -460,7 +734,8 @@
         "tags": ["buckets"],
         "security": [
           { "basic": [] },
-          { "ecdsa": [] }
+          { "ecdsa public key": [] },
+          { "ecdsa signature": [] }
         ],
         "summary": "Updates the bucket with the given properties",
         "parameters": [
@@ -562,7 +837,8 @@
         "tags": ["buckets"],
         "security": [
           { "basic": [] },
-          { "ecdsa": [] }
+          { "ecdsa public key": [] },
+          { "ecdsa signature": [] }
         ],
         "summary": "Destroys the bucket with the given ID",
         "parameters": [
@@ -586,7 +862,8 @@
         "tags": ["buckets"],
         "security": [
           { "basic": [] },
-          { "ecdsa": [] }
+          { "ecdsa public key": [] },
+          { "ecdsa signature": [] }
         ],
         "summary": "Creates a token for the specified operation",
         "parameters": [
@@ -640,12 +917,13 @@
       }
     },
     "/buckets/{id}/files": {
-      "put": {
-        "consumes": ["multipart/form-data"],
+      "post": {
+        "consumes": ["application/json"],
         "tags": ["buckets"],
         "security": [
           { "basic": [] },
-          { "ecdsa": [] }
+          { "ecdsa public key": [] },
+          { "ecdsa signature": [] }
         ],
         "summary": "Store a file in the Storj network through Storj Bridge",
         "parameters": [
@@ -657,11 +935,30 @@
             "required": true
           },
           {
-            "type": "file",
-            "in": "formData",
+            "in": "body",
             "name": "file",
-            "description": "The file to upload to the network",
-            "required": true
+            "description": "File object metadata to add to bucket",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "frame": {
+                  "type": "string",
+                  "description": "The unique frame ID to create file object from",
+                  "example": "507f1f77bcf86cd799439012"
+                },
+                "mimetype": {
+                  "type": "string",
+                  "description": "A valid mimetype for the file",
+                  "example": "video/mpeg"
+                },
+                "filename": {
+                  "type": "string",
+                  "description": "A file name to show in the bucket",
+                  "example": "big_buck_bunny.mp4"
+                }
+              }
+            }
           },
           {
             "type": "string",
@@ -673,13 +970,13 @@
         ],
         "responses": {
           "200": {
-            "description": "File successfully uploaded",
+            "description": "File successfully created",
             "schema": {
               "type": "object",
               "properties": {
-                "hash": {
+                "id": {
                   "type": "string",
-                  "example": "9c1185a5c5e9fc54612808977ee8f548b2258d31"
+                  "example": "507f1f77bcf86cd799439012"
                 },
                 "bucket": {
                   "type": "string",
@@ -706,7 +1003,8 @@
         "tags": ["buckets"],
         "security": [
           { "basic": [] },
-          { "ecdsa": [] }
+          { "ecdsa public key": [] },
+          { "ecdsa signature": [] }
         ],
         "summary": "List the all the file metadata stored in the bucket",
         "parameters": [
@@ -753,12 +1051,13 @@
         }
       }
     },
-    "/buckets/{id}/files/{hash}": {
+    "/buckets/{id}/files/{file_id}": {
       "get": {
         "tags": ["buckets"],
         "security": [
           { "basic": [] },
-          { "ecdsa": [] }
+          { "ecdsa public key": [] },
+          { "ecdsa signature": [] }
         ],
         "summary": "Retrieve a series of file pointers for retrieval of file from the Storj network",
         "parameters": [
@@ -772,8 +1071,8 @@
           {
             "type": "string",
             "in": "path",
-            "name": "hash",
-            "description": "The file hash to get pointers for",
+            "name": "file_id",
+            "description": "The file ID to get pointers for",
             "required": true
           },
           {
@@ -822,7 +1121,8 @@
         "tags": ["buckets"],
         "security": [
           { "basic": [] },
-          { "ecdsa": [] }
+          { "ecdsa public key": [] },
+          { "ecdsa signature": [] }
         ],
         "summary": "Destroy the file pointer from the bucket and allow data to expire in network",
         "parameters": [
@@ -836,8 +1136,8 @@
           {
             "type": "string",
             "in": "path",
-            "name": "hash",
-            "description": "The file hash to destroy pointers",
+            "name": "file_id",
+            "description": "The file ID to destroy pointers",
             "required": true
           }
         ],
