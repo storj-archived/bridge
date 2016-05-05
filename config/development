@@ -1,0 +1,71 @@
+{
+  "server": {
+    "host": "localhost",
+    "port": 8080,
+    "ssl": {}
+  },
+  "storage": [
+    {
+      "name": "bridge-api",
+      "host": "localhost",
+      "port": 27017,
+      "ssl": true,
+      "user": "storj",
+      "pass": "12345",
+      "mongos": {
+        "checkServerIdentity": false,
+        "ssl": true,
+        "sslValidate": false
+      }
+    },
+    {
+      "name": "bridge-api",
+      "host": "localhost2",
+      "port": 27017,
+      "ssl": true,
+      "user": "storj",
+      "pass": "12345",
+      "mongos": {
+        "checkServerIdentity": false,
+        "ssl": true,
+        "sslValidate": false
+      }
+    },
+    {
+      "name": "bridge-api",
+      "host": "localhost3",
+      "port": 27017,
+      "ssl": true,
+      "user": "storj",
+      "pass": "12345",
+      "mongos": {
+        "checkServerIdentity": false,
+        "ssl": true,
+        "sslValidate": false
+      }
+    }
+  ],
+  "network": {
+    "address": "api.storj.io",
+    "port": 8443,
+    "tunport": 8444,
+    "datadir": "/root/.storj-bridge/data",
+    "tunnels": 32,
+    "gateways": {
+      "min": 8500,
+      "max": 8600
+    },
+    "privkey": "1234567890"
+  },
+  "mailer": {
+    "host": "smtp.localhost",
+    "port": 465,
+    "auth": {
+      "user": "myusername",
+      "pass": "password_here"
+    },
+    "secure": true,
+    "from": "from@email.addr"
+  }
+}
+
