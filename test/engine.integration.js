@@ -189,6 +189,40 @@ describe('Engine/Integration', function() {
 
   });
 
+  describe('FramesRouter', function() {
+
+    describe('POST /frames', function() {
+
+
+
+    });
+
+    describe('PUT /frames/:frame_id', function() {
+
+
+
+    });
+
+    describe('GET /frames', function() {
+
+
+
+    });
+
+    describe('GET /frames/:frame_id', function() {
+
+
+
+    });
+
+    describe('DELETE /frames/:frame_id', function() {
+
+
+
+    });
+
+  });
+
   describe('BucketsRouter', function() {
 
     describe('POST /buckets', function() {
@@ -373,40 +407,6 @@ describe('Engine/Integration', function() {
           });
         });
       });
-
-    });
-
-  });
-
-  describe('FramesRouter', function() {
-
-    describe('POST /frames', function() {
-
-
-
-    });
-
-    describe('PUT /frames/:frame_id', function() {
-
-
-
-    });
-
-    describe('GET /frames', function() {
-
-
-
-    });
-
-    describe('GET /frames/:frame_id', function() {
-
-
-
-    });
-
-    describe('DELETE /frames/:frame_id', function() {
-
-
 
     });
 

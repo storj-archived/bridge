@@ -408,28 +408,12 @@
                   "description": "The order index of the shard in the file",
                   "example": 0
                 },
-                "audits": {
-                  "type": "object",
-                  "description": "The private audit data for the shard",
-                  "properties": {
-                    "root": {
-                      "type": "string",
-                      "description": "The root of the audit merkle tree",
-                      "example": "c09cc0600226922e4969375993d563c6be522835"
-                    },
-                    "depth": {
-                      "type": "number",
-                      "description": "The depth of the audit merkle tree",
-                      "example": 3
-                    },
-                    "challenges": {
-                      "type": "array",
-                      "description": "Series of audit challenges",
-                      "items": {
-                        "type": "string",
-                        "example": "2128bc38ed5140bb9ba8ddac16183eecc4c9ef63b0cd46b30f49b578737a7a52"
-                      }
-                    }
+                "challenges": {
+                  "type": "array",
+                  "description": "Series of audit challenges",
+                  "items": {
+                    "type": "string",
+                    "example": "2128bc38ed5140bb9ba8ddac16183eecc4c9ef63b0cd46b30f49b578737a7a52"
                   }
                 },
                 "tree": {
