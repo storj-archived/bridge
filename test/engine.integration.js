@@ -1,5 +1,8 @@
 'use strict';
 
+const fs = require('fs');
+const noisegen = require('noisegen');
+const crypto = require('crypto');
 const async = require('async');
 const expect = require('chai').expect;
 const storj = require('storj');
@@ -68,7 +71,7 @@ describe('Engine/Integration', function() {
           expect(user.email).to.equal('test@domain.tld');
           expect(user.activated).to.equal(false);
           done();
-        });
+        }, done);
       });
 
       it('should register the user account with a pubkey', function(done) {
@@ -80,7 +83,7 @@ describe('Engine/Integration', function() {
         ).then(function(result) {
           expect(result.pubkey).to.equal(keypair.getPublicKey());
           done();
-        });
+        }, done);
       });
 
       it('should fail to use inactive user account basicauth', function(done) {
@@ -93,7 +96,7 @@ describe('Engine/Integration', function() {
         tmpclient.getPublicKeys().catch(function(err) {
           expect(err.message).to.equal('User account has not been activated');
           done();
-        });
+        }, done);
       });
 
       it('should fail to use inactive user account pubkey', function(done) {
@@ -103,7 +106,7 @@ describe('Engine/Integration', function() {
         tmpclient.getPublicKeys().catch(function(err) {
           expect(err.message).to.equal('User account has not been activated');
           done();
-        });
+        }, done);
       });
 
     });
@@ -114,7 +117,7 @@ describe('Engine/Integration', function() {
         client._request('GET', '/activations/INVALID', {}).catch(function(err) {
           expect(err.message).to.equal('Invalid activation token');
           done();
-        });
+        }, done);
       });
 
       it('should activate the user account', function(done) {
@@ -122,7 +125,7 @@ describe('Engine/Integration', function() {
           client._request('GET', '/activations/' + user.activator, {}).then(function(user) {
             expect(user.activated).to.equal(true);
             done();
-          });
+          }, done);
         });
       });
 
@@ -147,7 +150,7 @@ describe('Engine/Integration', function() {
         client.addPublicKey(keypair.getPublicKey()).then(function(pubkey) {
           expect(pubkey.key).to.equal(keypair.getPublicKey());
           done();
-        });
+        }, done);
       });
 
       after(function() {
@@ -164,7 +167,7 @@ describe('Engine/Integration', function() {
         client.getPublicKeys().then(function(keys) {
           expect(keys).to.have.lengthOf(1);
           done();
-        });
+        }, done);
       });
 
     });
@@ -180,9 +183,9 @@ describe('Engine/Integration', function() {
             client.getPublicKeys().then(function(keys) {
               expect(keys).to.have.lengthOf(1);
               done();
-            });
-          });
-        });
+            }, done);
+          }, done);
+        }, done);
       });
 
     });
@@ -233,7 +236,7 @@ describe('Engine/Integration', function() {
         }).then(function(bucket) {
           expect(bucket.name).to.equal('Test Bucket');
           done();
-        });
+        }, done);
       });
 
     });
@@ -244,7 +247,7 @@ describe('Engine/Integration', function() {
         client.getBuckets().then(function(buckets) {
           expect(buckets).to.have.lengthOf(1);
           done();
-        });
+        }, done);
       });
 
     });
@@ -256,8 +259,8 @@ describe('Engine/Integration', function() {
           client.getBucketById(buckets[0].id).then(function(bucket) {
             expect(bucket.id).to.equal(buckets[0].id);
             done();
-          });
-        });
+          }, done);
+        }, done);
       });
 
     });
@@ -271,8 +274,8 @@ describe('Engine/Integration', function() {
           }).then(function(bucket) {
             expect(bucket.name).to.equal('My App Name');
             done();
-          });
-        });
+          }, done);
+        }, done);
       });
 
     });
@@ -288,9 +291,9 @@ describe('Engine/Integration', function() {
             client.getBuckets().then(function(buckets) {
               expect(buckets).to.have.lengthOf(1);
               done();
-            });
-          });
-        });
+            }, done);
+          }, done);
+        }, done);
       });
 
     });
@@ -304,7 +307,7 @@ describe('Engine/Integration', function() {
             expect(token.bucket).to.equal(buckets[0].id);
             done();
           }, done);
-        });
+        }, done);
       });
 
       it('should create a PUSH token for the bucket', function(done) {
@@ -314,7 +317,7 @@ describe('Engine/Integration', function() {
             expect(token.bucket).to.equal(buckets[0].id);
             done();
           }, done);
-        });
+        }, done);
       });
 
       it('should allow authorized unregistered key create token', function(done) {
@@ -331,8 +334,8 @@ describe('Engine/Integration', function() {
               expect(token.bucket).to.equal(bucket.id);
               done();
             }, done);
-          });
-        });
+          }, done);
+        }, done);
       });
 
       it('should not allow unauthorized key create token', function(done) {
@@ -344,21 +347,44 @@ describe('Engine/Integration', function() {
           tmpclient.createToken(buckets[0].id, 'PULL').catch(function(err) {
             expect(err.message).to.equal('Bucket not found');
             done();
-          });
-        });
+          }, done);
+        }, done);
       });
 
     });
 
     describe('POST /buckets/:bucket_id/files', function() {
 
-
+      it('should store the file in the bucket', function(done) {
+        this.timeout(20000);
+        var randomName = crypto.randomBytes(6).toString('hex');
+        var filePath = require('os').tmpdir() + '/' + randomName + '.txt';
+        var randomio = noisegen({ length: 1024 * 1024 * 16 });
+        var target = fs.createWriteStream(filePath);
+        target.on('finish', function() {
+          client.getBuckets().then(function(buckets) {
+            client.createToken(buckets[0].id, 'PUSH').then(function(token) {
+              client.storeFileInBucket(
+                buckets[0].id,
+                token,
+                filePath
+              ).then(function(entry) {
+                expect(entry.name).to.equal(randomName + '.txt');
+                expect(entry.size).to.equal(16777216);
+                expect(entry.mimetype).to.equal('text/plain');
+                done();
+              }, done);
+            }, done);
+          }, done);
+        });
+        randomio.pipe(target);
+      });
 
     });
 
     describe('GET /buckets/:id/files', function() {
 
-      it.skip('should list the files in the bucket', function(done) {
+      it('should list the files in the bucket', function(done) {
         client.getBuckets().then(function(buckets) {
           client.listFilesInBucket(buckets[0].id).then(function(files) {
             expect(files).to.have.lengthOf(1);
@@ -369,43 +395,51 @@ describe('Engine/Integration', function() {
 
     });
 
-    describe('GET /buckets/:id/files/:hash', function() {
+    describe('GET /buckets/:id/files/:file', function() {
 
-      it.skip('should return the file pointer payloads for the file', function(done) {
+      it('should return the file pointer payloads for the file', function(done) {
+        this.timeout(6000);
         client.getBuckets().then(function(buckets) {
           client.listFilesInBucket(buckets[0].id).then(function(files) {
             client.createToken(buckets[0].id, 'PULL').then(function(token) {
               client.getFilePointer(
                 buckets[0].id,
                 token.token,
-                files[0].hash
+                files[0].id
               ).then(function(pointers) {
                 expect(Array.isArray(pointers)).to.equal(true);
-                expect(pointers).to.have.lengthOf(1);
-                client.resolveFileFromPointers(pointers).on('data', function(chunk) {
-                  expect(chunk.toString()).to.equal('Hello Storj Bridge!');
-                }).on('end', done).on('error', done);
+                expect(pointers).to.have.lengthOf(2);
+                client.resolveFileFromPointers(pointers).then(function(stream) {
+                  var bytes = 0;
+                  stream.on('data', function(data) {
+                    bytes += data.length;
+                  });
+                  stream.on('end', function() {
+                    expect(bytes).to.equal(16777216);
+                    done();
+                  });
+                }, done);
               }, done);
             }, done);
           }, done);
         }, done);
       });
 
-      it.skip('should return an error if hash is not found', function(done) {
+      it('should return an error if file is not found', function(done) {
         client.getBuckets().then(function(buckets) {
           client.createToken(buckets[0].id, 'PULL').then(function(token) {
             client.getFilePointer(
               buckets[0].id,
               token.token,
-              'INVALIDHASH'
+              '572cf3175355f2635480f94e'
             ).then(function() {
               done(new Error('Error was not returned'));
             }, function(err) {
-              expect(err.message).to.equal('The requested file was not found');
+              expect(err.message).to.equal('File not found');
               done();
             });
-          });
-        });
+          }, done);
+        }, done);
       });
 
     });
