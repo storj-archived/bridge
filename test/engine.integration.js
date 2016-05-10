@@ -109,6 +109,34 @@ describe('Engine/Integration', function() {
         }, done);
       });
 
+      it('should not create duplicate key', function(done) {
+        client.createUser(
+          'test4@domain.tld',
+          'password',
+          null,
+          keypair.getPublicKey()
+        ).catch(function(err) {
+          expect(err.message).to.equal(
+            'Public key is already registered'
+          );
+          done();
+        });
+      });
+
+      it('should reject an invalid ecdsa key', function(done) {
+        client.createUser(
+          'test5@domain.tld',
+          'password',
+          null,
+          'testkey'
+        ).catch(function(err) {
+          expect(err.message).to.equal(
+            'Invalid public key supplied: Invalid hex string'
+          );
+          done();
+        });
+      });
+
     });
 
     describe('POST /activations/:token', function() {
@@ -239,13 +267,37 @@ describe('Engine/Integration', function() {
         }, done);
       });
 
+      it('should allow duplicate key', function(done) {
+        client.createBucket({
+          name: 'Test Bucket duplicate key',
+          pubkeys: [ keypair.getPublicKey() ]
+        }).then(function(bucket) {
+          expect(bucket.name).to.equal('Test Bucket duplicate key');
+          expect(bucket.pubkeys).to.have.lengthOf(1);
+          expect(bucket.pubkeys[0]).to.equal(keypair.getPublicKey());
+          done();
+        });
+      });
+
+      it('should reject an invalid ecdsa key', function(done) {
+        client.createBucket({
+          name: 'Test Bucket invalid ecdsa key',
+          pubkeys: [ 'testkey' ]
+        }).catch(function(err) {
+          expect(err.message).to.equal(
+            'Invalid public key supplied'
+          );
+          done();
+        });
+      });
+
     });
 
     describe('GET /buckets', function() {
 
       it('should return a list of buckets', function(done) {
         client.getBuckets().then(function(buckets) {
-          expect(buckets).to.have.lengthOf(1);
+          expect(buckets).to.have.lengthOf(2);
           done();
         }, done);
       });
@@ -278,6 +330,20 @@ describe('Engine/Integration', function() {
         }, done);
       });
 
+      it('should update the bucket information', function(done) {
+        client.getBuckets().then(function(buckets) {
+          client.updateBucketById(buckets[0].id, {
+            name: 'Test Bucket invalid ecdsa key',
+            pubkeys: [ 'testkey' ]
+          }).catch(function(err) {
+            expect(err.message).to.equal(
+              'Invalid public key supplied'
+            );
+            done();
+          });
+        });
+      });
+
     });
 
     describe('DELETE /buckets/:id', function() {
@@ -289,7 +355,7 @@ describe('Engine/Integration', function() {
           expect(bucket.name).to.equal('Marked For Death');
           client.destroyBucketById(bucket.id).then(function() {
             client.getBuckets().then(function(buckets) {
-              expect(buckets).to.have.lengthOf(1);
+              expect(buckets).to.have.lengthOf(2);
               done();
             }, done);
           }, done);
