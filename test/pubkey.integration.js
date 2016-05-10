@@ -48,10 +48,10 @@ describe('PublicKey/Integration', function() {
             client.getPublicKeys().then(function(keys) {
               expect(keys).to.have.lengthOf(1);
               done();
-            });
+            }, done);
           });
         });
-      });
+      }, done);
     });
 
     it('should not create duplicate key', function(done) {
