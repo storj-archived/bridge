@@ -48,7 +48,7 @@ describe('Engine', function() {
     it('should setup storage, mailer, server, and network', function(done) {
       var config = Config('__tmptest');
       // TODO: Somewhere in the tests we aren't closing a server down
-      config.network.port = 6384;
+      config.network.port = 6484;
       var engine = new Engine(config);
       engine.start(function(err) {
         expect(err).to.equal(null);
