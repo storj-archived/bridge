@@ -30,9 +30,7 @@ describe('Engine/Integration', function() {
         // Set up Storj Farmer
         farmer = storj.FarmerInterface({
           keypair: storj.KeyPair(),
-          manager: storj.Manager(storj.FSStorageAdapter(
-            require('os').tmpdir() + '/storj-bridge-testrunner-' + Date.now())
-          ),
+          backend: require('memdown'),
           address: '127.0.0.1',
           port: 4000,
           seeds: [engine.getSpecification().info['x-network-seed']],
