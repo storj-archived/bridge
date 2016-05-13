@@ -1160,7 +1160,7 @@ SwaggerClient.prototype.buildFromSpec = function (response) {
   }
   else {
     if (typeof this.schemes === 'undefined' || this.schemes.length === 0) {
-      this.scheme = 'http';
+      this.scheme = 'https';
     }
     else {
       this.scheme = this.schemes[0];
