@@ -3577,7 +3577,7 @@ Operation.prototype.urlify = function (args) {
       }
     }
   }
-  var url = this.scheme + '://' + this.host;
+  var url = 'https://' + this.host;
 
   if (this.basePath !== '/') {
     url += this.basePath;
