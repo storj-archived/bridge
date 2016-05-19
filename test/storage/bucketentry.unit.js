@@ -1,16 +1,15 @@
 'use strict';
 
-const storj = require('storj');
 const expect = require('chai').expect;
 const mongoose = require('mongoose');
 
 require('mongoose-types').loadTypes(mongoose);
 
-const FileSchema = require('../../lib/storage/models/file');
+const FrameSchema = require('../../lib/storage/models/frame');
 const BucketSchema = require('../../lib/storage/models/bucket');
 const BucketEntrySchema = require('../../lib/storage/models/bucketentry');
 
-var FilePointer;
+var Frame;
 var Bucket;
 var BucketEntry;
 var connection;
@@ -19,7 +18,7 @@ before(function(done) {
   connection = mongoose.createConnection(
     'mongodb://127.0.0.1:27017/__storj-bridge-test',
     function() {
-      FilePointer = FileSchema(connection);
+      Frame = FrameSchema(connection);
       Bucket = BucketSchema(connection);
       BucketEntry = BucketEntrySchema(connection);
       done();
@@ -28,7 +27,7 @@ before(function(done) {
 });
 
 after(function(done) {
-  FilePointer.remove({}, function() {
+  Frame.remove({}, function() {
     Bucket.remove({}, function() {
       connection.close(done);
     });
@@ -39,14 +38,13 @@ describe('Storage/models/BucketEntry', function() {
 
   it('should create the bucket entry metadata', function(done) {
     Bucket.create({ _id: 'user@domain.tld' }, {}, function(err, bucket) {
-      var file = new FilePointer({
-        _id: storj.utils.rmd160sha256('file'),
-        size: Buffer('file').length
+      var frame = new Frame({
+
       });
-      file.save(function(err) {
+      frame.save(function(err) {
         expect(err).to.not.be.instanceOf(Error);
         var entry = new BucketEntry({
-          file: file.hash,
+          file: frame._id,
           bucket: bucket._id,
           filename: 'test.txt'
         });
@@ -57,14 +55,13 @@ describe('Storage/models/BucketEntry', function() {
 
   it('should fail with invalid mimetype', function(done) {
     Bucket.create({ _id: 'user@domain.tld' }, {}, function(err, bucket) {
-      var file = new FilePointer({
-        _id: storj.utils.rmd160sha256('new file'),
-        size: Buffer('new file').length
+      var frame = new Frame({
+
       });
-      file.save(function(err) {
+      frame.save(function(err) {
         expect(err).to.not.be.instanceOf(Error);
         var entry = new BucketEntry({
-          file: file.hash,
+          frame: frame._id,
           mimetype: 'invalid/mimetype',
           bucket: bucket._id,
           filename: 'test.txt'
