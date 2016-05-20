@@ -10,7 +10,6 @@ const fork     = require('child_process').fork;
 const Auditor  = './lib/audit';
 
 const AuditService = function() {
-  console.log(Config)
   const numWorkers = Config.length;
   var workers      = {};
 
