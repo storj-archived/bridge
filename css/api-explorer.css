@@ -48,7 +48,7 @@
 @media (min-width: 992px) {
     .swagger-section #resources:before {
         content: "";
-        background: #5c666f;
+        background: #003366;
         height: 100%;
         width: 50%;
         top: 0;
@@ -545,7 +545,7 @@
 }
 
 .swagger-section pre {
-    background: #4e575e;
+    background: #024384;
     margin: 0;
     word-wrap: break-word !important;
     max-height: none;
