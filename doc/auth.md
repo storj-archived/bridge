@@ -23,9 +23,8 @@ of the request. For GET, DELETE, and OPTIONS requests, you must sign the raw
 query string parameters.
 
 In addition to the parameters required for each individual request, you must
-also include a `__nonce` parameter. This value should be an integer and must be
-incremented with every request. A common practice is to simply use the current
-UNIX timestamp.
+also include a `__nonce` parameter. This value should be a string and must be
+unique with every request. A common practice is to simply use UUID v4.
 
 In addition to the request parameters and nonce, you will also sign the HTTP
 method and request path. Ultimately the string you will sign will be:
