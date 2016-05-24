@@ -117,7 +117,7 @@
     "/contacts/{nodeID}": {
       "get": {
         "tags": ["contacts"],
-        "summary": "Performs a lokkup for the contact information of a nodeID",
+        "summary": "Performs a lookup for the contact information of a nodeID",
         "parameters": [
           {
             "name": "nodeID",
