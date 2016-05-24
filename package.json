@@ -1,6 +1,6 @@
 {
   "name": "storj-bridge",
-  "version": "0.7.3",
+  "version": "0.7.4",
   "description": "Access the Storj network using a simple REST API.",
   "main": "index.js",
   "directories": {
@@ -48,7 +48,7 @@
     "noisegen": "^1.0.0",
     "proxyquire": "^1.7.3",
     "sinon": "^1.17.2",
-    "storj-bridge-client": "^0.4.0"
+    "storj-bridge-client": "^0.4.2"
   },
   "dependencies": {
     "async": "^1.5.2",
@@ -67,7 +67,7 @@
     "ms": "^0.7.1",
     "nodemailer": "^2.0.0",
     "readable-stream": "^2.0.5",
-    "storj": "^0.6.14",
+    "storj": "^0.6.16",
     "through": "^2.3.8"
   }
 }
