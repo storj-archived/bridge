@@ -9,7 +9,7 @@ Pull Requests for Swag
 We love pull requests, so to encourage more of them we are offering
 awesome swag. Only SIGNIFICANT pull requests count. Fixing a comma
 doesn’t count, but fixing a bug, adding more test coverage, or writing
-a help guide does.
+guides & documentation does.
 
 - Make 1x pull requests to get into the contributors list and website
 - Make 2x pull requests, we will send you a packet of stickers
