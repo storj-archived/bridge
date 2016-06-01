@@ -12,6 +12,32 @@ const options = JSON.parse(process.argv[2]);
 let adapter = new MongoAdapter(storage);
 let manager = new storj.Manager(adapter);
 
+function _castArguments(message) {
+  switch (message.method) {
+    case 'getStorageOffer':
+      message.params[0] = storj.Contract.fromObject(message.params[0]);
+      break;
+    case 'getStorageProof':
+      message.params[0] = storj.Contact(message.params[0]);
+      message.params[1] = storj.StorageItem(message.params[1]);
+      break;
+    case 'getRetrieveToken':
+      message.params[0] = storj.Contact(message.params[0]);
+      message.params[1] = storj.Contract.fromObject(message.params[1]);
+      break;
+    case 'getConsignToken':
+      message.params[0] = storj.Contact(message.params[0]);
+      message.params[1] = storj.Contract.fromObject(message.params[1]);
+      message.params[2] = storj.AuditStream.fromRecords(
+        message.params[2].challenges,
+        message.params[2].tree
+      );
+      break;
+    default:
+      // noop
+  }
+}
+
 storage.models.Contact.recall(3, function(err, seeds) {
   if (err) {
     logger.error(err);
@@ -46,11 +72,13 @@ storage.models.Contact.recall(3, function(err, seeds) {
       logger.error(err.message);
       process.exit();
     }
+
+    process.send('ready');
   });
 
   process.on('message', function(message) {
-    message.params.push(function(err) {
-      if (err) {
+    message.params.push(function() {
+      if (arguments[0] instanceof Error) {
         return process.send({
           id: message.id,
           error: {
@@ -61,10 +89,11 @@ storage.models.Contact.recall(3, function(err, seeds) {
 
       let args = Array.prototype.slice.call(arguments);
 
-      args.shift();
+      // args.shift();
       process.send({ id: message.id, result: args });
     });
 
+    _castArguments(message);
     network[message.method].apply(network, message.params);
   });
 });

@@ -19,6 +19,7 @@ describe('Engine/Integration', function() {
   var client = bridge.Client('http://127.0.0.1:6382');
 
   before(function(done) {
+    this.timeout(20000);
     // Set up Bridge Server
     engine = Engine(Config('__tmptest'));
     // Start the service
@@ -33,13 +34,14 @@ describe('Engine/Integration', function() {
           backend: require('memdown'),
           address: '127.0.0.1',
           port: 4000,
-          seeds: [engine.getSpecification().info['x-network-seed']],
+          seeds: engine.getSpecification().info['x-network-seeds'],
           logger: logger,
           opcodes: ['0f01020202', '0f02020202', '0f03020202'],
           noforward: true
         });
         // Seed Bridge
-        farmer.join(done);
+        farmer.join(function() {});
+        done();
       });
     });
   });
