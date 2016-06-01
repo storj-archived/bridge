@@ -48,7 +48,7 @@
     "noisegen": "^1.0.0",
     "proxyquire": "^1.7.3",
     "sinon": "^1.17.2",
-    "storj-bridge-client": "^0.4.2"
+    "storj-bridge-client": "^0.5.0"
   },
   "dependencies": {
     "async": "^1.5.2",
