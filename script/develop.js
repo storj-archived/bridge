@@ -25,14 +25,23 @@ var config = Config({
     port: 6382,
     ssl: {}
   },
-  network: {
-    address: '127.0.0.1',
-    port: 6383,
-    verbosity: 4,
-    datadir: require('os').tmpdir(),
-    farmer: false,
-    noforward: true
-  },
+  network: [
+    {
+      address: '127.0.0.1',
+      port: 6383,
+      noforward: true
+    },
+    {
+      address: '127.0.0.1',
+      port: 6384,
+      noforward: true
+    },
+    {
+      address: '127.0.0.1',
+      port: 6385,
+      noforward: true
+    }
+  ],
   mailer: {
     host: '127.0.0.1',
     port: 465,
@@ -64,7 +73,7 @@ engine.start(function() {
       path: STORAGE_PATH
     },
     port: 4000,
-    seeds: [engine.getSpecification().info['x-network-seed']],
+    seeds: engine.getSpecification().info['x-network-seeds'],
     logger: logger,
     opcodes: ['0f01020202', '0f02020202', '0f03020202'],
     noforward: true
