@@ -25,23 +25,26 @@ var config = Config({
     port: 6382,
     ssl: {}
   },
-  network: [
-    {
-      address: '127.0.0.1',
-      port: 6383,
-      noforward: true
-    },
-    {
-      address: '127.0.0.1',
-      port: 6384,
-      noforward: true
-    },
-    {
-      address: '127.0.0.1',
-      port: 6385,
-      noforward: true
-    }
-  ],
+  network: {
+    privkey: storj.KeyPair().getPrivateKey(),
+    minions: [
+      {
+        address: '127.0.0.1',
+        port: 6383,
+        noforward: true
+      },
+      {
+        address: '127.0.0.1',
+        port: 6384,
+        noforward: true
+      },
+      {
+        address: '127.0.0.1',
+        port: 6385,
+        noforward: true
+      }
+    ]
+},
   mailer: {
     host: '127.0.0.1',
     port: 465,

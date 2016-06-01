@@ -67,6 +67,18 @@ storage.models.Contact.recall(3, function(err, seeds) {
     storage.models.Contact.record(contact);
   });
 
+  network._getConnectedContacts = function(callback) {
+    let connected = [];
+
+    for (var index in this._router._buckets) {
+      connected = connected.concat(
+        this._router._buckets[index].getContactList()
+      );
+    }
+
+    callback(null, connected);
+  };
+
   network.join(function(err) {
     if (err) {
       logger.error(err.message);
@@ -82,14 +94,13 @@ storage.models.Contact.recall(3, function(err, seeds) {
         return process.send({
           id: message.id,
           error: {
-            message: err.message
+            message: arguments[0].message
           }
         });
       }
 
       let args = Array.prototype.slice.call(arguments);
 
-      // args.shift();
       process.send({ id: message.id, result: args });
     });
 
