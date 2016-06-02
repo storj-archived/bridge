@@ -6,6 +6,11 @@ const Storage = require('../lib/storage');
 const MongoAdapter = require('../lib/storage/adapter');
 const Config = require('../lib/config');
 const config = Config(process.env.NODE_ENV || 'devel');
+
+if (process.env.NODE_ENV === 'devel') {
+  config.storage.name = '__storj-bridge-develop';
+}
+
 const storage = Storage(config.storage);
 const options = JSON.parse(process.argv[2]);
 
