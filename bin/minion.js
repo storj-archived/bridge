@@ -49,6 +49,8 @@ storage.models.Contact.recall(3, function(err, seeds) {
     process.exit();
   }
 
+  console.log(options)
+
   let network = storj.RenterInterface({
     keypair: storj.KeyPair(options.privkey),
     manager: manager,

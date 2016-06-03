@@ -31,17 +31,23 @@ var config = Config({
       {
         address: '127.0.0.1',
         port: 6383,
-        noforward: true
+        noforward: true,
+        tunport: 6483,
+        gateways: { min: 0, max: 0 }
       },
       {
         address: '127.0.0.1',
         port: 6384,
-        noforward: true
+        noforward: true,
+        tunport: 6484,
+        gateways: { min: 0, max: 0 }
       },
       {
         address: '127.0.0.1',
         port: 6385,
-        noforward: true
+        noforward: true,
+        tunport: 6485,
+        gateways: { min: 0, max: 0 }
       }
     ]
   },
