@@ -1,6 +1,6 @@
 {
   "name": "storj-bridge",
-  "version": "0.7.5",
+  "version": "0.8.0",
   "description": "Access the Storj network using a simple REST API.",
   "main": "index.js",
   "directories": {
@@ -15,7 +15,7 @@
     "coverage": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=test ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- --recursive",
     "linter": "./node_modules/.bin/jshint --config .jshintrc ./index.js ./lib ./test",
     "test": "npm run testsuite && npm run linter",
-    "develop": "STORJ_ALLOW_LOOPBACK=1 node script/develop.js",
+    "develop": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=devel node script/develop.js",
     "make-docs": "./node_modules/.bin/jsdoc index.js lib -r -R README.md -u ./doc -c .jsdoc.json --verbose -d ./jsdoc",
     "publish-docs": "npm run make-docs && node script/publishdoc.js"
   },
@@ -47,8 +47,7 @@
     "mocha": "^2.3.4",
     "noisegen": "^1.0.0",
     "proxyquire": "^1.7.3",
-    "sinon": "^1.17.2",
-    "storj-bridge-client": "^0.4.2"
+    "sinon": "^1.17.2"
   },
   "dependencies": {
     "async": "^1.5.2",
@@ -67,7 +66,7 @@
     "ms": "^0.7.1",
     "nodemailer": "^2.0.0",
     "readable-stream": "^2.0.5",
-    "storj": "^0.6.16",
+    "storj": "^1.1.0",
     "through": "^2.3.8"
   }
 }
