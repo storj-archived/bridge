@@ -49,8 +49,6 @@ storage.models.Contact.recall(3, function(err, seeds) {
     process.exit();
   }
 
-  console.log(options)
-
   let network = storj.RenterInterface({
     keypair: storj.KeyPair(options.privkey),
     manager: manager,
@@ -58,6 +56,7 @@ storage.models.Contact.recall(3, function(err, seeds) {
     seeds: seeds.map(function(seed) {
       return seed.toString();
     }),
+    bridge: false,
     address: options.address,
     port: options.port,
     tunnels: options.tunnels,

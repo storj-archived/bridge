@@ -26,9 +26,9 @@ var config = Config({
     ssl: {}
   },
   network: {
-    privkey: storj.KeyPair().getPrivateKey(),
     minions: [
       {
+        privkey: storj.KeyPair().getPrivateKey(),
         address: '127.0.0.1',
         port: 6383,
         noforward: true,
@@ -36,6 +36,7 @@ var config = Config({
         gateways: { min: 0, max: 0 }
       },
       {
+        privkey: storj.KeyPair().getPrivateKey(),
         address: '127.0.0.1',
         port: 6384,
         noforward: true,
@@ -43,6 +44,7 @@ var config = Config({
         gateways: { min: 0, max: 0 }
       },
       {
+        privkey: storj.KeyPair().getPrivateKey(),
         address: '127.0.0.1',
         port: 6385,
         noforward: true,
