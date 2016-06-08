@@ -20,6 +20,6 @@ module.exports.Server = require('./lib/server');
 module.exports.Mailer = require('./lib/mailer');
 
 /** {@link Network} */
-module.exports.Network = require('./lib/network');
+module.exports.RenterPool = require('./lib/network/pool');
 
 module.exports.logger = require('./lib/logger');

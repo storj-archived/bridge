@@ -26,12 +26,32 @@ var config = Config({
     ssl: {}
   },
   network: {
-    address: '127.0.0.1',
-    port: 6383,
-    verbosity: 4,
-    datadir: require('os').tmpdir(),
-    farmer: false,
-    noforward: true
+    minions: [
+      {
+        privkey: storj.KeyPair().getPrivateKey(),
+        address: '127.0.0.1',
+        port: 6383,
+        noforward: true,
+        tunport: 6483,
+        gateways: { min: 0, max: 0 }
+      },
+      {
+        privkey: storj.KeyPair().getPrivateKey(),
+        address: '127.0.0.1',
+        port: 6384,
+        noforward: true,
+        tunport: 6484,
+        gateways: { min: 0, max: 0 }
+      },
+      {
+        privkey: storj.KeyPair().getPrivateKey(),
+        address: '127.0.0.1',
+        port: 6385,
+        noforward: true,
+        tunport: 6485,
+        gateways: { min: 0, max: 0 }
+      }
+    ]
   },
   mailer: {
     host: '127.0.0.1',
@@ -64,7 +84,7 @@ engine.start(function() {
       path: STORAGE_PATH
     },
     port: 4000,
-    seeds: [engine.getSpecification().info['x-network-seed']],
+    seeds: engine.getSpecification().info['x-network-seeds'],
     logger: logger,
     opcodes: ['0f01020202', '0f02020202', '0f03020202'],
     noforward: true

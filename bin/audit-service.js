@@ -11,7 +11,7 @@ const Auditor  = './lib/audit';
 
 const AuditService = function() {
   const numWorkers = Config.length;
-  var workers      = {};
+  this.workers     = {};
 
   log.info('master audit service forking ' + numWorkers + ' workers...');
 
@@ -22,7 +22,7 @@ const AuditService = function() {
       JSON.stringify(Config[i].redis),
       JSON.stringify(Config[i].network)
     ];
-    workers = addNewWorkerToQueue(workers, Auditor, options);
+    this.workers = addNewWorkerToQueue(this.workers, Auditor, options);
   }
 
   function addNewWorkerToQueue(queue, module, opts) {
@@ -33,7 +33,7 @@ const AuditService = function() {
     queue[newWorker.pid].on('exit', function(code, signal) {
       delete queue[this.pid];
       log.info('worker pid:' + this.pid + ' exited with code: ' + code + ', signal: ' + signal);
-      addNewWorkerToQueue(queue);
+      addNewWorkerToQueue(queue, Auditor, opts);
     });
 
     queue[newWorker.pid].on('error', function(err) {
@@ -42,6 +42,6 @@ const AuditService = function() {
 
     return queue;
   }
-}
+};
 
-module.exports = AuditService();
+module.exports = new AuditService();

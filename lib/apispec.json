@@ -47,9 +47,123 @@
     {
       "name": "frames",
       "description": "File staging operations"
+    },
+    {
+      "name": "contacts",
+      "description": "Peer information operations"
     }
   ],
   "paths": {
+    "/contacts": {
+      "get": {
+        "tags": ["contacts"],
+        "summary": "Lists the contacts according to the supplied query",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "Paginagtion indicator, defaults to 1"
+          },
+          {
+            "name": "connected",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "Filter results by connection status (true/false)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Contacts successfully listed",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "address": {
+                    "description": "IP address or hostname of the contact",
+                    "type": "string",
+                    "example": "api.storj.io"
+                  },
+                  "port": {
+                    "description": "Port number the contact is listening on",
+                    "type": "number",
+                    "example": 8443
+                  },
+                  "nodeID": {
+                    "description": "ECDSA pubkeyhash identifier",
+                    "type": "string",
+                    "example": "32033d2dc11b877df4b1caefbffba06495ae6b18"
+                  },
+                  "lastSeen": {
+                    "description": "Timestamp when we last encountered this peer",
+                    "type": "string",
+                    "example": "2016-05-24T15:16:01.139Z"
+                  },
+                  "protocol": {
+                    "description": "Protocol version this contact is running",
+                    "type" : "string",
+                    "example": "0.7.0"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contacts/{nodeID}": {
+      "get": {
+        "tags": ["contacts"],
+        "summary": "Performs a lookup for the contact information of a nodeID",
+        "parameters": [
+          {
+            "name": "nodeID",
+            "in": "path",
+            "type": "string",
+            "description": "Node ID of the contact to lookup",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Contact lookup succeeded",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "address": {
+                  "description": "IP address or hostname of the contact",
+                  "type": "string",
+                  "example": "api.storj.io"
+                },
+                "port": {
+                  "description": "Port number the contact is listening on",
+                  "type": "number",
+                  "example": 8443
+                },
+                "nodeID": {
+                  "description": "ECDSA pubkeyhash identifier",
+                  "type": "string",
+                  "example": "32033d2dc11b877df4b1caefbffba06495ae6b18"
+                },
+                "lastSeen": {
+                  "description": "Timestamp when we last encountered this peer",
+                  "type": "string",
+                  "example": "2016-05-24T15:16:01.139Z"
+                },
+                "protocol": {
+                  "description": "Protocol version this contact is running",
+                  "type" : "string",
+                  "example": "0.7.0"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/users": {
       "post": {
         "tags": ["users"],
@@ -255,7 +369,7 @@
         "summary": "Returns all of the open file stages for the caller",
         "responses": {
           "200": {
-            "description": "",
+            "description": "Frames successfully returned",
             "schema": {
               "type": "array",
               "items": {
