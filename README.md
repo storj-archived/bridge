@@ -71,7 +71,8 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ```
 
----
+Terms
+-----
 
 This software is released for testing purposes only. We make no guarantees with
 respect to its function. By using this software you agree that Storj is not
