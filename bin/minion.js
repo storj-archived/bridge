@@ -94,9 +94,6 @@ storage.models.Contact.recall(3, function(err, seeds) {
     process.send('ready');
   });
 
-  // TODO: Instead of listening of IPC messages, listen work published to
-  // TODO: the queue.
-
   process.on('message', function(message) {
     message.params.push(function() {
       if (arguments[0] instanceof Error) {
