@@ -11,6 +11,36 @@ Access the [Storj](http://storj.io) network via simple REST API.
 Quick Start
 -----------
 
+With Vagrant
+============
+
+Download and install [vagrant](https://www.vagrantup.com/downloads.html) for your platform.
+
+Clone the repository, install dependencies:
+
+```
+git clone https://github.com/Storj/bridge.git
+cd bridge
+```
+
+Start up the vagrant VM:
+
+```
+vagrant up
+```
+_NOTE: the first time you `vagrant up` it will take a while as vagrant downloads the base VM and provisions it._
+
+
+SSH into the vm and start the server (set the `NODE_ENV` environment variable to specify the config):
+
+```
+vagrant ssh
+NODE_ENV=develop storj-bridge
+```
+
+Manually
+========
+
 Install MongoDB, Git and Wget:
 
 ```

@@ -29,3 +29,9 @@ jsdoc
 
 # Jetbrains IDE
 .idea
+
+# Ansible
+playbook.retry
+
+# Vagrant dotfiles
+.vagrant
