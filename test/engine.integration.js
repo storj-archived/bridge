@@ -160,6 +160,39 @@ describe('Engine/Integration', function() {
 
     });
 
+    describe('DELETE /users/:id', function() {
+
+      before(function(done) {
+        let client = new storj.BridgeClient('http://127.0.0.1:6382');
+        client.createUser({
+          email: 'deaduser@killme.com',
+          password: 'password'
+        }, function(err) {
+          if (err) {
+            return done(err);
+          }
+          engine.storage.models.User.findOne({
+            _id: 'deaduser@killme.com'
+          }, function(err, user) {
+            client._request('GET', '/activations/' + user.activator, {}, function() {
+              done();
+            });
+          });
+        });
+      });
+
+      it('should prepare the account for deactivation', function(done) {
+        let client = new storj.BridgeClient('http://127.0.0.1:6382', {
+          basicauth: { email: 'deaduser@killme.com', password: 'password' }
+        });
+        client.destroyUser({ email: 'deaduser@killme.com' }, function(err) {
+          expect(err).to.equal(null);
+          done();
+        });
+      });
+
+    });
+
   });
 
   describe('PublicKeysRouter', function() {
