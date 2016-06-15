@@ -1,0 +1,17 @@
+Sorry To See You Go!
+====================
+
+**If you are not expecting to receive this email, please ignore and delete it!**
+
+Copy and paste the link below into a web browser to deactivate your account:
+
+{{#if redirect}}
+  {{url}}/deactivations/{{token}}?redirect={{redirect}}
+{{else}}
+  {{url}}/deactivations/{{token}}
+{{/if}}
+
+---
+
+Cheers,
+The Storj Team
