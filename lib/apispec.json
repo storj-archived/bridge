@@ -216,6 +216,57 @@
         }
       }
     },
+    "/users/{email}": {
+      "delete": {
+        "tags": ["users"],
+        "summary": "Requests the deletion of the account",
+        "parameters": [
+          {
+            "name": "email",
+            "in": "path",
+            "type": "string",
+            "description": "The email address of the account to delete (yours)",
+            "required": true
+          },
+          {
+            "name": "options",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "redirect": {
+                  "description": "Optional redirect URL for successful deletion",
+                  "type": "string"
+                } 
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account deletion email sent",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "example": "gordon@storj.io"
+                },
+                "created": {
+                  "type": "string",
+                  "example": "2016-03-04T17:01:02.629Z"
+                },
+                "activated": {
+                  "type": "boolean",
+                  "example": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/activations/{token}": {
       "get": {
         "tags": ["users"],
@@ -252,6 +303,49 @@
                 "activated": {
                   "type": "boolean",
                   "example": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/deactivations/{token}": {
+      "get": {
+        "tags": ["users"],
+        "summary": "Deactivates a registered user and optionally redirects",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "type": "string",
+            "description": "Deactivation token sent to user's email address",
+            "required": true
+          },
+          {
+            "name": "redirect",
+            "in": "query",
+            "type": "string",
+            "description": "Optional redirect URL for successful deactivation"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User successfully deactivated",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "example": "gordon@storj.io"
+                },
+                "created": {
+                  "type": "string",
+                  "example": "2016-03-04T17:01:02.629Z"
+                },
+                "activated": {
+                  "type": "boolean",
+                  "example": false
                 }
               }
             }
