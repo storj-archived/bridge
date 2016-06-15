@@ -27,7 +27,7 @@ build/Release
 node_modules
 jsdoc
 
-# Jetbrains IDE
+# Jetbrains IDE dotfiles
 .idea
 
 # Ansible
