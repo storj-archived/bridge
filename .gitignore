@@ -27,3 +27,12 @@ build/Release
 node_modules
 jsdoc
 *.swp
+
+# Jetbrains IDE dotfiles
+.idea
+
+# Ansible
+playbook.retry
+
+# Vagrant dotfiles
+.vagrant
