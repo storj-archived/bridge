@@ -6,6 +6,8 @@ const Storage = require('../lib/storage');
 const MongoAdapter = require('../lib/storage/adapter');
 const Config = require('../lib/config');
 const config = Config(process.env.NODE_ENV || 'devel');
+const Messaging = require('../lib/messaging');
+const messaging = new Messaging(config.messaging);
 
 if (process.env.NODE_ENV === 'devel') {
   config.storage.name = '__storj-bridge-develop';
@@ -14,13 +16,22 @@ if (process.env.NODE_ENV === 'devel') {
 const storage = Storage(config.storage);
 const options = JSON.parse(process.argv[2]);
 
+const keypair = storj.KeyPair(options.privkey);
+const nodeId = keypair.getNodeID();
+
+logger.info('[minion] started with %s', nodeId);
+
 let adapter = new MongoAdapter(storage);
 let manager = new storj.Manager(adapter);
 
 function _castArguments(message) {
+  let contract;
   switch (message.method) {
     case 'getStorageOffer':
-      message.params[0] = storj.Contract.fromObject(message.params[0]);
+      contract = storj.Contract.fromObject(message.params[0]);
+      contract.set('renter_id', nodeId);
+      contract.sign('renter', keypair.getPrivateKey());
+      message.params[0] = contract;
       break;
     case 'getStorageProof':
       message.params[0] = storj.Contact(message.params[0]);
@@ -43,74 +54,119 @@ function _castArguments(message) {
   }
 }
 
-storage.models.Contact.recall(3, function(err, seeds) {
+function handleError(err) {
   if (err) {
-    logger.error(err);
+    logger.error(`[minion] ${err.message}`);
     process.exit();
   }
+}
 
-  let network = storj.RenterInterface({
-    keypair: storj.KeyPair(options.privkey),
-    manager: manager,
-    logger: logger,
-    seeds: seeds.map(function(seed) {
-      return seed.toString();
-    }),
-    bridge: false,
-    address: options.address,
-    port: options.port,
-    tunnels: options.tunnels,
-    noforward: true,
-    tunport: options.tunport,
-    gateways: options.gateways
-  });
+const worker = true;
+messaging.start(worker, (err) => {
+  handleError(err);
 
-  network._router.on('add', function(contact) {
-    storage.models.Contact.record(contact);
-  });
+  storage.models.Contact.recall(3, function(err, seeds) {
+    handleError(err);
 
-  network._router.on('shift', function(contact) {
-    storage.models.Contact.record(contact);
-  });
-
-  network._getConnectedContacts = function(callback) {
-    let connected = [];
-
-    for (var index in this._router._buckets) {
-      connected = connected.concat(
-        this._router._buckets[index].getContactList()
-      );
-    }
-
-    callback(null, connected);
-  };
-
-  network.join(function(err) {
-    if (err) {
-      logger.error(err.message);
-      process.exit();
-    }
-
-    process.send('ready');
-  });
-
-  process.on('message', function(message) {
-    message.params.push(function() {
-      if (arguments[0] instanceof Error) {
-        return process.send({
-          id: message.id,
-          error: {
-            message: arguments[0].message
-          }
-        });
-      }
-
-      let args = Array.prototype.slice.call(arguments);
-
-      process.send({ id: message.id, result: args });
+    let network = storj.RenterInterface({
+      keypair: storj.KeyPair(options.privkey),
+      manager: manager,
+      logger: logger,
+      seeds: seeds.map(function(seed) {
+        return seed.toString();
+      }),
+      bridge: false,
+      address: options.address,
+      port: options.port,
+      tunnels: options.tunnels,
+      noforward: true,
+      tunport: options.tunport,
+      gateways: options.gateways
     });
 
-    _castArguments(message);
-    network[message.method].apply(network, message.params);
+    network._router.on('add', function(contact) {
+      storage.models.Contact.record(contact);
+    });
+
+    network._router.on('shift', function(contact) {
+      storage.models.Contact.record(contact);
+    });
+
+    network._getConnectedContacts = function(callback) {
+      let connected = [];
+
+      for (var index in this._router._buckets) {
+        connected = connected.concat(
+          this._router._buckets[index].getContactList()
+        );
+      }
+
+      callback(null, connected);
+    };
+
+    network.join(function(err) {
+      if (err) {
+        logger.error(err.message);
+        process.exit();
+      }
+      process.send('ready');
+    });
+
+    network.on('unhandledOffer', (contract, contact) => {
+      logger.debug('[minion] got unhandledOffer. Relaying.');
+      messaging.publish('minion.relay', JSON.stringify({contract: contract.toObject(), contact: contact.toObject()}));
+    });
+
+    messaging.subscribe('minion.relay');
+
+    messaging.on('minion.relay', (msg) => {
+      logger.info('[minion] recieved relay message from %s', msg.properties.replyTo);
+      const message = JSON.parse(msg.content);
+      const contract = storj.Contract.fromObject(message.contract);
+      const contact = storj.Contact(message.contact);
+      if (network._pendingContracts[contract.get('data_hash')]) {
+        network._pendingContracts[contract.get('data_hash')](contact, contract);
+        delete network._pendingContracts[contract.get('data_hash')];
+      }
+    });
+
+    messaging.on('work', function(msg) {
+      messaging.channels.serial.ack(msg);
+      const message = JSON.parse(msg.content);
+      logger.info('[minion] got work on %s %s', messaging.queues.renterpool, msg.properties.messageId);
+
+      message.params.push(function() {
+        logger.info('[minion] got network reply to %s', msg.properties.messageId);
+
+        if (arguments[0] instanceof Error) {
+          logger.info('[minion] sending error message to %s: %s', msg.properties.replyTo, arguments[0].message);
+          return messaging.send(
+            JSON.stringify({ error: { message: arguments[0].message } }),
+            msg.properties.replyTo,
+            { correlationId: msg.properties.messageId }
+          );
+        }
+
+        let args = Array.prototype.slice.call(arguments);
+        for (let i = 0; i < args.length; i++) {
+          try {
+            if (typeof args[i] !== 'function') {
+              args[i] = args[i].toObject();
+            }
+          } catch (e) {}
+        }
+
+        logger.info('[minion] sending message to %s', msg.properties.replyTo);
+        messaging.send(
+          JSON.stringify({result: args}),
+          msg.properties.replyTo,
+          { correlationId: msg.properties.messageId }
+        );
+      });
+
+      _castArguments(message);
+      logger.info('[minion] calling network %s', message.method);
+      network[message.method].apply(network, message.params);
+    });
   });
 });

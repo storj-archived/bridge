@@ -50,7 +50,7 @@ describe('Engine', function() {
       config.network.port = 6484;
       var engine = new Engine(config);
       engine.start(function(err) {
-        expect(err).to.equal(undefined);
+        expect(err).to.equal(null);
         expect(engine.storage).to.be.instanceOf(Storage);
         expect(engine.mailer).to.be.instanceOf(Mailer);
         expect(engine.network).to.be.instanceOf(RenterPool);
