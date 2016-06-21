@@ -217,6 +217,59 @@
       }
     },
     "/users/{email}": {
+      "patch": {
+        "tags": ["users"],
+        "summary": "Requests the reset of the account password",
+        "parameters": [
+          {
+            "name": "email",
+            "in": "path",
+            "type": "string",
+            "description": "The email address of the account for password reset (yours)",
+            "required": true
+          },
+          {
+            "name": "options",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "redirect": {
+                  "description": "Optional redirect URL for successful deletion",
+                  "type": "string"
+                },
+                "password": {
+                  "description": "Hex encoded SHA-256 hash of the desired password",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account password reset email sent",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "example": "gordon@storj.io"
+                },
+                "created": {
+                  "type": "string",
+                  "example": "2016-03-04T17:01:02.629Z"
+                },
+                "activated": {
+                  "type": "boolean",
+                  "example": true
+                }
+              }
+            }
+          }
+        }
+      },
       "delete": {
         "tags": ["users"],
         "summary": "Requests the deletion of the account",
@@ -246,6 +299,49 @@
         "responses": {
           "200": {
             "description": "Account deletion email sent",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "example": "gordon@storj.io"
+                },
+                "created": {
+                  "type": "string",
+                  "example": "2016-03-04T17:01:02.629Z"
+                },
+                "activated": {
+                  "type": "boolean",
+                  "example": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/resets/{token}": {
+      "get": {
+        "tags": ["users"],
+        "summary": "Confirms the password reset and optionally redirects",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "type": "string",
+            "description": "Confirmation token sent to user's email address",
+            "required": true
+          },
+          {
+            "name": "redirect",
+            "in": "query",
+            "type": "string",
+            "description": "Optional redirect URL for successful confirmation"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Password successfully reset",
             "schema": {
               "type": "object",
               "properties": {
