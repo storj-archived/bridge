@@ -1,0 +1,18 @@
+<h1>Reset Your Storj Password</h1>
+
+<p>
+  To finish resetting your password, please
+  {{#if redirect}}
+    <a href="{{url}}/resets/{{token}}?redirect={{redirect}}">click here to confirm your password reset</a>.
+  {{else}}
+    <a href="{{url}}/resets/{{token}}">click here to confirm your password reset</a>.
+  {{/if}}
+</p>
+
+<hr/>
+
+<p>
+  <em>
+    Cheers,<br/>The Storj Team
+  </em>
+</p>
