@@ -18,7 +18,8 @@ const AuditService = function(options) {
   log.info('master audit service forking ' + this._options.workers.length + ' workers...');
 
   this._masterPollQueue = new AuditQueue(this._options.redis);
-  this._interval = setInterval(this.pollBacklog, INTERVAL);
+  console.log(this._masterPollQueue.populateReadyQueue)
+  this._interval = setInterval(this.pollBacklog.bind(this), INTERVAL);
 
   this._options.workers.forEach(function(workerConfig, ind) {
     self.addNewWorkerToQueue(workerConfig);
