@@ -78,6 +78,36 @@ cd /path/to/storj-bridge
 npm run develop
 ```
 
+Windows
+========
+
+Install utilizing automated script
+
+```
+https://github.com/Storj/storj-automation/archive/master.zip
+```
+
+Run MongoDB from command line
+
+```
+%PROGRAMFILES%\MongoDB\Server\3.2\bin\mongod.exe --dbpath=C:\Users\bill.mcilhargey.I3DOMAIN\.storj-bridge
+```
+
+Run storj-bridge from command line
+
+```
+cd %APPDATA%\npm\node_modules\storj-bridge
+storj-bridge.cmd
+```
+
+The default configuration can be modified as needed.  It is located at
+
+```
+%USERPROFILE%\.storj-bridge\config
+```
+
+Edit `devel` in notepad/wordpad
+
 For more information, see [the documentation](http://storj.github.io/bridge).
 
 License
