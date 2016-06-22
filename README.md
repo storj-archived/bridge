@@ -16,7 +16,7 @@ With Vagrant
 
 Download and install [vagrant](https://www.vagrantup.com/downloads.html) for your platform.
 
-Clone the repository, install dependencies:
+Clone the repository:
 
 ```
 git clone https://github.com/Storj/bridge.git
