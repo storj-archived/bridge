@@ -62,7 +62,6 @@
     "kad-logger-json": "^0.1.2",
     "merge": "^1.2.0",
     "mime-db": "^1.22.0",
-    "minimist": "^1.2.0",
     "mongoose": "^4.3.4",
     "mongoose-types": "^1.0.3",
     "ms": "^0.7.1",
