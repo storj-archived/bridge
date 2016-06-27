@@ -18,13 +18,17 @@ describe('Engine/Integration', function() {
   var client = storj.BridgeClient('http://127.0.0.1:6382');
 
   before(function(done) {
-    this.timeout(20000);
+    this.timeout(60000);
     config = Config('__tmptest');
-    config.network.minions[0].privkey = storj.KeyPair().getPrivateKey();
+    const minionKey = storj.KeyPair().getPrivateKey();
+    config.network.minions[0].privkey = minionKey;
+    config.network.minions[1].privkey = minionKey;
+    config.network.minions[2].privkey = minionKey;
     // Set up Bridge Server
     engine = Engine(config);
     // Start the service
-    engine.start(function() {
+    engine.start(function(err) {
+      if (err) { return done(err); }
       // Drop the local database
       async.each(Object.keys(engine.storage.models), function(model, next) {
         engine.storage.models[model].remove({}, next);
@@ -41,8 +45,12 @@ describe('Engine/Integration', function() {
           noforward: true
         });
         // Seed Bridge
-        farmer.join(function() {});
-        done();
+        farmer.join(function() {
+          async.eachSeries(engine.getSpecification().info['x-network-seeds'], (item, cb) => {
+            farmer.connect(item, cb);
+          }, done);
+        });
+
       });
     });
   });
@@ -217,7 +225,8 @@ describe('Engine/Integration', function() {
 
       after(function() {
         client = storj.BridgeClient('http://127.0.0.1:6382', {
-          keypair: keypair
+          keypair: keypair,
+          logger: require('..').logger
         });
       });
 
@@ -454,19 +463,22 @@ describe('Engine/Integration', function() {
     describe('POST /buckets/:bucket_id/files', function() {
 
       it('should store the file in the bucket', function(done) {
-        this.timeout(20000);
+        this.timeout(60000);
         var randomName = crypto.randomBytes(6).toString('hex');
         var filePath = require('os').tmpdir() + '/' + randomName + '.txt';
         var randomio = noisegen({ length: 1024 * 1024 * 16 });
         var target = fs.createWriteStream(filePath);
         target.on('finish', function() {
           client.getBuckets(function(err, buckets) {
+            if (err) { return done(err); }
             client.createToken(buckets[0].id, 'PUSH', function(err, token) {
+              if (err) { return done(err); }
               client.storeFileInBucket(
                 buckets[0].id,
                 token,
                 filePath,
                 function(err, entry) {
+                  if (err) { return done(err); }
                   expect(entry.name).to.equal(randomName + '.txt');
                   expect(entry.size).to.equal(16777216);
                   expect(entry.mimetype).to.equal('text/plain');
@@ -499,16 +511,21 @@ describe('Engine/Integration', function() {
       it('should return the file pointer payloads for the file', function(done) {
         this.timeout(6000);
         client.getBuckets(function(err, buckets) {
+          if (err) { return done(err); }
           client.listFilesInBucket(buckets[0].id, function(err, files) {
+            if (err) { return done(err); }
             client.createToken(buckets[0].id, 'PULL', function(err, token) {
+              if (err) { return done(err); }
               client.getFilePointer(
                 buckets[0].id,
                 token.token,
                 files[0].id,
                 function(err, pointers) {
+                  if (err) { return done(err); }
                   expect(Array.isArray(pointers)).to.equal(true);
                   expect(pointers).to.have.lengthOf(2);
                   client.resolveFileFromPointers(pointers, function(err, stream) {
+                    if (err) { return done(err); }
                     var bytes = 0;
                     stream.on('data', function(data) {
                       bytes += data.length;
