@@ -114,7 +114,7 @@ messaging.start(worker, (err) => {
 
     network.on('unhandledOffer', (contract, contact) => {
       logger.debug('[minion] got unhandledOffer. Relaying.');
-      messaging.publish('minion.relay', JSON.stringify({contract: contract.toObject(), contact: contact.toObject()}));
+      messaging.publish('minion.relay', JSON.stringify({contract: contract.toObject(), contact: contact}));
     });
 
     messaging.subscribe('minion.relay');
