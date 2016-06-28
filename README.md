@@ -66,7 +66,7 @@ npm install && npm link
 Start the server (set the `NODE_ENV` environment variable to specify the config):
 
 ```
-NODE_ENV=develop storj-bridge
+NODE_ENV=production
 ```
 
 This will use the configuration file located at `~/.storj-bridge/config/develop.json`.
