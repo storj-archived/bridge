@@ -7,66 +7,28 @@
       # TODO: lookup bin name(s) from package.json
       bin: storj-bridge
     nvm:
-      install_script: '{{ synced_dir }}/ansible/files/nvm-v0.30.1-install.sh'
+      install_script: '{{ synced_dir }}/roles/node/files/nvm-v0.30.1-install.sh'
       node:
         version: "{{ lookup('file', './.nvmrc') }}"
+  pre_tasks:
+    - name: Install service-level dependencies
+      become: true
+      apt:
+        name: '{{ item }}'
+        state: present
+        update_cache: yes
+      with_items:
+        - mongodb
+        - git
+  roles:
+    - rabbitmq
+    - node
   tasks:
     - name: Tweak .bash_profile to auto cd to synced_dir
       lineinfile:
         dest: ~/.profile
         line: 'cd {{ synced_dir }}'
         create: yes
-
-    - name: Install service-level dependencies
-      become: true
-      apt:
-        name: '{{ item }}'
-        state: present
-      with_items:
-        - mongodb
-        - git
-
-    - name: Set execute mode on nvm install script
-      file:
-        path: '{{ nvm.install_script }}'
-        mode: 0755
-      tags:
-        - nvm
-
-    - name: Install nvm
-      command: bash -lc '{{ nvm.install_script }}'
-      register: nvm_install_result
-      changed_when: nvm_install_result.stdout | search("nvm is already installed") == false
-      tags:
-        - nvm
-
-    - name: Source nvm in ~/.profile
-      lineinfile:
-        dest: ~/.profile
-        line: 'source ~/.nvm/nvm.sh'
-        create: yes
-      tags:
-        - nvm
-
-    - name: Install correct node version
-      command: bash -lc 'nvm install v{{ nvm.node.version }}'
-      register: nvm_install_node_result
-      changed_when: nvm_install_node_result.stderr | search("is already installed") == false
-      tags:
-        - nvm
-
-    - name: Check default version
-      command: bash -lc 'nvm list'
-      register: nvm_list_result
-      changed_when: false
-      tags:
-        - nvm
-
-    - name: Set default node version
-      command: bash -lc 'nvm alias default v{{ nvm.node.version }}'
-      when: nvm_list_result.stdout | search('default -> v{{ nvm.node.version }}') == false
-      tags:
-        - nvm
 
     - name: 'Install bridge project dependencies (npm install) - NOTE: THIS COULD TAKE A WHILE...'
       npm:
