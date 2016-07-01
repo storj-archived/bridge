@@ -102,120 +102,144 @@ Configuration
 
 Recommended config changes
 
-```
-storage.name: The name of the database that Bridge will use. It should be changed as to not conflict with running tests.
-storage.user: The username for your database. You should set a username and password unless your DB instance is only listening locally.
-storage.pass: Same as above.
++ storage.name: The name of the database that Bridge will use. It should be changed as to not conflict with running tests.
++ storage.user: The username for your database. You should set a username and password unless your DB instance is only listening locally.
++ storage.pass: Same as above.
 
-network.minions.privkey: This should be the same across all of your minions and any instances of the Bridge behind a loadbalancer talking to the same database and queue.
-network.minions.address: The public IP address or a DNS record that resolves to the public IP address of the Bridge server
++ network.minions.privkey: This should be the same across all of your minions and any instances of the Bridge behind a loadbalancer talking to the same database and queue.
++ network.minions.address: The public IP address or a DNS record that resolves to the public IP address of the Bridge server
 
-server.host: If your public IP is not bound to an interface on your host, you can set this to the IP bound to the interface with access to the internet or the network that Bridge traffic will traval accross. If you set this to a non public IP, you will also need to be sure to set the `server.public.host`.
-server.public.host: The hosts public IP address or a DNS record that resolves to the public IP address of the Bridge server. You only need to set this if `server.host` is set to a non public accessible IP address.
-```
++ server.host: If your public IP is not bound to an interface on your host, you can set this to the IP bound to the interface with access to the internet or the network that Bridge traffic will traval accross. If you set this to a non public IP, you will also need to be sure to set the `server.public.host`.
++ server.public.host: The hosts public IP address or a DNS record that resolves to the public IP address of the Bridge server. You only need to set this if `server.host` is set to a non public accessible IP address.
 
-The default configuration for Storj Bridge is as follows. You can find it in [the config.js lib](https://github.com/Storj/bridge/blob/master/lib/config.js#L62-L160).
+The following is a sanatized version of the config that we use to run our Bridge servers. You can find the defaults in [the config.js lib](https://github.com/Storj/bridge/blob/master/lib/config.js#L62-L160).
 
 ```
-Config.DEFAULTS = {
-  storage: {
-    host: '127.0.0.1',
-    port: 27017,
-    name: '__storj-bridge-test',
-    user: null,
-    pass: null,
-    mongos: false,
-    ssl: false
+{
+  "server": {
+    "host": "api.storj.io",
+    "timeout": 60000,
+    "port": 8080,
+    "ssl": {
+      "cert": true
+    }
   },
-  messaging: {
-    url: 'amqp://localhost',
-    queues: {
-      renterpool: { // a shared work queue
-        name: 'storj.work.renterpool',
-        options: {
-          exclusive: false,
-          durable: true,
-          arguments: {
-            messageTtl: 120 * 1000 // messages expires after 120 seconds with no response
+  "storage": [
+    {
+      "name": "bridge",
+      "host": "123.123.123.123",
+      "port": 27017,
+      "ssl": true,
+      "user": "db_user",
+      "pass": "super_strong_db_password",
+      "mongos": {
+        "checkServerIdentity": false,
+        "ssl": true,
+        "sslValidate": false
+      }
+    },
+    {
+      "name": "bridge",
+      "host": "123.123.123.123",
+      "port": 27017,
+      "ssl": true,
+      "user": "db_user",
+      "pass": "super_strong_db_password",
+      "mongos": {
+        "checkServerIdentity": false,
+        "ssl": true,
+        "sslValidate": false
+      }
+    },
+    {
+      "name": "bridge",
+      "host": "123.123.123.123",
+      "port": 27017,
+      "ssl": true,
+      "user": "db_user",
+      "pass": "super_strong_db_password",
+      "mongos": {
+        "checkServerIdentity": false,
+        "ssl": true,
+        "sslValidate": false
+      }
+    }
+  ],
+  "messaging": {
+    "url": "amqp://amqp_user:amqp_password@my_queue.storj.io",
+    "queues": {
+      "renterpool": {
+        "name": "storj.work.renterpool",
+        "options": {
+          "exclusive": false,
+          "durable": true,
+          "arguments": {
+            "messageTtl": 120000
           }
         }
       },
-      callback: { // each process gets a unique callback queue, to use in replyTo
-        name: '', // dynamically generated
-        options: {
-          exclusive: true,
-          durable: false
+      "callback": {
+        "name": "",
+        "options": {
+          "exclusive": true,
+          "durable": false,
+          "arguments": {
+          }
         }
       }
     },
-    exchanges: {
-      events: {
-        name: 'storj.events',
-        type: 'topic',
-        options: {
-          durable: true
+    "exchanges": {
+      "events": {
+        "name": "storj.events",
+        "type": "topic",
+        "options": {
+          "durable": true
         }
       }
     }
   },
-  server: {
-    host: '127.0.0.1',
-    port: 6382,
-    timeout: 240000,
-    ssl: {
-      cert: null,
-      key: null,
-      ca: [],
-      redirect: 80
-    },
-    public: {
-      host: '127.0.0.1',
-      port: 80
-    }
+  "network": {
+    "minions": [
+      {
+        "bridge": false,
+        "address": "234.234.234.234",
+        "port": 8443,
+        "tunport": 8444,
+        "tunnels": 16,
+        "gateways": { "min": 8500, "max": 8532 },
+        "privkey": "8439823498923482938489239498329489283498293849898239849234989293"
+      },
+      {
+        "bridge": false,
+        "address": "234.234.234.234",
+        "port": 8445,
+        "tunport": 8446,
+        "tunnels": 16,
+        "gateways": { "min": 8600, "max": 8632 },
+        "privkey": "8439823498923482938489239498329489283498293849898239849234989293"
+      },
+      {
+        "bridge": false,
+        "address": "234.234.234.234",
+        "port": 8447,
+        "tunport": 8448,
+        "tunnels": 16,
+        "gateways": { "min": 8700, "max": 8732 },
+        "privkey": "8439823498923482938489239498329489283498293849898239849234989293"
+      }
+    ]
   },
-  network: {
-    minions: [{
-      bridge: false,
-      privkey: null,
-      address: '127.0.0.1',
-      port: 6383,
-      noforward: true,
-      tunnels: 32,
-      tunport: 6384,
-      gateways: { min: 0, max: 0 }
+  "mailer": {
+    "host": "smtp.myemail.com",
+    "port": 465,
+    "auth": {
+      "user": "robot@storj.io",
+      "pass": "super_awesome_password"
     },
-    {
-      bridge: false,
-      privkey: null,
-      address: '127.0.0.1',
-      port: 6385,
-      noforward: true,
-      tunnels: 32,
-      tunport: 6386,
-      gateways: { min: 0, max: 0 }
-    },
-    {
-      bridge: false,
-      privkey: null,
-      address: '127.0.0.1',
-      port: 6387,
-      noforward: true,
-      tunnels: 32,
-      tunport: 6388,
-      gateways: { min: 0, max: 0 }
-    }],
-  },
-  mailer: {
-    host: '127.0.0.1',
-    port: 465,
-    secure: true,
-    auth: {
-      user: 'username',
-      pass: 'password'
-    },
-    from: 'robot@storj.io'
+    "secure": true,
+    "from": "robot@storj.io"
   }
-};
+}
 ```
 
 
