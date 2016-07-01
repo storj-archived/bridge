@@ -107,10 +107,8 @@ Recommended config changes
 | storage.name              | null          | The name of the database that Bridge will use. It should be changed as to not conflict with running tests.               |
 | storage.user              | null          | The username for your database. You should set a username and password unless your DB instance is only listening locally.|
 | storage.pass              | null          | Same as above.
-| --------------------------|---------------|--------------------------------------------------------------------------------------------------------------------------|
 | network.minions.privkey   | null          | This should be the same across all of your minions and any instances of the Bridge behind a loadbalancer talking to the same database and queue.
 | network.minions.address   | 127.0.0.1     | The public IP address or a DNS record that resolves to the public IP address of the Bridge server
-| --------------------------|---------------|--------------------------------------------------------------------------------------------------------------------------|
 | server.host               | 127.0.0.1     | If your public IP is not bound to an interface on your host, you can set this to the IP bound to the interface with access to the internet or the network that Bridge traffic will traval accross. If you set this to a non public IP, you will also need to be sure to set the `server.public.host`. |
 | server.public.host        | 127.0.0.1     | The hosts public IP address or a DNS record that resolves to the public IP address of the Bridge server. You only need to set this if `server.host` is set to a non public accessible IP address. |
 | --------------------------|---------------|-------------------------------------------------------------------------------------------------------------------------|
