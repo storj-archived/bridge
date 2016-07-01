@@ -114,7 +114,7 @@ server.host: If your public IP is not bound to an interface on your host, you ca
 server.public.host: The hosts public IP address or a DNS record that resolves to the public IP address of the Bridge server. You only need to set this if `server.host` is set to a non public accessible IP address.
 ```
 
-The default configuration for Storj Bridge is as follows.
+The default configuration for Storj Bridge is as follows. You can find it in [the config.js lib](https://github.com/Storj/bridge/blob/master/lib/config.js#L62-L160).
 
 ```
 Config.DEFAULTS = {
