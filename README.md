@@ -111,7 +111,6 @@ Recommended config changes
 | network.minions.address   | 127.0.0.1     | The public IP address or a DNS record that resolves to the public IP address of the Bridge server
 | server.host               | 127.0.0.1     | If your public IP is not bound to an interface on your host, you can set this to the IP bound to the interface with access to the internet or the network that Bridge traffic will traval accross. If you set this to a non public IP, you will also need to be sure to set the `server.public.host`. |
 | server.public.host        | 127.0.0.1     | The hosts public IP address or a DNS record that resolves to the public IP address of the Bridge server. You only need to set this if `server.host` is set to a non public accessible IP address. |
-| --------------------------|---------------|-------------------------------------------------------------------------------------------------------------------------|
 
 The following is a sanatized version of the config that we use to run our Bridge servers. You can find the defaults in [the config.js lib](https://github.com/Storj/bridge/blob/master/lib/config.js#L62-L160).
 
