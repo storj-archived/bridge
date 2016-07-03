@@ -25,6 +25,7 @@ Vagrant.configure("2") do |config|
   # config.vm.network "forwarded_port", guest: 80, host: 8080
 
   config.vm.network "forwarded_port", guest: 3030, host: 3030
+  config.vm.network "forwarded_port", guest: 6382, host: 6382
 
   # Create a private network, which allows host-only access to the machine
   # using a specific IP.
@@ -72,7 +73,6 @@ Vagrant.configure("2") do |config|
   # SHELL
 
   config.vm.provision "ansible_local" do |ansible|
-    ansible.playbook = "playbook.yml"
-    #ansible.install_mode = :pip
+    ansible.playbook = "ansible/playbook.yml"
   end
 end
