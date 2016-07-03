@@ -25,7 +25,15 @@ Vagrant.configure("2") do |config|
   # config.vm.network "forwarded_port", guest: 80, host: 8080
 
   config.vm.network "forwarded_port", guest: 3030, host: 3030
+
+  # Default bridge server HTTP port
   config.vm.network "forwarded_port", guest: 6382, host: 6382
+
+  # Uncomment to forward mongo
+  # config.vm.network "forwarded_port", guest: 27017, host: 27017
+
+  # Uncomment to forward rabbitmq
+  # config.vm.network "forwarded_port", guest: 5672, host: 5672
 
   # Create a private network, which allows host-only access to the machine
   # using a specific IP.

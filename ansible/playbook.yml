@@ -28,7 +28,18 @@
       copy:
         src: ./files/motd
         dest: /etc/motd
-      become: yes # sudo
+      become: yes #sudo
+
+    - name: Tweak mongo config
+      lineinfile:
+        dest: /etc/mongodb.conf
+        state: present
+        line: 'bind_ip = 0.0.0.0'
+        regexp: '^#?\s*bind_ip\s*=\s*\d+\.\d+\.\d+\.\d+'
+      become: yes #sudo
+      tags:
+        - mongo
+
     - name: Tweak .bash_profile to auto cd to synced_dir
       lineinfile:
         dest: ~/.profile

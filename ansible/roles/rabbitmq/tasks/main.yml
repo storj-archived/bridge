@@ -19,6 +19,11 @@
     state: present
     update_cache: yes
   become: yes #sudo
+- name: Copy rabbitmq.config
+  copy:
+    src: rabbitmq.config
+    dest: /etc/rabbitmq/rabbitmq.config
+  become: yes #sudo
 - name: Start rabbitmq server
   service:
     name: rabbitmq-server
