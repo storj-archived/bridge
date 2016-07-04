@@ -39,15 +39,19 @@
   "devDependencies": {
     "chai": "^3.4.1",
     "coveralls": "^2.11.6",
+    "database-cleaner": "^1.0.0",
+    "factory-lady": "^0.1.0",
     "ink-docstrap": "^1.1.4",
     "istanbul": "^0.4.1",
     "jsdoc": "^3.4.0",
     "jshint": "2.8.0",
     "memdown": "^1.1.2",
     "mocha": "^2.3.4",
+    "mongodb": "^2.1.18",
     "noisegen": "^1.0.0",
     "proxyquire": "^1.7.3",
-    "sinon": "^1.17.2"
+    "sinon": "^1.17.2",
+    "superagent": "^2.0.0"
   },
   "dependencies": {
     "amqplib": "^0.4.2",
