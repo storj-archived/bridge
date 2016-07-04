@@ -23,6 +23,8 @@
   copy:
     src: rabbitmq.config
     dest: /etc/rabbitmq/rabbitmq.config
+  notify:
+    - Restart rabbitmq-server
   become: yes #sudo
 - name: Start rabbitmq server
   service:

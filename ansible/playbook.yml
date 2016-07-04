@@ -37,6 +37,8 @@
         line: 'bind_ip = 0.0.0.0'
         regexp: '^#?\s*bind_ip\s*=\s*\d+\.\d+\.\d+\.\d+'
       become: yes #sudo
+      notify:
+        - Restart mongodb
       tags:
         - mongo
 
@@ -70,3 +72,9 @@
       tags:
         - npm
         - link
+  handlers:
+    - name: Restart mongodb
+      service:
+        name: mongodb
+        state: restarted
+      become: yes #sudo
