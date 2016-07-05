@@ -7,9 +7,9 @@
       # TODO: lookup bin name(s) from package.json
       bin: storj-bridge
     nvm:
-      install_script: '{{ synced_dir }}/roles/node/files/nvm-v0.30.1-install.sh'
+      install_script: '{{ synced_dir }}/ansible/roles/node/files/nvm-v0.30.1-install.sh'
       node:
-        version: "{{ lookup('file', './.nvmrc') }}"
+        version: "{{ lookup('file', synced_dir + '/.nvmrc') }}"
   pre_tasks:
     - name: Install service-level dependencies
       become: true
@@ -24,6 +24,24 @@
     - rabbitmq
     - node
   tasks:
+    - name: Add motd instructions
+      copy:
+        src: ./files/motd
+        dest: /etc/motd
+      become: yes #sudo
+
+    - name: Tweak mongo config
+      lineinfile:
+        dest: /etc/mongodb.conf
+        state: present
+        line: 'bind_ip = 0.0.0.0'
+        regexp: '^#?\s*bind_ip\s*=\s*\d+\.\d+\.\d+\.\d+'
+      become: yes #sudo
+      notify:
+        - Restart mongodb
+      tags:
+        - mongo
+
     - name: Tweak .bash_profile to auto cd to synced_dir
       lineinfile:
         dest: ~/.profile
@@ -54,3 +72,9 @@
       tags:
         - npm
         - link
+  handlers:
+    - name: Restart mongodb
+      service:
+        name: mongodb
+        state: restarted
+      become: yes #sudo

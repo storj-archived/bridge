@@ -38,6 +38,35 @@ vagrant ssh
 NODE_ENV=develop storj-bridge
 ```
 
+#### Running node server on host with mongo and rabbitmq on guest
+It is also possible to run the node server on your host but still wish to use the VM for mongo and rabbitmq.
+You may want to so this so you can remotely debug using an IDE running on the host 
+or connect other host-borne tools to these services, for example.
+
+To do this you just need to uncomment lines `33` and `36` of the `Vagrantfile` to forward the mongo and rabbitmq ports to your host:
+```yaml
+# Uncomment to forward mongo
+config.vm.network "forwarded_port", guest: 27017, host: 27017
+
+# Uncomment to forward rabbitmq
+config.vm.network "forwarded_port", guest: 5672, host: 5672
+```
+
+If you're going to start the bridge web server on your host you should comment out line `30` so that your host port is free.
+
+```yaml
+# Default bridge server HTTP port
+config.vm.network "forwarded_port", guest: 6382, host: 6382
+```
+
+After making any changes to the `Vagrantfile` you can apply them with a
+
+```bash
+vagrant reload
+```
+
+_NOTE: don't manually change any VM settings via your provider's interface as they will be overriden by the vagrantfile and/or may cause conflicts._
+
 Manually
 ========
 
