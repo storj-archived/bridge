@@ -11,7 +11,7 @@
     "storj-bridge": "bin/storj-bridge.js"
   },
   "scripts": {
-    "testsuite": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=test _mocha test/**",
+    "testsuite": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=test _mocha test/**/*.unit.js",
     "coverage": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=test ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- --recursive",
     "linter": "./node_modules/.bin/jshint --config .jshintrc ./index.js ./lib ./test",
     "test": "npm run testsuite && npm run linter",

@@ -1,0 +1,56 @@
+mongo:
+  image: mongo:3.2
+  expose:
+    - "27017"
+  command: mongod --smallfiles
+rabbit:
+  image: rabbitmq:3.6
+  expose:
+    - "5672"
+farmer1:
+  build: https://github.com/Storj/storjshare-cli.git#dockerize
+  command: bin/storjshare.js start
+  expose:
+    - "4000"
+  volumes:
+    - ./test/integration/configs/farmer1:/home/node/.storjshare
+    - ./test/integration/data/farmer1:/data
+farmer2:
+  build: https://github.com/Storj/storjshare-cli.git#dockerize
+  command: bin/storjshare.js start
+  expose:
+    - "4000"
+  volumes:
+    - ./test/integration/configs/farmer2:/home/node/.storjshare
+    - ./test/integration/data/farmer2:/data
+farmer3:
+  build: https://github.com/Storj/storjshare-cli.git#dockerize
+  command: bin/storjshare.js start
+  expose:
+    - "4000"
+  volumes:
+    - ./test/integration/configs/farmer3:/home/node/.storjshare
+    - ./test/integration/data/farmer3:/data
+farmer4:
+  build: https://github.com/Storj/storjshare-cli.git#dockerize
+  command: bin/storjshare.js start
+  expose:
+    - "4000"
+  volumes:
+    - ./test/integration/configs/farmer4:/home/node/.storjshare
+    - ./test/integration/data/farmer4:/data
+bridge:
+  build: .
+  command: bash -c 'sleep 5 && ./node_modules/.bin/_mocha test/**/*.integration.js'
+  environment:
+    NODE_ENV: integration
+    STORJ_ALLOW_LOOPBACK: 1
+  links:
+    - mongo
+    - rabbit
+    - farmer1
+    - farmer2
+    - farmer3
+    - farmer4
+  volumes:
+    - .:/output

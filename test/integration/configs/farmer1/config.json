@@ -1,0 +1,31 @@
+{
+  "keypath": "./config/id_ecdsa",
+  "address": "",
+  "storage": {
+    "path": "./data",
+    "size": 1,
+    "unit": "GB"
+  },
+  "network": {
+    "address": "127.0.0.1",
+    "port": 4000,
+    "seeds": [],
+    "opcodes": [
+      "0f01020202",
+      "0f02020202",
+      "0f03020202"
+    ],
+    "forward": false,
+    "tunnels": 3,
+    "tunnelport": 4001,
+    "gateways": {
+      "min": 0,
+      "max": 0
+    }
+  },
+  "telemetry": {
+    "service": "https://status.storj.io",
+    "enabled": false
+  },
+  "loglevel": 4
+}
