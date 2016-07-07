@@ -2,78 +2,53 @@
 
 const fork = require('process').fork;
 const expect = require('chai').expect;
+const sinon = require('sinon');
+const proxyquire = require('proxyquire');
 const Config = require('../../lib/config')('devel').audits;
 const AuditService = require('../../lib/audit');
-const AuditQueueWorker = require('../../lib/audit/auditqueueworker.js');
-const sinon = require('sinon');
+const AuditQueueWorker = proxyquire(
+  '../../lib/audit/auditqueueworker.js',
+  {'Verification': {verify: function(){return true;}}});
+const redis = require('redis');
 
 describe('Audit-Service/Integration', function() {
   var service, storj;
-
-  describe('Master Process', function() {
-    before(function() {
-      sinon.spy(AuditService.prototype, 'pollBacklog');
-      Config.polling.interval = 500;
-      service = new AuditService(Config);
-    });
-
-    after(function() {
-      service = null;
-    });
-
-    it('should fork a process for each optional worker', function() {
-      service._options.workers.forEach(function(workerConfig, ind) {
-        expect(service._workers[workerConfig.uuid]).to.exist;
-      });
-    });
-
-    it('should poll the backlog on start', function() {
-      expect(service.pollBacklog.called).to.be.true;
-    });
-
-    it('should repoll at a configured interval', function(done) {
-      this.timeout(1000);
-      expect(Config.polling.interval === 500).to.be.true;
-      setTimeout(testPolled, Config.polling.interval + 100);
-
-      function testPolled() {
-        expect(service.pollBacklog.calledTwice).to.be.true;
-        done();
-      }
-    });
-
-    it('should restart workers on failure', function(done) {
-      this.timeout(550);
-      var uuid = Config.workers[0].uuid;
-      service._workers[uuid].kill();
-      expect(service._workers[uuid].killed).to.be.true;
-      setTimeout(testRestart, 500);
-
-      function testRestart() {
-        expect(service._workers[uuid].killed).to.be.false;
-        done();
-      }
-    });
-/*
-    it(function() {
-
-    });
-*/
+  var redisClient = redis.createClient({
+    host: '127.0.0.1',
+    port: 6379,
+    user: null,
+    pass: null
   });
+
   describe('Worker Process', function() {
     before(function(done) {
       var workerConfig = Object.create(Config.worker[0], {redis: Config.redis});
-      sinon.spy(AuditQueueWorker.prototype, '_flushStalePendingQueue');
-      sinon.spy(AuditQueueWorker.prototype, '_initDispatchQueue');
-      service = new AuditQueueWorker(workerConfig);
-      service._queue.add({
-        ts: Math.floor(new Date() / 1000),
-        data: {
-          challenge: ,
-          hash: ,
-          id:
-        }
-      });
+      var pendingItems = [];
+
+      for(let i = 0; i < 10; i++) {
+        pendingItems.push({
+          ts: Math.floor(new Date() / 1000),
+          data: {
+            id: i,
+            root: '',
+            depth: '',
+            challenge: '',
+            hash: ''
+          }
+        });
+      }
+
+      redisClient.LPUSH(
+        service._queue._keys.pending,
+        pendingItems,
+        function(err, result) {
+          expect(err).to.be.a('null');
+          expect(result).to.equal(10);
+          sinon.spy(AuditQueueWorker.prototype, '_flushStalePendingQueue');
+          sinon.spy(AuditQueueWorker.prototype, '_initDispatchQueue');
+          service = new AuditQueueWorker(workerConfig);
+          done();
+        });
     });
 
     after(function() {
@@ -81,20 +56,23 @@ describe('Audit-Service/Integration', function() {
     });
 
     describe('_flushStalePendingQueue', function() {
-      it('should retrieve the pending queue', function(done) {
-        expect.
+      before(function() {
+        sinon.spy(service._queue, 'getPendingQueue');
+        sinon.spy(service._dispatcher, '_verify');
+        sinon.spy(service._dispatcher, '_commit');
       });
 
-      it('should send audit requests', function(done) {
-
+      it('should retrieve the pending queue on start', function(done) {
+        expect(service._flushStalePendingQueue.called).to.be.true;
+        expect(service._queue.getPendingQueue.called).to.be.true;
       });
 
-      it('should verify audit results', function(done) {
-
+      it('should call the dispatcher\'s verify method', function(done) {
+        expect(service._dispatcher._verify.called).to.be.true;
       });
 
       it('should commit tasks to a final queue', function(done) {
-
+        expect(service._dispatcher._commit.called).to.be.true;
       });
 
       it('should empty the pending queue', function(done) {
