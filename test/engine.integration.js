@@ -506,6 +506,31 @@ describe('Engine/Integration', function() {
 
     });
 
+    describe('POST /buckets/:bucket_id/mirrors', function() {
+
+      it('should create n mirror farmers', function(done) {
+        this.timeout(60000);
+        client.getBuckets(function(err, buckets) {
+          client.listFilesInBucket(buckets[0].id, function(err, files) {
+            expect(files).to.have.lengthOf(1);
+            client.replicateFileFromBucket(
+              buckets[0].id,
+              files[0].id,
+              4,
+              function(err, results) {
+                expect(err).to.equal(null);
+                expect(results).to.have.lengthOf(2);
+                expect(results[0].mirrors).to.have.lengthOf(4);
+                expect(results[1].mirrors).to.have.lengthOf(4);
+                done();
+              }
+            );
+          });
+        });
+      });
+
+    });
+
     describe('GET /buckets/:id/files/:file', function() {
 
       it('should return the file pointer payloads for the file', function(done) {
