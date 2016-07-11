@@ -14,6 +14,7 @@ if (!fs.existsSync(STORAGE_PATH)) {
   fs.mkdirSync(STORAGE_PATH);
 }
 
+var privkey = storj.KeyPair().getPrivateKey();
 var config = Config({
   storage: {
     host: '127.0.0.1',
@@ -28,7 +29,7 @@ var config = Config({
   network: {
     minions: [
       {
-        privkey: storj.KeyPair().getPrivateKey(),
+        privkey: privkey,
         address: '127.0.0.1',
         port: 6383,
         noforward: true,
@@ -36,7 +37,7 @@ var config = Config({
         gateways: { min: 0, max: 0 }
       },
       {
-        privkey: storj.KeyPair().getPrivateKey(),
+        privkey: privkey,
         address: '127.0.0.1',
         port: 6384,
         noforward: true,
@@ -44,7 +45,7 @@ var config = Config({
         gateways: { min: 0, max: 0 }
       },
       {
-        privkey: storj.KeyPair().getPrivateKey(),
+        privkey: privkey,
         address: '127.0.0.1',
         port: 6385,
         noforward: true,

@@ -291,7 +291,7 @@
                 "redirect": {
                   "description": "Optional redirect URL for successful deletion",
                   "type": "string"
-                } 
+                }
               }
             }
           }
@@ -1360,6 +1360,27 @@
             "name": "file_id",
             "description": "The file ID to get pointers for",
             "required": true
+          },
+          {
+            "type": "string",
+            "in": "query",
+            "name": "skip",
+            "description": "The pointer index to start the file slice",
+            "required": true
+          },
+          {
+            "type": "string",
+            "in": "query",
+            "name": "limit",
+            "description": "The number of pointers to resolve tokens for",
+            "required": true
+          },
+          {
+            "type": "string",
+            "in": "query",
+            "name": "exclude",
+            "description": "Comma separated list of farmer nodeIDs to exclude from token retrieval",
+            "required": false
           },
           {
             "type": "string",
