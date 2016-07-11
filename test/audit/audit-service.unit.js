@@ -5,13 +5,17 @@ const expect = require('chai').expect;
 const sinon = require('sinon');
 const proxyquire = require('proxyquire');
 const AuditQueue = require('../../lib/audit/queue.js');
-
+const inherits = require('util').inherits;
 var popSpy = sinon.spy(AuditQueue.prototype, 'populateReadyQueue');
-var forkStub = sinon.stub();
-var stubQueue = Object.assign(AuditQueue, {populateReadyQueue: popSpy});
-const AuditService = proxyquire('../../lib/audit', {
-  '../../lib/audit/queue.js': stubQueue,
-  child_process: {
+var forkStub = function() {
+  return {
+    on: sinon.stub()
+  }
+}
+
+var AuditService = proxyquire('../../lib/audit', {
+  '../../lib/audit/queue.js': AuditQueue,
+  'child_process': {
     fork: forkStub
   }
 });
@@ -70,21 +74,9 @@ describe('audit/index.js', function() {
   describe('#addNewWorkerToQueue', function() {
     config = Object.assign({}, Config);
     service = new AuditService(config);
+
     it('should fork a process for each optional worker', function() {
       expect(service._options.workers.length === forkStub.callCount);
-    });
-
-    it('should restart workers on failure', function(done) {
-      this.timeout(550);
-      var uuid = config.workers[0].uuid;
-      service._workers[uuid].kill();
-      expect(service._workers[uuid].killed).to.be.true;
-      setTimeout(testRestart, 500);
-
-      function testRestart() {
-        expect(service._workers[uuid].killed).to.be.false;
-        done();
-      }
     });
   });
 
@@ -96,19 +88,13 @@ describe('audit/index.js', function() {
 
     it('should accept a current time padding',
       function() {
-        expect(service.pollBacklog.args[0] === offset).to.be.true;
-
+        expect(service.pollBacklog.getCall(1).args[0]
+          === config.polling.padding).to.be.true;
     });
 
     it('should call populateReadyQueue',
       function() {
         expect(service._masterPollQueue.populateReadyQueue.called).to.be.true;
-    });
-
-    it('should call populateReadyQueue with padding',
-      function() {
-        expect(service._masterPollQueue.populateReadyQueue.args[1])
-          .to.equal(config.polling.padding);
     });
   });
 });
