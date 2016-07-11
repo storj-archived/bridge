@@ -1,0 +1,34 @@
+---
+- name: Add rabbitmq aptitude source
+  lineinfile:
+    state: present
+    create: yes
+    dest: /etc/apt/sources.list.d/rabbitmq.list
+    line: 'deb http://www.rabbitmq.com/debian/ testing main'
+    regexp: 'deb\s+http://www.rabbitmq.com/debian/\s+testing\s+main'
+  become: yes #sudo
+- name: Add rabbitmq aptitude key
+  apt_key:
+    url: 'https://www.rabbitmq.com/rabbitmq-release-signing-key.asc'
+    validate_certs: yes
+    state: present
+  become: yes #sudo
+- name: Install rabbitmq-server
+  apt:
+    name: rabbitmq-server
+    state: present
+    update_cache: yes
+  become: yes #sudo
+- name: Copy rabbitmq.config
+  copy:
+    src: rabbitmq.config
+    dest: /etc/rabbitmq/rabbitmq.config
+  notify:
+    - Restart rabbitmq-server
+  become: yes #sudo
+- name: Start rabbitmq server
+  service:
+    name: rabbitmq-server
+    enabled: yes
+    state: started
+  become: yes #sudo

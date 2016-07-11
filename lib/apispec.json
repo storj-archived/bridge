@@ -229,22 +229,18 @@
             "required": true
           },
           {
-            "name": "options",
+            "name": "password",
             "in": "body",
-            "required": false,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "redirect": {
-                  "description": "Optional redirect URL for successful deletion",
-                  "type": "string"
-                },
-                "password": {
-                  "description": "Hex encoded SHA-256 hash of the desired password",
-                  "type": "string"
-                }
-              }
-            }
+            "type": "string",
+            "description": "Hex encoded SHA-256 hash of the desired password",
+            "required": true
+          },
+          {
+            "name": "redirect",
+            "in": "body",
+            "type": "string",
+            "description": "Optional redirect URL for successful deletion",
+            "required": true
           }
         ],
         "responses": {

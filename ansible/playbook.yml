@@ -1,0 +1,80 @@
+---
+- hosts: all
+  vars:
+    # TODO: lookup synced_dir from Vagrantfile
+    synced_dir: /vagrant
+    npm:
+      # TODO: lookup bin name(s) from package.json
+      bin: storj-bridge
+    nvm:
+      install_script: '{{ synced_dir }}/ansible/roles/node/files/nvm-v0.30.1-install.sh'
+      node:
+        version: "{{ lookup('file', synced_dir + '/.nvmrc') }}"
+  pre_tasks:
+    - name: Install service-level dependencies
+      become: true
+      apt:
+        name: '{{ item }}'
+        state: present
+        update_cache: yes
+      with_items:
+        - mongodb
+        - git
+  roles:
+    - rabbitmq
+    - node
+  tasks:
+    - name: Add motd instructions
+      copy:
+        src: ./files/motd
+        dest: /etc/motd
+      become: yes #sudo
+
+    - name: Tweak mongo config
+      lineinfile:
+        dest: /etc/mongodb.conf
+        state: present
+        line: 'bind_ip = 0.0.0.0'
+        regexp: '^#?\s*bind_ip\s*=\s*\d+\.\d+\.\d+\.\d+'
+      become: yes #sudo
+      notify:
+        - Restart mongodb
+      tags:
+        - mongo
+
+    - name: Tweak .bash_profile to auto cd to synced_dir
+      lineinfile:
+        dest: ~/.profile
+        line: 'cd {{ synced_dir }}'
+        create: yes
+
+    - name: 'Install bridge project dependencies (npm install) - NOTE: THIS COULD TAKE A WHILE...'
+      npm:
+        path: '{{ synced_dir }}'
+      tags:
+        - npm
+        - install
+
+    - name: "Check for linked project binaries - NOTE: THIS STEP WILL LIKELY FAIL: THAT'S OK!"
+      command: bash -lc 'which -a {{ npm.bin }}'
+      register: which_bin_result
+      changed_when: false
+      ignore_errors: yes
+      tags:
+        - npm
+        - link
+
+    - name: Link project binaries (npm link)
+      command: bash -lc 'npm link'
+      when: which_bin_result.stdout | search('bin/{{ npm.bin }}') == false
+      args:
+        chdir: '{{ synced_dir }}'
+      tags:
+        - npm
+        - link
+  handlers:
+    - name: Restart mongodb
+      service:
+        name: mongodb
+        state: restarted
+      become: yes #sudo
