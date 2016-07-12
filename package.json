@@ -14,11 +14,10 @@
     "unit": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=test _mocha test/**/*.unit.js",
     "integration": "docker-compose run --rm bridge-integration",
     "testsuite": "npm run unit && npm run integration",
-    "coverage-unit": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=test ./node_modules/.bin/istanbul cover --dir ./coverage/partials/unit ./node_modules/.bin/_mocha test/**/*.unit.js",
-    "coverage-integration": "docker-compose run --rm bridge-coverage",
-    "coverage": "npm run coverage-unit && npm run coverage-integration && ./node_modules/.bin/istanbul report --root ./coverage/partials --dir ./coverage/combined",
+    "coverage": "docker-compose run --rm bridge-coverage && ./node_modules/.bin/istanbul report --root ./coverage/partials --dir ./coverage/combined",
     "linter": "./node_modules/.bin/jshint --config .jshintrc ./index.js ./lib ./test",
     "test": "npm run unit && npm run linter",
+    "minion": "NODE_ENV=",
     "develop": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=devel node script/develop.js",
     "make-docs": "./node_modules/.bin/jsdoc index.js lib -r -R README.md -u ./doc -c .jsdoc.json --verbose -d ./jsdoc",
     "publish-docs": "npm run make-docs && node script/publishdoc.js"

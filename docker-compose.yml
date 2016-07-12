@@ -39,9 +39,9 @@ farmer4:
   volumes:
     - ./test/integration/configs/farmer4:/home/node/.storjshare
     - ./test/integration/data/farmer4:/data
-bridge-coverage:
+minion1:
   build: .
-  command: bash -c 'sleep 5 && ./node_modules/.bin/istanbul cover --dir /coverage/partials/bridge ./node_modules/.bin/_mocha test/**/*.integration.js'
+  command: npm run minion
   environment:
     NODE_ENV: integration
     STORJ_ALLOW_LOOPBACK: 1
@@ -52,8 +52,32 @@ bridge-coverage:
     - farmer2
     - farmer3
     - farmer4
-  volumes:
-    - ./coverage:/coverage
+minion2:
+  build: .
+  command: npm run minion
+  environment:
+    NODE_ENV: integration
+    STORJ_ALLOW_LOOPBACK: 1
+  links:
+    - mongo
+    - rabbit
+    - farmer1
+    - farmer2
+    - farmer3
+    - farmer4
+minion3:
+  build: .
+  command: npm run minion
+  environment:
+    NODE_ENV: integration
+    STORJ_ALLOW_LOOPBACK: 1
+  links:
+    - mongo
+    - rabbit
+    - farmer1
+    - farmer2
+    - farmer3
+    - farmer4
 bridge-integration:
   build: .
   command: bash -c 'sleep 5 && ./node_modules/.bin/_mocha test/**/*.integration.js'
@@ -67,3 +91,37 @@ bridge-integration:
     - farmer2
     - farmer3
     - farmer4
+    - minion1
+    - minion2
+    - minion3
+minion-coverage:
+  build: .
+  command: ./node_modules/.bin/istanbul cover --dir /coverage/partials/minion npm run minion
+  environment:
+    NODE_ENV: integration
+    STORJ_ALLOW_LOOPBACK: 1
+  links:
+    - mongo
+    - rabbit
+    - farmer1
+    - farmer2
+    - farmer3
+    - farmer4
+  volumes:
+    - ./coverage:/coverage
+bridge-coverage:
+  build: .
+  command: bash -c 'sleep 5 && ./node_modules/.bin/istanbul cover --dir /coverage/partials/bridge ./node_modules/.bin/_mocha'
+  environment:
+    NODE_ENV: integration
+    STORJ_ALLOW_LOOPBACK: 1
+  links:
+    - mongo
+    - rabbit
+    - farmer1
+    - farmer2
+    - farmer3
+    - farmer4
+    - minion-coverage
+  volumes:
+    - ./coverage:/coverage
