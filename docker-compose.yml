@@ -8,7 +8,7 @@ rabbit:
   expose:
     - "5672"
 farmer1:
-  build: https://github.com/Storj/storjshare-cli.git#dockerize
+  build: https://github.com/Storj/storjshare-cli.git
   command: bin/storjshare.js start
   expose:
     - "4000"
@@ -16,7 +16,7 @@ farmer1:
     - ./test/integration/configs/farmer1:/home/node/.storjshare
     - ./test/integration/data/farmer1:/data
 farmer2:
-  build: https://github.com/Storj/storjshare-cli.git#dockerize
+  build: https://github.com/Storj/storjshare-cli.git
   command: bin/storjshare.js start
   expose:
     - "4000"
@@ -24,7 +24,7 @@ farmer2:
     - ./test/integration/configs/farmer2:/home/node/.storjshare
     - ./test/integration/data/farmer2:/data
 farmer3:
-  build: https://github.com/Storj/storjshare-cli.git#dockerize
+  build: https://github.com/Storj/storjshare-cli.git
   command: bin/storjshare.js start
   expose:
     - "4000"
@@ -32,14 +32,29 @@ farmer3:
     - ./test/integration/configs/farmer3:/home/node/.storjshare
     - ./test/integration/data/farmer3:/data
 farmer4:
-  build: https://github.com/Storj/storjshare-cli.git#dockerize
+  build: https://github.com/Storj/storjshare-cli.git
   command: bin/storjshare.js start
   expose:
     - "4000"
   volumes:
     - ./test/integration/configs/farmer4:/home/node/.storjshare
     - ./test/integration/data/farmer4:/data
-bridge:
+bridge-coverage:
+  build: .
+  command: bash -c 'sleep 5 && ./node_modules/.bin/istanbul cover --dir /coverage/partials/bridge ./node_modules/.bin/_mocha test/**/*.integration.js'
+  environment:
+    NODE_ENV: integration
+    STORJ_ALLOW_LOOPBACK: 1
+  links:
+    - mongo
+    - rabbit
+    - farmer1
+    - farmer2
+    - farmer3
+    - farmer4
+  volumes:
+    - ./coverage:/coverage
+bridge-integration:
   build: .
   command: bash -c 'sleep 5 && ./node_modules/.bin/_mocha test/**/*.integration.js'
   environment:
@@ -52,5 +67,3 @@ bridge:
     - farmer2
     - farmer3
     - farmer4
-  volumes:
-    - .:/output
