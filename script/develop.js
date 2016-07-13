@@ -5,6 +5,7 @@ const path = require('path');
 const os = require('os');
 const storj = require('storj');
 const async = require('async');
+const knuthShuffle = require('knuth-shuffle').knuthShuffle;
 const logger = require('../lib/logger');
 const Storage = require('../lib/storage');
 const Config = require('../lib/config');
@@ -116,7 +117,7 @@ function createFarmer(key, port, done) {
       unit: 'GB'
     },
     port: port,
-    seeds: storj.deps['knuth-shuffle'].knuthShuffle(
+    seeds: knuthShuffle(
       engine.getSpecification().info['x-network-seeds']
     ),
     logger: logger,
