@@ -4,15 +4,45 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const storj = require('storj');
+const async = require('async');
 const logger = require('../lib/logger');
+const Storage = require('../lib/storage');
 const Config = require('../lib/config');
 const Engine = require('../lib/engine');
 
+const FARMERS = [
+  {
+    key: '71b742ba25efaef1fffc1d9c9574c3260787628f5c3f43089e0b3a6bdc123a52',
+    port: 4000
+  },
+  {
+    key: '2bb9794ef6c33be4472652550478b8ca91d48127f98681e276f46cc827afe744',
+    port: 4001
+  },
+  {
+    key: 'bd97014b3a6eaadc3a42fea0514c059ddaa2ca51cda3e85fb7c56843f43a99d0',
+    port: 4002
+  },
+  {
+    key: '9ebcf31753d81487391933afc2868831b231b72ebf038246d6cfc45f62bdc8eb',
+    port: 4003
+  },
+  {
+    key: '7e3b11b94cf2b81de4d1a1473f053ad81e0c8fd03fa95236c1121cbdd98a07ad',
+    port: 4004
+  },
+  {
+    key: '609759f6d76611f880a4a1d6a4391609ab1bf332cda75f287edf876ff08cfae7',
+    port: 4005
+  }
+];
 const STORAGE_PATH = path.join(os.tmpdir(), 'storj-bridge-develop');
 
-if (!fs.existsSync(STORAGE_PATH)) {
-  fs.mkdirSync(STORAGE_PATH);
-}
+FARMERS.forEach(function(farmer) {
+  if (!fs.existsSync(STORAGE_PATH + '-' + farmer.key)) {
+    fs.mkdirSync(STORAGE_PATH + '-' + farmer.key);
+  }
+});
 
 var privkey = storj.KeyPair().getPrivateKey();
 var config = Config({
@@ -73,19 +103,22 @@ console.log('');
 
 // Set up Storj Bridge Server
 var engine = Engine(config);
+var storage = Storage(config.storage);
 
-// Start the service
-engine.start(function() {
-
+function createFarmer(key, port, done) {
   // Set up Storj Farmer
   var farmer = storj.FarmerInterface({
-    keypair: storj.KeyPair('71b742ba25efaef1fffc1d9c9574c3260787628f5c3f43089e0b3a6bdc123a52'),
+    keypair: storj.KeyPair(key),
     address: '127.0.0.1',
     storage: {
-      path: STORAGE_PATH
+      path: STORAGE_PATH + '-' + key,
+      size: 10,
+      unit: 'GB'
     },
-    port: 4000,
-    seeds: engine.getSpecification().info['x-network-seeds'],
+    port: port,
+    seeds: storj.deps['knuth-shuffle'].knuthShuffle(
+      engine.getSpecification().info['x-network-seeds']
+    ),
     logger: logger,
     opcodes: ['0f01020202', '0f02020202', '0f03020202'],
     noforward: true
@@ -97,5 +130,18 @@ engine.start(function() {
       console.log(err);
       process.exit();
     }
+
+    done();
+  });
+}
+
+// Clear the known contacts
+storage.models.Contact.remove({}, function() {
+  // Start the service
+  engine.start(function() {
+    // Start the farmers
+    async.eachSeries(FARMERS, function(farmer, done) {
+      createFarmer(farmer.key, farmer.port, done);
+    });
   });
 });
