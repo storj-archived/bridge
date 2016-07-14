@@ -541,11 +541,11 @@ describe('Engine/Integration', function() {
             if (err) { return done(err); }
             client.createToken(buckets[0].id, 'PULL', function(err, token) {
               if (err) { return done(err); }
-              client.getFilePointer(
-                buckets[0].id,
-                token.token,
-                files[0].id,
-                function(err, pointers) {
+              client.getFilePointers({
+                bucket: buckets[0].id,
+                token: token.token,
+                file: files[0].id
+              }, function(err, pointers) {
                   if (err) { return done(err); }
                   expect(Array.isArray(pointers)).to.equal(true);
                   expect(pointers).to.have.lengthOf(2);
@@ -570,11 +570,11 @@ describe('Engine/Integration', function() {
       it('should return an error if file is not found', function(done) {
         client.getBuckets(function(err, buckets) {
           client.createToken(buckets[0].id, 'PULL', function(err, token) {
-            client.getFilePointer(
-              buckets[0].id,
-              token.token,
-              '572cf3175355f2635480f94e',
-              function(err) {
+            client.getFilePointers({
+              bucket: buckets[0].id,
+              token: token.token,
+              file: '572cf3175355f2635480f94e'
+            }, function(err) {
                 expect(err.message).to.equal('File not found');
                 done();
               }
