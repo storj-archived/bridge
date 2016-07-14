@@ -122,7 +122,8 @@ function createFarmer(key, port, done) {
     ),
     logger: logger,
     opcodes: ['0f01020202', '0f02020202', '0f03020202'],
-    noforward: true
+    noforward: true,
+    concurrency: 12
   });
 
   // Seed the Bridge
