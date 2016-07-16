@@ -1,5 +1,5 @@
 Storj Bridge
-============
+============d
 
 [![Build Status](https://img.shields.io/travis/Storj/bridge.svg?style=flat-square)](https://travis-ci.org/Storj/bridge)
 [![Coverage Status](https://img.shields.io/coveralls/Storj/bridge.svg?style=flat-square)](https://coveralls.io/r/Storj/bridge)
@@ -122,7 +122,7 @@ The default configuration can be modified as needed.  It is located at
 %USERPROFILE%\.storj-bridge\config
 ```
 
-Edit `devel` in notepad/wordpad
+Edit `production` in notepad/wordpad
 
 For more information, see [the documentation](http://storj.github.io/bridge).
 
