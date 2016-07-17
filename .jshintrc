@@ -33,6 +33,7 @@
     "afterEach",
     "before",
     "beforeEach",
+    "context",
     "describe",
     "exports",
     "it",
