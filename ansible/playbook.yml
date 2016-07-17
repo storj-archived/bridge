@@ -3,13 +3,14 @@
   vars:
     # TODO: lookup synced_dir from Vagrantfile
     synced_dir: /vagrant
-    npm:
-      # TODO: lookup bin name(s) from package.json
-      bin: storj-bridge
     nvm:
       install_script: '{{ synced_dir }}/ansible/roles/node/files/nvm-v0.30.1-install.sh'
       node:
         version: "{{ lookup('file', synced_dir + '/.nvmrc') }}"
+    npm:
+      # TODO: lookup bin name(s) from package.json
+      bin: storj-bridge
+      path: '{{ ansible_env.HOME }}/.nvm/versions/node/v{{ nvm.node.version }}/bin/npm'
   pre_tasks:
     - name: Install service-level dependencies
       become: true
@@ -51,6 +52,7 @@
     - name: 'Install bridge project dependencies (npm install) - NOTE: THIS COULD TAKE A WHILE...'
       npm:
         path: '{{ synced_dir }}'
+        executable: '{{ npm.path }}'
       tags:
         - npm
         - install

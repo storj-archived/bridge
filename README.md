@@ -11,7 +11,7 @@ Access the [Storj](http://storj.io) network via simple REST API.
 Quick Start
 -----------
 
-With Vagrant
+With Vagrant (Virtual Machine - Windows/Linux/OSX host)
 ============
 
 Download and install [vagrant](https://www.vagrantup.com/downloads.html) for your platform.
@@ -31,14 +31,41 @@ vagrant up
 _NOTE: the first time you `vagrant up` it will take a while as vagrant downloads the base VM and provisions it._
 
 
-SSH into the vm and start the server (set the `NODE_ENV` environment variable to specify the config):
+SSH into the vm and start the server and/or dev farmers:
 
 ```
 vagrant ssh
-NODE_ENV=develop storj-bridge
+# ...
+######################################################################
+###       To start bridge-api-server in development mode run:      ###
+###                    NODE_ENV=develop storj-bridge               ###
+###                                                                ###
+### To start bridge-api-server AND farmers in development mode run: ###
+###                         npm run develop                        ###
+######################################################################
 ```
 
-#### Running node server on host with mongo and rabbitmq on guest
+### The virtual network
+
+Using the default configuration (you havn't modified the `Vagrantfile` in this repo), the VM has 2 network interfaces:
+
++ a NAT interface:
+  
+  This adapter uses NAT to route to the host network and to the internet. Port forwarding is the only way to access the VM from the host network.
++ a host-only interface:
+
+  This adapter connects the VM (*and* the host via its own virtual network adapter) to a virtual switch but does not allow routing to any other networks.
+  This allows the host and the VM to talk to each other without via their respective IP addresses on this virtual network without the need for port forwarding and therefore, without binding up ports on your host.
+  The default IP address of the VM is `172.17.200.10`.
+  
+These two interfaces combined allow the host to talk to the VM on any port by IP as well as allowing the host to access ports on the VM with the hostname `localhost` for any ports that have been forwarded.
+To change which ports are being forwarded, to modify the host-only adapter's IP, or to effect any other networking changes, have a look at the `Vagrantfile` between lines 22-47.
+
+_For additional information regarding vagrant and networking see [vagrant's docs](https://www.vagrantup.com/docs/networking/)_
+
+_For additional information regarding virtualbox (the default vagrant VM provider) networking see [virtualbox's docs](https://www.virtualbox.org/manual/ch06.html)_
+
+### Running node server on host with mongo and rabbitmq on guest
 It is also possible to run the node server on your host but still wish to use the VM for mongo and rabbitmq.
 You may want to so this so you can remotely debug using an IDE running on the host 
 or connect other host-borne tools to these services, for example.

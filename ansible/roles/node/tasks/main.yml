@@ -1,4 +1,9 @@
 ---
+- name: 'Remove any carraige returns in nvm install script (windows + git = carraige returns)'
+  replace:
+    dest: '{{ nvm.install_script }}'
+    regexp: '\r'
+
 - name: Set execute mode on nvm install script
   file:
     path: '{{ nvm.install_script }}'
@@ -13,7 +18,7 @@
   tags:
     - nvm
 
-- name: Source nvm in ~/.profile
+- name: Add source nvm to ~/.profile
   lineinfile:
     dest: ~/.profile
     line: 'source ~/.nvm/nvm.sh'
