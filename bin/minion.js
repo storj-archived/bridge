@@ -49,6 +49,19 @@ function _castArguments(message) {
         message.params[2].tree
       );
       break;
+    case 'getMirrorNodes':
+      message.params[0] = message.params[0].map(function(obj) {
+        return storj.DataChannelPointer(
+          storj.Contact(obj.farmer),
+          obj.hash,
+          obj.token,
+          obj.operation
+        );
+      });
+      message.params[1] = message.params[1].map(function(obj) {
+        return storj.Contact(obj);
+      });
+      break;
     default:
       // noop
   }

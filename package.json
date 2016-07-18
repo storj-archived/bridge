@@ -1,6 +1,6 @@
 {
   "name": "storj-bridge",
-  "version": "0.9.3",
+  "version": "0.10.0",
   "description": "Access the Storj network using a simple REST API.",
   "main": "index.js",
   "directories": {
@@ -15,7 +15,7 @@
     "coverage": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=test ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- --recursive",
     "linter": "./node_modules/.bin/jshint --config .jshintrc ./index.js ./lib ./test",
     "test": "npm run testsuite && npm run linter",
-    "develop": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=devel node script/develop.js",
+    "develop": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=devel node script/develop.js start",
     "make-docs": "./node_modules/.bin/jsdoc index.js lib -r -R README.md -u ./doc -c .jsdoc.json --verbose -d ./jsdoc",
     "publish-docs": "npm run make-docs && node script/publishdoc.js"
   },
@@ -47,6 +47,7 @@
     "mocha": "^2.3.4",
     "noisegen": "^1.0.0",
     "proxyquire": "^1.7.3",
+    "rimraf": "^2.5.3",
     "sinon": "^1.17.2"
   },
   "dependencies": {
@@ -60,6 +61,7 @@
     "handlebars": "^4.0.5",
     "hat": "0.0.3",
     "kad-logger-json": "^0.1.2",
+    "knuth-shuffle": "^1.0.1",
     "merge": "^1.2.0",
     "mime-db": "^1.22.0",
     "mongoose": "^4.3.4",
@@ -67,7 +69,7 @@
     "ms": "^0.7.1",
     "nodemailer": "^2.0.0",
     "readable-stream": "^2.0.5",
-    "storj": "^1.3.0",
+    "storj": "^2.0.0",
     "through": "^2.3.8"
   }
 }
