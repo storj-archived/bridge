@@ -3,70 +3,42 @@
 const fs = require('fs');
 const noisegen = require('noisegen');
 const crypto = require('crypto');
-const async = require('async');
 const expect = require('chai').expect;
 const storj = require('storj');
-
-const logger = require('..').logger;
-const Config = require('..').Config;
-const Engine = require('..').Engine;
+const async = require('async');
+const develop = require('../script/develop');
+const Storage = require('../lib/storage');
+const Config = require('../lib/config');
 
 describe('Engine/Integration', function() {
 
-  var engine, farmer, config;
+  var environment, storage;
   var keypair = storj.KeyPair();
   var client = storj.BridgeClient('http://127.0.0.1:6382');
 
   before(function(done) {
+    console.log('                                    ');
+    console.log('  ********************************  ');
+    console.log('  * SPINNING UP TEST ENVIRONMENT *  ');
+    console.log('  *       GRAB A COCKTAIL!       *  ');
+    console.log('  ********************************  ');
+    console.log('  (this can take up to 30 seconds)  ');
+    console.log('                                    ');
     this.timeout(60000);
-    config = Config('__tmptest');
-    const minionKey = storj.KeyPair().getPrivateKey();
-    config.network.minions[0].privkey = minionKey;
-    config.network.minions[1].privkey = minionKey;
-    config.network.minions[2].privkey = minionKey;
-    // Set up Bridge Server
-    engine = Engine(config);
-    // Start the service
-    engine.start(function(err) {
-      if (err) { return done(err); }
-      // Drop the local database
-      async.each(Object.keys(engine.storage.models), function(model, next) {
-        engine.storage.models[model].remove({}, next);
+    storage = Storage(Config.DEFAULTS.storage);
+    storage.connection.on('connected', function() {
+      async.forEachOf(storage.models, function(model, name, done) {
+        model.remove({}, done);
       }, function() {
-        // Set up Storj Farmer
-        farmer = storj.FarmerInterface({
-          keypair: storj.KeyPair(),
-          backend: require('memdown'),
-          address: '127.0.0.1',
-          port: 4000,
-          seeds: engine.getSpecification().info['x-network-seeds'],
-          logger: logger,
-          opcodes: ['0f01020202', '0f02020202', '0f03020202'],
-          noforward: true
+        environment = develop(function() {
+          setTimeout(done, 20000);
         });
-        // Seed Bridge
-        farmer.join(function() {
-          async.eachSeries(engine.getSpecification().info['x-network-seeds'], (item, cb) => {
-            farmer.connect(item, cb);
-          }, done);
-        });
-
       });
     });
   });
 
   after(function(done) {
-    // Close down Bridge Server
-    engine.server.server.close();
-    // Drop the local database again
-    async.each(Object.keys(engine.storage.models), function(model, next) {
-      engine.storage.models[model].remove({}, next);
-    }, function() {
-      // Close down farmer
-      farmer.leave(function() {
-        engine.storage.connection.close(done);
-      });
-    });
+    environment.kill(done);
   });
 
   describe('UsersRouter', function() {
@@ -158,7 +130,7 @@ describe('Engine/Integration', function() {
       });
 
       it('should activate the user account', function(done) {
-        engine.storage.models.User.findOne({}, function(err, user) {
+        storage.models.User.findOne({}, function(err, user) {
           client._request('GET', '/activations/' + user.activator, {}, function(err, user) {
             expect(user.activated).to.equal(true);
             done();
@@ -179,7 +151,7 @@ describe('Engine/Integration', function() {
           if (err) {
             return done(err);
           }
-          engine.storage.models.User.findOne({
+          storage.models.User.findOne({
             _id: 'deaduser@killme.com'
           }, function(err, user) {
             client._request('GET', '/activations/' + user.activator, {}, function() {
@@ -238,7 +210,7 @@ describe('Engine/Integration', function() {
         client.getPublicKeys(function(err, keys) {
           expect(keys).to.have.lengthOf(1);
           done();
-        }, done);
+        });
       });
 
     });
@@ -256,40 +228,6 @@ describe('Engine/Integration', function() {
           });
         });
       });
-
-    });
-
-  });
-
-  describe('FramesRouter', function() {
-
-    describe('POST /frames', function() {
-
-
-
-    });
-
-    describe('PUT /frames/:frame_id', function() {
-
-
-
-    });
-
-    describe('GET /frames', function() {
-
-
-
-    });
-
-    describe('GET /frames/:frame_id', function() {
-
-
-
-    });
-
-    describe('DELETE /frames/:frame_id', function() {
-
-
 
     });
 
@@ -516,12 +454,12 @@ describe('Engine/Integration', function() {
             client.replicateFileFromBucket(
               buckets[0].id,
               files[0].id,
-              4,
+              2,
               function(err, results) {
                 expect(err).to.equal(null);
                 expect(results).to.have.lengthOf(2);
-                expect(results[0].mirrors).to.have.lengthOf(4);
-                expect(results[1].mirrors).to.have.lengthOf(4);
+                expect(results[0].mirrors).to.have.lengthOf(2);
+                expect(results[1].mirrors).to.have.lengthOf(2);
                 done();
               }
             );

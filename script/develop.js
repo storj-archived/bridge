@@ -7,11 +7,14 @@ const storj = require('storj');
 const async = require('async');
 const knuthShuffle = require('knuth-shuffle').knuthShuffle;
 const logger = require('../lib/logger');
+const rimraf = require('rimraf');
 const Storage = require('../lib/storage');
 const Config = require('../lib/config');
 const Engine = require('../lib/engine');
 
-const FARMERS = [
+var privkey = storj.KeyPair().getPrivateKey();
+
+var FARMERS = [
   {
     key: '71b742ba25efaef1fffc1d9c9574c3260787628f5c3f43089e0b3a6bdc123a52',
     port: 4000
@@ -37,20 +40,60 @@ const FARMERS = [
     port: 4005
   }
 ];
-const STORAGE_PATH = path.join(os.tmpdir(), 'storj-bridge-develop');
+
+var MINIONS = [
+  {
+    privkey: privkey,
+    address: '127.0.0.1',
+    port: 6383,
+    noforward: true,
+    tunport: 6483,
+    gateways: { min: 0, max: 0 }
+  },
+  {
+    privkey: privkey,
+    address: '127.0.0.1',
+    port: 6384,
+    noforward: true,
+    tunport: 6484,
+    gateways: { min: 0, max: 0 }
+  }
+];
+
+if (process.env.NODE_ENV === 'devel') {
+  MINIONS.push({
+    privkey: privkey,
+    address: '127.0.0.1',
+    port: 6385,
+    noforward: true,
+    tunport: 6485,
+    gateways: { min: 0, max: 0 }
+  });
+}
+
+const STORAGE_PATH = process.env.NODE_ENV === 'devel' ?
+                     path.join(os.tmpdir(), 'storj-bridge-develop') :
+                     path.join(os.tmpdir(), 'storj-bridge-test');
 
 FARMERS.forEach(function(farmer) {
+  if (process.env.NODE_ENV !== 'devel') {
+    if (fs.existsSync(STORAGE_PATH + '-' + farmer.key)) {
+      rimraf.sync(STORAGE_PATH + '-' + farmer.key);
+    }
+  }
+
   if (!fs.existsSync(STORAGE_PATH + '-' + farmer.key)) {
     fs.mkdirSync(STORAGE_PATH + '-' + farmer.key);
   }
 });
 
-var privkey = storj.KeyPair().getPrivateKey();
 var config = Config({
   storage: {
     host: '127.0.0.1',
     port: 27017,
-    name: '__storj-bridge-develop'
+    name: process.env.NODE_ENV === 'devel' ?
+          '__storj-bridge-develop' :
+          Config.DEFAULTS.storage.name
   },
   server: {
     host: '127.0.0.1',
@@ -58,32 +101,7 @@ var config = Config({
     ssl: {}
   },
   network: {
-    minions: [
-      {
-        privkey: privkey,
-        address: '127.0.0.1',
-        port: 6383,
-        noforward: true,
-        tunport: 6483,
-        gateways: { min: 0, max: 0 }
-      },
-      {
-        privkey: privkey,
-        address: '127.0.0.1',
-        port: 6384,
-        noforward: true,
-        tunport: 6484,
-        gateways: { min: 0, max: 0 }
-      },
-      {
-        privkey: privkey,
-        address: '127.0.0.1',
-        port: 6385,
-        noforward: true,
-        tunport: 6485,
-        gateways: { min: 0, max: 0 }
-      }
-    ]
+    minions: MINIONS
   },
   mailer: {
     host: '127.0.0.1',
@@ -97,53 +115,82 @@ var config = Config({
   }
 });
 
-console.log('Storj Bridge in DEVELOP mode with configuration:');
-console.log('');
-console.log(config);
-console.log('');
+module.exports = function start(callback) {
+  if (process.env.NODE_ENV === 'devel') {
+    console.log('Storj Bridge in DEVELOP mode with configuration:');
+    console.log('');
+    console.log(config);
+    console.log('');
+  }
 
-// Set up Storj Bridge Server
-var engine = Engine(config);
-var storage = Storage(config.storage);
+  // Set up Storj Bridge Server
+  var farmers = [];
+  var engine = Engine(config);
+  var storage = Storage(config.storage);
 
-function createFarmer(key, port, done) {
-  // Set up Storj Farmer
-  var farmer = storj.FarmerInterface({
-    keypair: storj.KeyPair(key),
-    address: '127.0.0.1',
-    storage: {
-      path: STORAGE_PATH + '-' + key,
-      size: 10,
-      unit: 'GB'
-    },
-    port: port,
-    seeds: knuthShuffle(
-      engine.getSpecification().info['x-network-seeds']
-    ),
-    logger: logger,
-    opcodes: ['0f01020202', '0f02020202', '0f03020202'],
-    noforward: true,
-    concurrency: 12
-  });
+  function createFarmer(key, port, done) {
+    // Set up Storj Farmer
+    var farmer = storj.FarmerInterface({
+      keypair: storj.KeyPair(key),
+      address: '127.0.0.1',
+      storage: {
+        path: STORAGE_PATH + '-' + key,
+        size: 10,
+        unit: 'GB'
+      },
+      port: port,
+      seeds: knuthShuffle(
+        engine.getSpecification().info['x-network-seeds']
+      ),
+      logger: logger,
+      opcodes: ['0f01020202', '0f02020202', '0f03020202'],
+      noforward: true,
+      concurrency: 12
+    });
 
-  // Seed the Bridge
-  farmer.join(function(err) {
-    if (err) {
-      console.log(err);
-      process.exit();
-    }
+    // Seed the Bridge
+    farmer.join(function(err) {
+      if (err) {
+        console.log(err);
+        process.exit();
+      }
 
-    done();
-  });
-}
+      done();
+    });
 
-// Clear the known contacts
-storage.models.Contact.remove({}, function() {
-  // Start the service
-  engine.start(function() {
-    // Start the farmers
-    async.eachSeries(FARMERS, function(farmer, done) {
-      createFarmer(farmer.key, farmer.port, done);
+    return farmer;
+  }
+
+  // Clear the known contacts
+  storage.models.Contact.remove({}, function() {
+    // Start the service
+    engine.start(function() {
+      // Start the farmers
+      async.eachSeries(FARMERS, function(farmer, done) {
+        farmers.push(createFarmer(farmer.key, farmer.port, done));
+      }, callback);
     });
   });
-});
+
+  return {
+    kill: function(callback) {
+      // Close down Bridge Server
+      engine.server.server.close();
+      // Drop the local database again
+      async.each(Object.keys(engine.storage.models), function(model, next) {
+        engine.storage.models[model].remove({}, next);
+      }, function() {
+        // Close down farmer
+        async.each(farmers, function(farmer, done) {
+          farmer.leave(function() {
+            engine.storage.connection.close(done);
+          });
+        }, callback);
+      });
+    }
+  };
+};
+
+if (process.argv[2] === 'start') {
+  module.exports();
+}
