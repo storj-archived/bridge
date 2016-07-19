@@ -40,7 +40,7 @@ NODE_ENV=develop storj-bridge
 
 #### Running node server on host with mongo and rabbitmq on guest
 It is also possible to run the node server on your host but still wish to use the VM for mongo and rabbitmq.
-You may want to so this so you can remotely debug using an IDE running on the host 
+You may want to so this so you can remotely debug using an IDE running on the host
 or connect other host-borne tools to these services, for example.
 
 To do this you just need to uncomment lines `33` and `36` of the `Vagrantfile` to forward the mongo and rabbitmq ports to your host:
@@ -302,3 +302,4 @@ liable for any damage to your system. You also agree not to upload illegal
 content, content that infringes on other's IP, or information that would be
 protected by HIPAA, FERPA, or any similar standard. Generally speaking, you
 agree to test the software responsibly. We'd love to hear feedback too.
+
