@@ -7,23 +7,18 @@ const async = require('async');
 const expect = require('chai').expect;
 const storj = require('storj');
 
-const logger = require('..').logger;
 const Config = require('..').Config;
 const Engine = require('..').Engine;
 
 describe('Engine/Integration', function() {
 
-  var engine, farmer, config;
+  var engine, config;
   var keypair = storj.KeyPair();
   var client = storj.BridgeClient('http://127.0.0.1:6382');
 
   before(function(done) {
-    this.timeout(60000);
+    this.timeout(5000);
     config = Config('__tmptest');
-    const minionKey = storj.KeyPair().getPrivateKey();
-    config.network.minions[0].privkey = minionKey;
-    config.network.minions[1].privkey = minionKey;
-    config.network.minions[2].privkey = minionKey;
     // Set up Bridge Server
     engine = Engine(config);
     // Start the service
@@ -32,26 +27,7 @@ describe('Engine/Integration', function() {
       // Drop the local database
       async.each(Object.keys(engine.storage.models), function(model, next) {
         engine.storage.models[model].remove({}, next);
-      }, function() {
-        // Set up Storj Farmer
-        farmer = storj.FarmerInterface({
-          keypair: storj.KeyPair(),
-          backend: require('memdown'),
-          address: '127.0.0.1',
-          port: 4000,
-          seeds: engine.getSpecification().info['x-network-seeds'],
-          logger: logger,
-          opcodes: ['0f01020202', '0f02020202', '0f03020202'],
-          noforward: true
-        });
-        // Seed Bridge
-        farmer.join(function() {
-          async.eachSeries(engine.getSpecification().info['x-network-seeds'], (item, cb) => {
-            farmer.connect(item, cb);
-          }, done);
-        });
-
-      });
+      }, done);
     });
   });
 
@@ -61,12 +37,7 @@ describe('Engine/Integration', function() {
     // Drop the local database again
     async.each(Object.keys(engine.storage.models), function(model, next) {
       engine.storage.models[model].remove({}, next);
-    }, function() {
-      // Close down farmer
-      farmer.leave(function() {
-        engine.storage.connection.close(done);
-      });
-    });
+    }, done);
   });
 
   describe('UsersRouter', function() {

@@ -1,5 +1,5 @@
 {
-  "keypath": "./config/id_ecdsa",
+  "keypath": "/home/node/.storjshare/id_ecdsa",
   "address": "",
   "storage": {
     "path": "./data",
@@ -7,7 +7,7 @@
     "unit": "GB"
   },
   "network": {
-    "address": "127.0.0.1",
+    "address": "172.17.0.2",
     "port": 4000,
     "seeds": [],
     "opcodes": [

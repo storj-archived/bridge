@@ -9,42 +9,56 @@ rabbit:
     - "5672"
 farmer1:
   build: https://github.com/Storj/storjshare-cli.git
-  command: bin/storjshare.js start
+  command: bin/storjshare.js start -p password
+  environment:
+    STORJ_NETWORK: integration
   expose:
     - "4000"
   volumes:
     - ./test/integration/configs/farmer1:/home/node/.storjshare
-    - ./test/integration/data/farmer1:/data
 farmer2:
   build: https://github.com/Storj/storjshare-cli.git
-  command: bin/storjshare.js start
+  command: bin/storjshare.js start -p password
+  environment:
+    STORJ_NETWORK: integration
   expose:
     - "4000"
   volumes:
     - ./test/integration/configs/farmer2:/home/node/.storjshare
-    - ./test/integration/data/farmer2:/data
+  links:
+    - farmer1
 farmer3:
   build: https://github.com/Storj/storjshare-cli.git
-  command: bin/storjshare.js start
+  command: bin/storjshare.js start -p password
+  environment:
+    STORJ_NETWORK: integration
   expose:
     - "4000"
   volumes:
     - ./test/integration/configs/farmer3:/home/node/.storjshare
-    - ./test/integration/data/farmer3:/data
+  links:
+    - farmer1
+    - farmer2
 farmer4:
   build: https://github.com/Storj/storjshare-cli.git
-  command: bin/storjshare.js start
+  command: bin/storjshare.js start -p password
+  environment:
+    STORJ_NETWORK: integration
   expose:
     - "4000"
   volumes:
     - ./test/integration/configs/farmer4:/home/node/.storjshare
-    - ./test/integration/data/farmer4:/data
+  links:
+    - farmer1
+    - farmer2
+    - farmer3
 minion1:
   build: .
-  command: npm run minion
+  command: bash -c 'sleep 5 && npm run minion-integration'
   environment:
     NODE_ENV: integration
-    STORJ_ALLOW_LOOPBACK: 1
+    CONFDIR: /config
+    STORJ_NETWORK: integration
   links:
     - mongo
     - rabbit
@@ -52,54 +66,28 @@ minion1:
     - farmer2
     - farmer3
     - farmer4
-minion2:
-  build: .
-  command: npm run minion
-  environment:
-    NODE_ENV: integration
-    STORJ_ALLOW_LOOPBACK: 1
-  links:
-    - mongo
-    - rabbit
-    - farmer1
-    - farmer2
-    - farmer3
-    - farmer4
-minion3:
-  build: .
-  command: npm run minion
-  environment:
-    NODE_ENV: integration
-    STORJ_ALLOW_LOOPBACK: 1
-  links:
-    - mongo
-    - rabbit
-    - farmer1
-    - farmer2
-    - farmer3
-    - farmer4
+  expose:
+    - "6383"
+    - "6384"
+  volumes:
+    - ./test/integration/configs/minion:/config
 bridge-integration:
   build: .
   command: bash -c 'sleep 5 && ./node_modules/.bin/_mocha test/**/*.integration.js'
   environment:
     NODE_ENV: integration
-    STORJ_ALLOW_LOOPBACK: 1
+    STORJ_NETWORK: integration
   links:
     - mongo
     - rabbit
-    - farmer1
-    - farmer2
-    - farmer3
-    - farmer4
     - minion1
-    - minion2
-    - minion3
 minion-coverage:
   build: .
-  command: ./node_modules/.bin/istanbul cover --dir /coverage/partials/minion npm run minion
+  command: ./node_modules/.bin/istanbul cover --dir /coverage/partials/minion node bin/minion.js '{"privkey":"4fea050f9d959cff57dd9d140e6b4a0d41d66926ec961a076330f4bd177f8325","bridge":false,"address":"0.0.0.0","port":6383,"noforward":true,"tunnels":32,"tunport":6384,"gateways":{"min":0,"max":0}}'
   environment:
     NODE_ENV: integration
-    STORJ_ALLOW_LOOPBACK: 1
+    CONFDIR: /config
+    STORJ_NETWORK: integration
   links:
     - mongo
     - rabbit
@@ -107,21 +95,20 @@ minion-coverage:
     - farmer2
     - farmer3
     - farmer4
+  expose:
+    - "6383"
+    - "6384"
   volumes:
     - ./coverage:/coverage
+    - ./test/integration/configs/minion:/config
 bridge-coverage:
   build: .
-  command: bash -c 'sleep 5 && ./node_modules/.bin/istanbul cover --dir /coverage/partials/bridge ./node_modules/.bin/_mocha'
+  command: bash -c 'sleep 5 && ./node_modules/.bin/istanbul cover --dir /coverage/partials/bridge ./node_modules/.bin/_mocha && ./node_modules/.bin/istanbul report --root /coverage/partials --dir /coverage/combined'
   environment:
     NODE_ENV: integration
-    STORJ_ALLOW_LOOPBACK: 1
   links:
     - mongo
     - rabbit
-    - farmer1
-    - farmer2
-    - farmer3
-    - farmer4
     - minion-coverage
   volumes:
     - ./coverage:/coverage

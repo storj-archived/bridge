@@ -1,4 +1,4 @@
 node_modules
 coverage
 .git
-test/integration/data/*
+test/integration/configs/**/farmer.db

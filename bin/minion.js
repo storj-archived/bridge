@@ -68,13 +68,15 @@ messaging.start(worker, (err) => {
   storage.models.Contact.recall(3, function(err, seeds) {
     handleError(err);
 
+    seeds = options.seeds || seeds.map(function(seed) {
+      return seed.toString();
+    });
+
     let network = storj.RenterInterface({
       keypair: storj.KeyPair(options.privkey),
       manager: manager,
       logger: logger,
-      seeds: seeds.map(function(seed) {
-        return seed.toString();
-      }),
+      seeds: seeds,
       bridge: false,
       address: options.address,
       port: options.port,
@@ -83,6 +85,8 @@ messaging.start(worker, (err) => {
       tunport: options.tunport,
       gateways: options.gateways
     });
+
+    logger.info('[minion] started with %s', seeds.toString());
 
     network._router.on('add', function(contact) {
       storage.models.Contact.record(contact);

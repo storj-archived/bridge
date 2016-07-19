@@ -36,3 +36,5 @@ playbook.retry
 
 # Vagrant dotfiles
 .vagrant
+
+test/integration/configs/**/farmer.db

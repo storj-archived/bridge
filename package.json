@@ -14,10 +14,10 @@
     "unit": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=test _mocha test/**/*.unit.js",
     "integration": "docker-compose run --rm bridge-integration",
     "testsuite": "npm run unit && npm run integration",
-    "coverage": "docker-compose run --rm bridge-coverage && ./node_modules/.bin/istanbul report --root ./coverage/partials --dir ./coverage/combined",
+    "coverage": "docker-compose run --rm bridge-coverage",
     "linter": "./node_modules/.bin/jshint --config .jshintrc ./index.js ./lib ./test",
     "test": "npm run unit && npm run linter",
-    "minion": "NODE_ENV=",
+    "minion-integration": "node bin/minion.js \"{\\\"privkey\\\":\\\"4fea050f9d959cff57dd9d140e6b4a0d41d66926ec961a076330f4bd177f8325\\\",\\\"bridge\\\":false,\\\"address\\\":\\\"172.17.0.8\\\",\\\"port\\\":6383,\\\"noforward\\\":true,\\\"tunnels\\\":32,\\\"tunport\\\":6384,\\\"gateways\\\":{\\\"min\\\":0,\\\"max\\\":0},\\\"seeds\\\":[\\\"storj://$FARMER1_1_PORT_4000_TCP_ADDR:4000/56dddab09fced56e7d27c97666373baa3eb0fddd\\\", \\\"storj://$FARMER2_1_PORT_4000_TCP_ADDR:4000/d1ac5bbc16e3d8b3ae22edabda4f37c92a37a10c\\\"]}\"",
     "develop": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=devel node script/develop.js",
     "make-docs": "./node_modules/.bin/jsdoc index.js lib -r -R README.md -u ./doc -c .jsdoc.json --verbose -d ./jsdoc",
     "publish-docs": "npm run make-docs && node script/publishdoc.js"

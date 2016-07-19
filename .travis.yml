@@ -3,6 +3,8 @@ node_js:
   - "4.4.3"
 after_script:
   - npm run coverage
-  - cat ./coverage/lcov.info | ./node_modules/.bin/coveralls
+  - cat ./coverage/combined/lcov.info | ./node_modules/.bin/coveralls
 services:
   - docker
+  - mongodb
+  - rabbitmq
