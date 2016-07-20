@@ -1,0 +1,15 @@
+Reset Your Storj Password
+=========================
+
+Copy and paste the link below into a web browser to confirm your password reset:
+
+{{#if redirect}}
+  {{url}}/resets/{{token}}?redirect={{redirect}}
+{{else}}
+  {{url}}/resets/{{token}}
+{{/if}}
+
+---
+
+Cheers,
+The Storj Team

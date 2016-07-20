@@ -1,0 +1,7 @@
+######################################################################
+###       To start bridge-api-server in development mode run:      ###
+###                    NODE_ENV=develop storj-bridge               ###
+###                                                                ###
+### To start bridge-api-sever AND farmers in development mode run: ###
+###                         npm run develop                        ###
+######################################################################

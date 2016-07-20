@@ -3,62 +3,42 @@
 const fs = require('fs');
 const noisegen = require('noisegen');
 const crypto = require('crypto');
-const async = require('async');
 const expect = require('chai').expect;
 const storj = require('storj');
-
-const logger = require('..').logger;
-const Config = require('..').Config;
-const Engine = require('..').Engine;
+const async = require('async');
+const develop = require('../script/develop');
+const Storage = require('../lib/storage');
+const Config = require('../lib/config');
 
 describe('Engine/Integration', function() {
 
-  var engine, farmer, config;
+  var environment, storage;
   var keypair = storj.KeyPair();
   var client = storj.BridgeClient('http://127.0.0.1:6382');
 
   before(function(done) {
-    this.timeout(20000);
-    config = Config('__tmptest');
-    config.network.minions[0].privkey = storj.KeyPair().getPrivateKey();
-    // Set up Bridge Server
-    engine = Engine(config);
-    // Start the service
-    engine.start(function() {
-      // Drop the local database
-      async.each(Object.keys(engine.storage.models), function(model, next) {
-        engine.storage.models[model].remove({}, next);
+    console.log('                                    ');
+    console.log('  ********************************  ');
+    console.log('  * SPINNING UP TEST ENVIRONMENT *  ');
+    console.log('  *       GRAB A COCKTAIL!       *  ');
+    console.log('  ********************************  ');
+    console.log('  (this can take up to 30 seconds)  ');
+    console.log('                                    ');
+    this.timeout(60000);
+    storage = Storage(Config.DEFAULTS.storage);
+    storage.connection.on('connected', function() {
+      async.forEachOf(storage.models, function(model, name, done) {
+        model.remove({}, done);
       }, function() {
-        // Set up Storj Farmer
-        farmer = storj.FarmerInterface({
-          keypair: storj.KeyPair(),
-          backend: require('memdown'),
-          address: '127.0.0.1',
-          port: 4000,
-          seeds: engine.getSpecification().info['x-network-seeds'],
-          logger: logger,
-          opcodes: ['0f01020202', '0f02020202', '0f03020202'],
-          noforward: true
+        environment = develop(function() {
+          setTimeout(done, 20000);
         });
-        // Seed Bridge
-        farmer.join(function() {});
-        done();
       });
     });
   });
 
   after(function(done) {
-    // Close down Bridge Server
-    engine.server.server.close();
-    // Drop the local database again
-    async.each(Object.keys(engine.storage.models), function(model, next) {
-      engine.storage.models[model].remove({}, next);
-    }, function() {
-      // Close down farmer
-      farmer.leave(function() {
-        engine.storage.connection.close(done);
-      });
-    });
+    environment.kill(done);
   });
 
   describe('UsersRouter', function() {
@@ -150,11 +130,44 @@ describe('Engine/Integration', function() {
       });
 
       it('should activate the user account', function(done) {
-        engine.storage.models.User.findOne({}, function(err, user) {
+        storage.models.User.findOne({}, function(err, user) {
           client._request('GET', '/activations/' + user.activator, {}, function(err, user) {
             expect(user.activated).to.equal(true);
             done();
           }, done);
+        });
+      });
+
+    });
+
+    describe('DELETE /users/:id', function() {
+
+      before(function(done) {
+        let client = new storj.BridgeClient('http://127.0.0.1:6382');
+        client.createUser({
+          email: 'deaduser@killme.com',
+          password: 'password'
+        }, function(err) {
+          if (err) {
+            return done(err);
+          }
+          storage.models.User.findOne({
+            _id: 'deaduser@killme.com'
+          }, function(err, user) {
+            client._request('GET', '/activations/' + user.activator, {}, function() {
+              done();
+            });
+          });
+        });
+      });
+
+      it('should prepare the account for deactivation', function(done) {
+        let client = new storj.BridgeClient('http://127.0.0.1:6382', {
+          basicauth: { email: 'deaduser@killme.com', password: 'password' }
+        });
+        client.destroyUser({ email: 'deaduser@killme.com' }, function(err) {
+          expect(err).to.equal(null);
+          done();
         });
       });
 
@@ -184,7 +197,8 @@ describe('Engine/Integration', function() {
 
       after(function() {
         client = storj.BridgeClient('http://127.0.0.1:6382', {
-          keypair: keypair
+          keypair: keypair,
+          logger: require('..').logger
         });
       });
 
@@ -196,7 +210,7 @@ describe('Engine/Integration', function() {
         client.getPublicKeys(function(err, keys) {
           expect(keys).to.have.lengthOf(1);
           done();
-        }, done);
+        });
       });
 
     });
@@ -214,40 +228,6 @@ describe('Engine/Integration', function() {
           });
         });
       });
-
-    });
-
-  });
-
-  describe('FramesRouter', function() {
-
-    describe('POST /frames', function() {
-
-
-
-    });
-
-    describe('PUT /frames/:frame_id', function() {
-
-
-
-    });
-
-    describe('GET /frames', function() {
-
-
-
-    });
-
-    describe('GET /frames/:frame_id', function() {
-
-
-
-    });
-
-    describe('DELETE /frames/:frame_id', function() {
-
-
 
     });
 
@@ -421,19 +401,22 @@ describe('Engine/Integration', function() {
     describe('POST /buckets/:bucket_id/files', function() {
 
       it('should store the file in the bucket', function(done) {
-        this.timeout(20000);
+        this.timeout(60000);
         var randomName = crypto.randomBytes(6).toString('hex');
         var filePath = require('os').tmpdir() + '/' + randomName + '.txt';
         var randomio = noisegen({ length: 1024 * 1024 * 16 });
         var target = fs.createWriteStream(filePath);
         target.on('finish', function() {
           client.getBuckets(function(err, buckets) {
+            if (err) { return done(err); }
             client.createToken(buckets[0].id, 'PUSH', function(err, token) {
+              if (err) { return done(err); }
               client.storeFileInBucket(
                 buckets[0].id,
                 token,
                 filePath,
                 function(err, entry) {
+                  if (err) { return done(err); }
                   expect(entry.name).to.equal(randomName + '.txt');
                   expect(entry.size).to.equal(16777216);
                   expect(entry.mimetype).to.equal('text/plain');
@@ -461,21 +444,51 @@ describe('Engine/Integration', function() {
 
     });
 
+    describe('POST /buckets/:bucket_id/mirrors', function() {
+
+      it('should create n mirror farmers', function(done) {
+        this.timeout(60000);
+        client.getBuckets(function(err, buckets) {
+          client.listFilesInBucket(buckets[0].id, function(err, files) {
+            expect(files).to.have.lengthOf(1);
+            client.replicateFileFromBucket(
+              buckets[0].id,
+              files[0].id,
+              2,
+              function(err, results) {
+                expect(err).to.equal(null);
+                expect(results).to.have.lengthOf(2);
+                expect(results[0].mirrors).to.have.lengthOf(2);
+                expect(results[1].mirrors).to.have.lengthOf(2);
+                done();
+              }
+            );
+          });
+        });
+      });
+
+    });
+
     describe('GET /buckets/:id/files/:file', function() {
 
       it('should return the file pointer payloads for the file', function(done) {
         this.timeout(6000);
         client.getBuckets(function(err, buckets) {
+          if (err) { return done(err); }
           client.listFilesInBucket(buckets[0].id, function(err, files) {
+            if (err) { return done(err); }
             client.createToken(buckets[0].id, 'PULL', function(err, token) {
-              client.getFilePointer(
-                buckets[0].id,
-                token.token,
-                files[0].id,
-                function(err, pointers) {
+              if (err) { return done(err); }
+              client.getFilePointers({
+                bucket: buckets[0].id,
+                token: token.token,
+                file: files[0].id
+              }, function(err, pointers) {
+                  if (err) { return done(err); }
                   expect(Array.isArray(pointers)).to.equal(true);
                   expect(pointers).to.have.lengthOf(2);
                   client.resolveFileFromPointers(pointers, function(err, stream) {
+                    if (err) { return done(err); }
                     var bytes = 0;
                     stream.on('data', function(data) {
                       bytes += data.length;
@@ -495,11 +508,11 @@ describe('Engine/Integration', function() {
       it('should return an error if file is not found', function(done) {
         client.getBuckets(function(err, buckets) {
           client.createToken(buckets[0].id, 'PULL', function(err, token) {
-            client.getFilePointer(
-              buckets[0].id,
-              token.token,
-              '572cf3175355f2635480f94e',
-              function(err) {
+            client.getFilePointers({
+              bucket: buckets[0].id,
+              token: token.token,
+              file: '572cf3175355f2635480f94e'
+            }, function(err) {
                 expect(err.message).to.equal('File not found');
                 done();
               }

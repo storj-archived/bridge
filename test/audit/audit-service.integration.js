@@ -13,6 +13,7 @@ const redis = require('redis');
 
 describe('Audit-Service/Integration', function() {
   var service, storj;
+
   var redisClient = redis.createClient({
     host: '127.0.0.1',
     port: 6379,
@@ -20,83 +21,54 @@ describe('Audit-Service/Integration', function() {
     pass: null
   });
 
-  describe('Worker Process', function() {
-    before(function(done) {
-      var workerConfig = Object.create(Config.worker[0], {redis: Config.redis});
-      var pendingItems = [];
+  describe('Empty Queue', function() {
+    //creates and inspects empty workers & master
+    before(function() {
+      var workerConfig = Object.assign(Config.worker[0], {redis: Config.redis});
 
-      for(let i = 0; i < 10; i++) {
-        pendingItems.push({
-          ts: Math.floor(new Date() / 1000),
-          data: {
-            id: i,
-            root: '',
-            depth: '',
-            challenge: '',
-            hash: ''
-          }
-        });
-      }
-
-      redisClient.LPUSH(
-        service._queue._keys.pending,
-        pendingItems,
-        function(err, result) {
-          expect(err).to.be.a('null');
-          expect(result).to.equal(10);
-          sinon.spy(AuditQueueWorker.prototype, '_flushStalePendingQueue');
-          sinon.spy(AuditQueueWorker.prototype, '_initDispatchQueue');
-          service = new AuditQueueWorker(workerConfig);
-          done();
-        });
     });
 
-    after(function() {
-      service = null;
+    it('should queue n number of redis pop requests', function() {
+
     });
 
-    describe('_flushStalePendingQueue', function() {
-      before(function() {
-        sinon.spy(service._queue, 'getPendingQueue');
-        sinon.spy(service._dispatcher, '_verify');
-        sinon.spy(service._dispatcher, '_commit');
-      });
 
-      it('should retrieve the pending queue on start', function(done) {
-        expect(service._flushStalePendingQueue.called).to.be.true;
-        expect(service._queue.getPendingQueue.called).to.be.true;
-      });
+  });
 
-      it('should call the dispatcher\'s verify method', function(done) {
-        expect(service._dispatcher._verify.called).to.be.true;
-      });
+  describe('E2E', function() {
+    //negotiates contracts, generating audits, inspects results
+    it('should send all provided audits', function() {
 
-      it('should commit tasks to a final queue', function(done) {
-        expect(service._dispatcher._commit.called).to.be.true;
-      });
-
-      it('should empty the pending queue', function(done) {
-
-      });
     });
 
-    describe('_initDispatchQueue', function() {
-      it('should take an item from the ready queue'
-        + 'and place it on the pending queue', function(done) {
+    it('should send audits in acceptable time window', function() {
+      var acceptable = 1000;
 
-        });
+    });
 
-        it('should send audit requests', function(done) {
+    it('should pass all provided audits', function() {
 
-        });
+    });
 
-        it('should verify audit results', function(done) {
+  });
 
-        });
+  describe('Component Failures', function() {
+    //tests behavior in case of DB failures
+    it('should restart workers on failure', function() {
 
-        it('should commit tasks to a final queue', function(done) {
+    });
 
-        });
-      });
+    it('should retry failed redis requests, before exiting', function() {
+
+    });
+
+  });
+
+  describe('Farmer Failures', function() {
+    //tests behavior in case of Farmer failures
+    it('should fail all provided audits', function() {
+
+    });
+
   });
 });

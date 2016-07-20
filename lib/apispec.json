@@ -216,6 +216,152 @@
         }
       }
     },
+    "/users/{email}": {
+      "patch": {
+        "tags": ["users"],
+        "summary": "Requests the reset of the account password",
+        "parameters": [
+          {
+            "name": "email",
+            "in": "path",
+            "type": "string",
+            "description": "The email address of the account for password reset (yours)",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "properties": {
+                "password": {
+                  "type": "string",
+                  "description": "Hex encoded SHA-256 hash of the desired password"
+                },
+                "redirect": {
+                  "type": "string",
+                  "description": "Optional redirect URL for successful deletion"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account password reset email sent",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "example": "gordon@storj.io"
+                },
+                "created": {
+                  "type": "string",
+                  "example": "2016-03-04T17:01:02.629Z"
+                },
+                "activated": {
+                  "type": "boolean",
+                  "example": true
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["users"],
+        "summary": "Requests the deletion of the account",
+        "parameters": [
+          {
+            "name": "email",
+            "in": "path",
+            "type": "string",
+            "description": "The email address of the account to delete (yours)",
+            "required": true
+          },
+          {
+            "name": "options",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "redirect": {
+                  "description": "Optional redirect URL for successful deletion",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account deletion email sent",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "example": "gordon@storj.io"
+                },
+                "created": {
+                  "type": "string",
+                  "example": "2016-03-04T17:01:02.629Z"
+                },
+                "activated": {
+                  "type": "boolean",
+                  "example": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/resets/{token}": {
+      "get": {
+        "tags": ["users"],
+        "summary": "Confirms the password reset and optionally redirects",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "type": "string",
+            "description": "Confirmation token sent to user's email address",
+            "required": true
+          },
+          {
+            "name": "redirect",
+            "in": "query",
+            "type": "string",
+            "description": "Optional redirect URL for successful confirmation"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Password successfully reset",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "example": "gordon@storj.io"
+                },
+                "created": {
+                  "type": "string",
+                  "example": "2016-03-04T17:01:02.629Z"
+                },
+                "activated": {
+                  "type": "boolean",
+                  "example": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/activations/{token}": {
       "get": {
         "tags": ["users"],
@@ -252,6 +398,49 @@
                 "activated": {
                   "type": "boolean",
                   "example": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/deactivations/{token}": {
+      "get": {
+        "tags": ["users"],
+        "summary": "Deactivates a registered user and optionally redirects",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "type": "string",
+            "description": "Deactivation token sent to user's email address",
+            "required": true
+          },
+          {
+            "name": "redirect",
+            "in": "query",
+            "type": "string",
+            "description": "Optional redirect URL for successful deactivation"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User successfully deactivated",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "example": "gordon@storj.io"
+                },
+                "created": {
+                  "type": "string",
+                  "example": "2016-03-04T17:01:02.629Z"
+                },
+                "activated": {
+                  "type": "boolean",
+                  "example": false
                 }
               }
             }
@@ -536,6 +725,14 @@
                   "items": {
                     "type": "string",
                     "example": "507f1f77bcf86cd799439011"
+                  }
+                },
+                "exclude": {
+                  "type": "array",
+                  "description": "Farmer node IDs to blacklist from offers",
+                  "items": {
+                    "type": "string",
+                    "example": "def400fe0b6a5488e10d7317274a096aaa57914d"
                   }
                 }
               }
@@ -1170,6 +1367,27 @@
             "name": "file_id",
             "description": "The file ID to get pointers for",
             "required": true
+          },
+          {
+            "type": "string",
+            "in": "query",
+            "name": "skip",
+            "description": "The pointer index to start the file slice",
+            "required": true
+          },
+          {
+            "type": "string",
+            "in": "query",
+            "name": "limit",
+            "description": "The number of pointers to resolve tokens for",
+            "required": true
+          },
+          {
+            "type": "string",
+            "in": "query",
+            "name": "exclude",
+            "description": "Comma separated list of farmer nodeIDs to exclude from token retrieval",
+            "required": false
           },
           {
             "type": "string",
