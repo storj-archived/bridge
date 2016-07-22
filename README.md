@@ -157,7 +157,7 @@ The default configuration can be modified as needed.  It is located at
 %USERPROFILE%\.storj-bridge\config
 ```
 
-Edit `devel` in notepad/wordpad
+Edit `production` in notepad/wordpad
 
 For more information, see [the documentation](http://storj.github.io/bridge).
 
