@@ -5,11 +5,11 @@ const logger = require('../lib/logger');
 const Storage = require('../lib/storage');
 const MongoAdapter = require('../lib/storage/adapter');
 const Config = require('../lib/config');
-const config = Config(process.env.NODE_ENV || 'devel');
+const config = Config(process.env.NODE_ENV || 'develop');
 const Messaging = require('../lib/messaging');
 const messaging = new Messaging(config.messaging);
 
-if (process.env.NODE_ENV === 'devel') {
+if (process.env.NODE_ENV === 'develop') {
   config.storage.name = '__storj-bridge-develop';
 }
 

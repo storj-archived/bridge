@@ -40,10 +40,18 @@ vagrant ssh
 ###       To start bridge-api-server in development mode run:      ###
 ###                    NODE_ENV=develop storj-bridge               ###
 ###                                                                ###
-### To start bridge-api-server AND farmers in development mode run: ###
+### To start bridge-api-sever AND farmers in development mode run: ###
+###                    (requires port forwarding)                  ###
 ###                         npm run develop                        ###
+###                                                                ###
+### To start bridge-api-sever AND farmers in development mode run: ###
+###                      (use host-only adapter)                   ###
+###            CONTACT_IP=172.17.200.10 npm run develop            ###
 ######################################################################
 ```
+
+_NOTE: if you need to contact the farmers (or renters/minions) on the VM you may use the `CONTACT_IP` environment variable to tell those processes what IP to provide in their `"address"` property_
+_(e.g.: `{"protocol":"0.7.1","address":"172.17.200.10","port":4001,"nodeID":"b9ddac03c26973b296bb0e2d82e22bd9740fcd60","lastSeen":1469149544291}`)_
 
 ### The virtual network
 
