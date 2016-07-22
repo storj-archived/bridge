@@ -43,11 +43,14 @@
       tags:
         - mongo
 
-    - name: Tweak .bash_profile to auto cd to synced_dir
+    - name: Tweak .bash_profile
       lineinfile:
         dest: ~/.profile
-        line: 'cd {{ synced_dir }}'
+        line: '{{ item }}'
         create: yes
+        with_items:
+         - 'cd {{ synced_dir }}'
+         - 'export CONTACT_IP=172.17.200.10  # SHOULD MATCH HOST-ONLY ADAPTER INTERFACE IP'
 
     - name: 'Install bridge project dependencies (npm install) - NOTE: THIS COULD TAKE A WHILE...'
       npm:
@@ -80,3 +83,4 @@
         name: mongodb
         state: restarted
       become: yes #sudo
+
