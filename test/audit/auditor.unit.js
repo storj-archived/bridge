@@ -6,8 +6,8 @@ const proxyquire = require('proxyquire');
 const Config = require('../../lib/config')('devel').audits;
 
 var verifyStub = sinon.stub();
-var Dispatcher = proxyquire(
-  '../../lib/audit/dispatcher.js', {
+var Auditor = proxyquire(
+  '../../lib/audit/auditor.js', {
     'storj': {
       Verification: function() {
         return {
@@ -21,7 +21,7 @@ var service;
 var network;
 var queue;
 
-describe('audit/dispatcher.js', function() {
+describe('audit/auditor.js', function() {
   before(function() {
     queue = {
       popReadyQueue: sinon.stub(),
@@ -32,7 +32,7 @@ describe('audit/dispatcher.js', function() {
       getStorageProof: sinon.stub()
     };
 
-    service = new Dispatcher(queue, network);
+    service = new Auditor(queue, network);
   });
 
   describe('@constructor', function() {
@@ -47,7 +47,7 @@ describe('audit/dispatcher.js', function() {
 
     before(function() {
       queue.popReadyQueue.callsArgWith(0, null, '{"audit": true}');
-      service._get(function(err, audit) {
+      service.get(function(err, audit) {
         auditResp = audit;
       });
     });
@@ -68,7 +68,7 @@ describe('audit/dispatcher.js', function() {
     before(function() {
       network.getStorageProof.callsArgWith(3, null, 'proof');
       verifyStub.returns([1,1]);
-      service._verify({
+      service.verify({
         id: 123,
         hash: 'xyz',
         challenge: 9
@@ -97,7 +97,7 @@ describe('audit/dispatcher.js', function() {
 
     before(function() {
       queue.pushResultQueue.callsArgWith(2, null, true);
-      service._commit(1, 1, function(err, isSuccess) {
+      service.commit(1, 1, function(err, isSuccess) {
         test_succcess = isSuccess;
       });
     });

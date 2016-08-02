@@ -5,15 +5,14 @@ const sinon = require('sinon');
 const proxyquire = require('proxyquire');
 const Async = require('async');
 const Config = require('../../lib/config')('devel').audits;
-const Dispatcher = require('../../lib/audit/dispatcher.js');
 
 var stubRefs = {
   recallStub: sinon.stub(),
   renterStub: sinon.stub(),
   dispatchStub: {
-      _get: sinon.stub(),
-      _verify: sinon.stub(),
-      _commit: sinon.stub()
+      get: sinon.stub(),
+      verify: sinon.stub(),
+      commit: sinon.stub()
   },
   queueStub: sinon.spy(Async, 'queue'),
   pendingStub: sinon.stub()
@@ -24,9 +23,9 @@ stubRefs.recallStub.callsArgWith(1, null, {
 });
 
 stubRefs.pendingStub.callsArgWith(0, null, [1,2,3]);
-stubRefs.dispatchStub._verify.callsArgWith(1, null, 1, true);
-stubRefs.dispatchStub._commit.callsArgWith(2, null, 'pass');
-stubRefs.dispatchStub._get.callsArgWith(0, null, 1);
+stubRefs.dispatchStub.verify.callsArgWith(1, null, 1, true);
+stubRefs.dispatchStub.commit.callsArgWith(2, null, 'pass');
+stubRefs.dispatchStub.get.callsArgWith(0, null, 1);
 
 const AuditQueueWorker = proxyquire(
   '../../lib/audit/auditqueueworker.js', {
@@ -55,7 +54,7 @@ const AuditQueueWorker = proxyquire(
         getPendingQueue: stubRefs.pendingStub
       };
     },
-    './dispatcher.js': function() {
+    './auditor.js': function() {
       return stubRefs.dispatchStub;
     },
     'async': stubRefs.queueStub
@@ -113,11 +112,11 @@ describe('audit/auditqueueworker', function() {
     });
 
     it('should call the dispatcher\'s verify method', function() {
-      expect(service._dispatcher._verify.callCount).to.equal(3);
+      expect(service._dispatcher.verify.callCount).to.equal(3);
     });
 
     it('should commit tasks to a final queue', function() {
-      expect(service._dispatcher._commit.callCount).to.equal(3);
+      expect(service._dispatcher.commit.callCount).to.equal(3);
     });
   });
 
@@ -142,15 +141,15 @@ describe('audit/auditqueueworker', function() {
     });
 
     it('should get an audit via the dispatcher\'s get method', function() {
-      expect(stubRefs.dispatchStub._get.called).to.be.true;
+      expect(stubRefs.dispatchStub.get.called).to.be.true;
     });
 
     it('should call the dispatcher\'s verify method', function() {
-      expect(stubRefs.dispatchStub._verify.called).to.be.true;
+      expect(stubRefs.dispatchStub.verify.called).to.be.true;
     });
 
     it('should call the dispatcher\'s commit method', function() {
-      expect(stubRefs.dispatchStub._commit.called).to.be.true;
+      expect(stubRefs.dispatchStub.commit.called).to.be.true;
     });
   });
 });
