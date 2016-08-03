@@ -43,14 +43,17 @@
       tags:
         - mongo
 
-    - name: Tweak .bash_profile
+    - name: Tweak .bash_profile - auto-cd to shared directory
       lineinfile:
         dest: ~/.profile
-        line: '{{ item }}'
+        line: 'cd {{ synced_dir }}'
         create: yes
-        with_items:
-         - 'cd {{ synced_dir }}'
-         - 'export CONTACT_IP=172.17.200.10  # SHOULD MATCH HOST-ONLY ADAPTER INTERFACE IP'
+
+    - name: Tweak .bash_profile - export CONTACT_IP
+      lineinfile:
+        dest: ~/.profile
+        line: 'export CONTACT_IP=172.17.200.10  # SHOULD MATCH HOST-ONLY ADAPTER INTERFACE IP'
+        create: yes
 
     - name: 'Install bridge project dependencies (npm install) - NOTE: THIS COULD TAKE A WHILE...'
       npm:
