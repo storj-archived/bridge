@@ -17,7 +17,8 @@
     "test": "npm run testsuite && npm run linter",
     "develop": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=develop node script/develop.js start",
     "make-docs": "./node_modules/.bin/jsdoc index.js lib -r -R README.md -u ./doc -c .jsdoc.json --verbose -d ./jsdoc",
-    "publish-docs": "npm run make-docs && node script/publishdoc.js"
+    "publish-docs": "npm run make-docs && node script/publishdoc.js",
+    "payout-report": "node script/payouts.js"
   },
   "repository": {
     "type": "git",
