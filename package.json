@@ -57,6 +57,7 @@
     "basic-auth": "^1.0.3",
     "concat-stream": "^1.5.1",
     "cors": "^2.7.1",
+    "csv-write-stream": "^2.0.0",
     "elliptic": "^6.0.2",
     "express": "^4.13.3",
     "handlebars": "^4.0.5",
