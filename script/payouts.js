@@ -27,7 +27,7 @@ function FarmerReport(nodeId) {
   this.downloadedBytes = 0;
   this.downloadCount = 0;
   this.paymentDestination = '';
-  this.amountDue = 0;
+  this.gigabyteHours = 0;
 }
 
 function TotalReport(reports) {
@@ -45,7 +45,7 @@ function TotalReport(reports) {
     this.storedTime += reports[nodeID].storedTime;
     this.downloadedBytes += reports[nodeID].downloadedBytes;
     this.downloadCount += reports[nodeID].downloadCount;
-    this.amountDue += reports[nodeID].amountDue;
+    this.gigabyteHours += reports[nodeID].gigabyteHours;
   }
 }
 
@@ -80,19 +80,24 @@ cursor.on('data', function(doc) {
 
     var c = getDownloadCountForContract(subdoc.nodeID);
     var contractIsActive = Date.now() < subdoc.contract.store_end;
-    var downloadCost = subdoc.contract.payment_download_price * c;
-    var dest = subdoc.payment_destination;
+    var dest = subdoc.contract.payment_destination;
 
     reports[subdoc.nodeID].downloadedBytes += c * subdoc.contract.data_size;
     reports[subdoc.nodeID].contracts++;
     reports[subdoc.nodeID].downloadCount += c;
-    reports[subdoc.nodeID].storedBytes += subdoc.contract.data_size;
-    reports[subdoc.nodeID].storedTime += contractIsActive ?
+    var bytes = reports[subdoc.nodeID].storedBytes += subdoc.contract.data_size;
+
+    var time = reports[subdoc.nodeID].storedTime += contractIsActive ?
       Date.now() - subdoc.contract.store_begin :
       subdoc.contract.store_end - subdoc.contract.store_begin;
-    reports[subdoc.nodeID].amountDue += subdoc.contract.payment_storage_price;
-    reports[subdoc.nodeID].amountDue += downloadCost;
-    reports[subdoc.nodeID].paymentDestination = dest;
+    var hours = parseInt((time / (1000 * 60 * 60)) % 24);
+    var gigabytes = bytes / 1073741824;
+
+    if (dest) {
+      reports[subdoc.nodeID].paymentDestination = dest;
+    }
+
+    reports[subdoc.nodeID].gigabyteHours += gigabytes * hours;
   });
 });
 
@@ -123,7 +128,7 @@ cursor.on('close', function() {
       'Downloaded Bytes',
       'Download Count',
       'Payment Destination',
-      'Amount Due'
+      'Gigabyte Hours'
     ]
   };
 
@@ -138,14 +143,14 @@ cursor.on('close', function() {
     });
 
     writer.write([
-      totals.nodeID,
+      totals.nodeID || 'none',
       totals.contracts,
       totals.storedBytes,
       totals.storedTime,
       totals.downloadedBytes,
       totals.downloadCount,
       totals.paymentDestination || 'none',
-      totals.amountDue
+      totals.gigabyteHours
     ]);
 
     writer.end();
@@ -169,7 +174,7 @@ cursor.on('close', function() {
         reports[report].downloadedBytes,
         reports[report].downloadCount,
         reports[report].paymentDestination || 'none',
-        reports[report].amountDue
+        reports[report].gigabyteHours
       ]);
     }
 
