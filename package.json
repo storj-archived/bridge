@@ -52,6 +52,7 @@
     "sinon": "^1.17.2"
   },
   "dependencies": {
+    "@risingstack/graffiti-mongoose": "^5.2.0",
     "amqplib": "^0.4.2",
     "async": "^1.5.2",
     "basic-auth": "^1.0.3",
@@ -60,6 +61,8 @@
     "csv-write-stream": "^2.0.0",
     "elliptic": "^6.0.2",
     "express": "^4.13.3",
+    "express-graphql": "^0.5.3",
+    "graphql": "^0.6.2",
     "handlebars": "^4.0.5",
     "hat": "0.0.3",
     "kad-logger-json": "^0.1.2",
