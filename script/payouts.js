@@ -155,7 +155,7 @@ cursor.on('close', function() {
       totals.downloadedBytes,
       totals.downloadCount,
       totals.paymentDestination || 'none',
-      totals.gigabyteHours
+      totals.gigabyteHours,
       totals.gibibyteHours
     ]);
 
@@ -180,7 +180,7 @@ cursor.on('close', function() {
         reports[report].downloadedBytes,
         reports[report].downloadCount,
         reports[report].paymentDestination || 'none',
-        reports[report].gigabyteHours
+        reports[report].gigabyteHours,
         reports[report].gibibyteHours
       ]);
     }
