@@ -28,6 +28,7 @@ function FarmerReport(nodeId) {
   this.downloadCount = 0;
   this.paymentDestination = '';
   this.gigabyteHours = 0;
+  this.gibibyteHours = 0;
 }
 
 function TotalReport(reports) {
@@ -46,6 +47,7 @@ function TotalReport(reports) {
     this.downloadedBytes += reports[nodeID].downloadedBytes;
     this.downloadCount += reports[nodeID].downloadCount;
     this.gigabyteHours += reports[nodeID].gigabyteHours;
+    this.gibibyteHours += reports[nodeID].gibibyteHours;
   }
 }
 
@@ -91,13 +93,16 @@ cursor.on('data', function(doc) {
       Date.now() - subdoc.contract.store_begin :
       subdoc.contract.store_end - subdoc.contract.store_begin;
     var hours = parseInt((time / (1000 * 60 * 60)) % 24);
-    var gigabytes = bytes / 1073741824;
+    var gigabytes = bytes / 1000 * 1000 * 1000;
+    var gibibytes = bytes / 1024 * 1024 * 1024;
 
     if (dest) {
       reports[subdoc.nodeID].paymentDestination = dest;
     }
 
     reports[subdoc.nodeID].gigabyteHours += gigabytes * hours;
+    reports[subdoc.nodeID].gibibyteHours += gibibytes * hours;
+
   });
 });
 
@@ -150,7 +155,8 @@ cursor.on('close', function() {
       totals.downloadedBytes,
       totals.downloadCount,
       totals.paymentDestination || 'none',
-      totals.gigabyteHours
+      totals.gigabyteHours,
+      totals.gibibyteHours
     ]);
 
     writer.end();
@@ -174,7 +180,8 @@ cursor.on('close', function() {
         reports[report].downloadedBytes,
         reports[report].downloadCount,
         reports[report].paymentDestination || 'none',
-        reports[report].gigabyteHours
+        reports[report].gigabyteHours,
+        reports[report].gibibyteHours
       ]);
     }
 
