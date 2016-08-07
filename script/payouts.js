@@ -93,8 +93,8 @@ cursor.on('data', function(doc) {
       Date.now() - subdoc.contract.store_begin :
       subdoc.contract.store_end - subdoc.contract.store_begin;
     var hours = parseInt((time / (1000 * 60 * 60)) % 24);
-    var gigabytes = bytes / 1000 * 1000 * 1000;
-    var gibibytes = bytes / 1024 * 1024 * 1024;
+    var gigabytes = bytes / (1000 * 1000 * 1000);
+    var gibibytes = bytes / (1024 * 1024 * 1024);
 
     if (dest) {
       reports[subdoc.nodeID].paymentDestination = dest;
