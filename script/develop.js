@@ -145,7 +145,8 @@ module.exports = function start(callback) {
       logger: logger,
       opcodes: ['0f01020202', '0f02020202', '0f03020202'],
       noforward: true,
-      concurrency: 12
+      concurrency: 12,
+      tunport: 0
     });
 
     // Seed the Bridge
