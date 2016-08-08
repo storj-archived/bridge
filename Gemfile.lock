@@ -27,6 +27,8 @@ GEM
     cucumber-wire (0.0.1)
     database_cleaner (1.5.3)
     diff-lcs (1.2.5)
+    factory_girl (4.7.0)
+      activesupport (>= 3.0.0)
     ffi (1.9.14)
     gherkin (4.0.0)
     i18n (0.7.0)
@@ -73,9 +75,10 @@ PLATFORMS
 DEPENDENCIES
   cucumber
   database_cleaner
+  factory_girl
   mongoid
   rspec
   watir-webdriver
 
 BUNDLED WITH
-   1.12.4
+   1.12.5

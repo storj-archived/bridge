@@ -70,6 +70,7 @@
     "merge": "^1.2.0",
     "mime-db": "^1.22.0",
     "mongoose": "^4.3.4",
+    "mongoose-currency": "^0.2.0",
     "mongoose-int32": "^0.1.0",
     "mongoose-types": "^1.0.3",
     "ms": "^0.7.1",
