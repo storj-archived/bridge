@@ -108,4 +108,3 @@ eachSeries(typeSuites,
       console.info('ALL SUITES FINISHED'.cyan);
     }
 );
-

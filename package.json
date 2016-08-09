@@ -11,6 +11,7 @@
     "storj-bridge": "bin/storj-bridge.js"
   },
   "scripts": {
+    "generate": "node ./bin/generate.js",
     "coverage": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=test ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- --recursive",
     "linter": "./node_modules/.bin/jshint --config .jshintrc ./index.js ./lib ./test",
     "test": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=test node ./bin/test.js",
