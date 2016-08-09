@@ -37,6 +37,6 @@ playbook.retry
 # Vagrant dotfiles
 .vagrant
 
-#Gems 
+#Gems
 gems/
 
