@@ -11,10 +11,9 @@
     "storj-bridge": "bin/storj-bridge.js"
   },
   "scripts": {
-    "testsuite": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=test _mocha test/**",
     "coverage": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=test ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- --recursive",
     "linter": "./node_modules/.bin/jshint --config .jshintrc ./index.js ./lib ./test",
-    "test": "npm run testsuite && npm run linter",
+    "test": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=test _mocha test/** && npm run linter",
     "develop": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=develop node script/develop.js start",
     "make-docs": "./node_modules/.bin/jsdoc index.js lib -r -R README.md -u ./doc -c .jsdoc.json --verbose -d ./jsdoc",
     "publish-docs": "npm run make-docs && node script/publishdoc.js",
@@ -38,6 +37,7 @@
   },
   "homepage": "https://github.com/Storj/bridge#readme",
   "devDependencies": {
+    "babel-core": "^6.13.2",
     "chai": "^3.4.1",
     "coveralls": "^2.11.6",
     "ink-docstrap": "^1.1.4",
@@ -52,7 +52,6 @@
     "sinon": "^1.17.2"
   },
   "dependencies": {
-    "@risingstack/graffiti-mongoose": "^5.2.0",
     "amqplib": "^0.4.2",
     "async": "^1.5.2",
     "basic-auth": "^1.0.3",
@@ -71,6 +70,7 @@
     "merge": "^1.2.0",
     "mime-db": "^1.22.0",
     "mongoose": "^4.3.4",
+    "mongoose-currency": "^0.2.0",
     "mongoose-int32": "^0.1.0",
     "mongoose-types": "^1.0.3",
     "ms": "^0.7.1",
