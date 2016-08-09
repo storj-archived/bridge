@@ -1,0 +1,6 @@
+development:
+  clients:
+    default:
+      database: '__storj-bridge-develop'
+      hosts:
+        - 'localhost:27017'
