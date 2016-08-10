@@ -1,5 +1,5 @@
 'use strict'
-
+/*
 const fork = require('process').fork;
 const expect = require('chai').expect;
 const sinon = require('sinon');
@@ -11,7 +11,7 @@ const AuditQueueWorker = proxyquire(
   {'Verification': {verify: function(){return true;}}});
 const redis = require('redis');
 
-describe('Audit-Service/Integration', function() {
+describe('audit/integration', function() {
   var service, storj;
 
   var redisClient = redis.createClient({
@@ -72,3 +72,4 @@ describe('Audit-Service/Integration', function() {
 
   });
 });
+*/

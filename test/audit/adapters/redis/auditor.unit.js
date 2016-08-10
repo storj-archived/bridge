@@ -3,42 +3,47 @@
 const expect = require('chai').expect;
 const sinon = require('sinon');
 const proxyquire = require('proxyquire');
-const Config = require('../../lib/config')('devel').audits;
+const RQueue = require('../../../../lib/audit/adapters/redis/queue.js');
+const Config = require('../../../../lib/config')('devel').audits;
 
-var verifyStub = sinon.stub();
+var stubRefs = {
+  queue: sinon.spy(RQueue),
+  verifyStub: sinon.stub(),
+  popReadyQueue: sinon.stub(RQueue.prototype, 'popReadyQueue'),
+  pushResultQueue: sinon.stub(RQueue.prototype, 'pushResultQueue')
+};
+
 var Auditor = proxyquire(
-  '../../lib/audit/auditor.js', {
+  '../../../../lib/audit/adapters/redis/auditor.js', {
     'storj': {
       Verification: function() {
         return {
-          verify: verifyStub
+          verify: stubRefs.verifyStub
         };
       }
-    }
+    },
+    './queue.js': stubRefs.queue
 });
 
 var service;
 var network;
 var queue;
 
-describe('audit/auditor.js', function() {
+describe('audit/adapters/redis/auditor', function() {
   before(function() {
-    queue = {
-      popReadyQueue: sinon.stub(),
-      pushResultQueue: sinon.stub()
-    };
-
     network = {
       getStorageProof: sinon.stub()
     };
 
-    service = new Auditor(queue, network);
+    service = new Auditor(network, {}, 123);
   });
 
   describe('@constructor', function() {
-    it('accepts queue and network', function() {
+    it('accepts an adapter config, storj network instance, uuid', function() {
       expect(service._queue).to.be.an('object');
       expect(service._network).to.be.an('object');
+      expect(
+        stubRefs.queue.calledWithNew()).to.be.true;
     });
   });
 
@@ -46,7 +51,7 @@ describe('audit/auditor.js', function() {
     var auditResp;
 
     before(function() {
-      queue.popReadyQueue.callsArgWith(0, null, '{"audit": true}');
+      service._queue.popReadyQueue.callsArgWith(0, null, '{"audit": true}');
       service.get(function(err, audit) {
         auditResp = audit;
       });
@@ -67,13 +72,12 @@ describe('audit/auditor.js', function() {
 
     before(function() {
       network.getStorageProof.callsArgWith(3, null, 'proof');
-      verifyStub.returns([1,1]);
+      stubRefs.verifyStub.returns([1,1]);
       service.verify({
         id: 123,
         hash: 'xyz',
         challenge: 9
       }, function(err, audit, hasPassed) {
-        console.log('here')
         test_audit = audit;
         status = hasPassed;
       });
@@ -84,11 +88,12 @@ describe('audit/auditor.js', function() {
     });
 
     it('calls storj core\'s verify method', function() {
-      expect(verifyStub.called).to.true;
+      expect(stubRefs.verifyStub.called).to.true;
     });
 
     it('returns the audit and its verification status', function() {
       expect(test_audit.id).to.equal(123);
+      expect(status).to.be.true;
     });
   });
 
@@ -96,7 +101,7 @@ describe('audit/auditor.js', function() {
     var test_succcess;
 
     before(function() {
-      queue.pushResultQueue.callsArgWith(2, null, true);
+      service._queue.pushResultQueue.callsArgWith(2, null, true);
       service.commit(1, 1, function(err, isSuccess) {
         test_succcess = isSuccess;
       });

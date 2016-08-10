@@ -2,7 +2,7 @@
 
 const expect = require('chai').expect;
 const sinon = require('sinon');
-const Config = require('../../lib/config')('devel').audits;
+const Config = require('../../../../lib/config')('devel').audits;
 const proxyquire = require('proxyquire');
 
 var testAudits = [
@@ -50,7 +50,7 @@ clientStubs.multi.returns({
 
 stubRefs.createClient.returns(clientStubs);
 
-var Queue = proxyquire('../../lib/audit/queue.js', {
+var Queue = proxyquire('../../../../lib/audit/adapters/redis/queue.js', {
   'redis' : {
     createClient: stubRefs.createClient
   }
@@ -58,7 +58,7 @@ var Queue = proxyquire('../../lib/audit/queue.js', {
 
 stubRefs._get = sinon.stub(Queue.prototype, '_get');
 
-describe('audit/queue', function() {
+describe('audit/adapters/redis/queue', function() {
   var service = new Queue({test: 1}, 123);
 
   describe('@constructor', function() {
@@ -98,7 +98,7 @@ describe('audit/queue', function() {
     });
 
     it('should call ZADD on the backlog key', function() {
-      expect(command[0]).to.equal(service._keys.backlog);
+      expect(command[0]).to.equal(service.rKeys.backlog);
     });
 
     it('should call ZADD with the NX flag', function() {
@@ -129,7 +129,7 @@ describe('audit/queue', function() {
     });
 
     it('should watch the backlog for changes', function() {
-      expect(clientStubs.watch.args[0][0]).to.equal(service._keys.backlog);
+      expect(clientStubs.watch.args[0][0]).to.equal(service.rKeys.backlog);
     });
 
     it('should call _get on the backlog', function() {
@@ -153,7 +153,7 @@ describe('audit/queue', function() {
       var startInd = clientStubs.multi.args[0][0][0];
 
       expect(startInd[0]).to.equal('ZREMRANGEBYSCORE');
-      expect(startInd[1]).to.equal(service._keys.backlog);
+      expect(startInd[1]).to.equal(service.rKeys.backlog);
       expect(startInd[2]).to.equal(0);
     });
 
@@ -161,7 +161,7 @@ describe('audit/queue', function() {
       var startInd = clientStubs.multi.args[0][0][1];
 
       expect(startInd[0]).to.equal('RPUSH');
-      expect(startInd[1]).to.equal(service._keys.ready);
+      expect(startInd[1]).to.equal(service.rKeys.ready);
       expect(startInd[2]).to.deep.equal(testAudits[0]);
       expect(startInd[3]).to.deep.equal(testAudits[1]);
     });
@@ -228,7 +228,7 @@ describe('audit/queue', function() {
     });
 
     it('should watch the pending queue', function() {
-      expect(clientStubs.watch.args[0][0]).to.equal(service._keys.pending);
+      expect(clientStubs.watch.args[0][0]).to.equal(service.rKeys.pending);
     });
 
     it('should place items on the passed queue when true is passed', function() {
@@ -281,7 +281,7 @@ describe('audit/queue', function() {
     it('should call the ZRANGEBYSCORE command', function() {
       var baseArgs = clientStubs.ZRANGEBYSCORE.args[0][0];
       expect(clientStubs.ZRANGEBYSCORE.called).to.be.true;
-      expect(baseArgs[0]).to.equal(service._keys.backlog)
+      expect(baseArgs[0]).to.equal(service.rKeys.backlog)
       expect(baseArgs[1]).to.equal(0)
       expect(baseArgs[2]).to.equal(0)
     });
