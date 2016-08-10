@@ -44,7 +44,7 @@ var FARMERS = [
 var MINIONS = [
   {
     privkey: privkey,
-    address: '127.0.0.1',
+    address: process.env.CONTACT_IP || '127.0.0.1',
     port: 6383,
     noforward: true,
     tunport: 6483,
@@ -52,7 +52,7 @@ var MINIONS = [
   },
   {
     privkey: privkey,
-    address: '127.0.0.1',
+    address: process.env.CONTACT_IP || '127.0.0.1',
     port: 6384,
     noforward: true,
     tunport: 6484,
@@ -60,10 +60,10 @@ var MINIONS = [
   }
 ];
 
-if (process.env.NODE_ENV === 'devel') {
+if (process.env.NODE_ENV === 'develop') {
   MINIONS.push({
     privkey: privkey,
-    address: '127.0.0.1',
+    address: process.env.CONTACT_IP || '127.0.0.1',
     port: 6385,
     noforward: true,
     tunport: 6485,
@@ -71,12 +71,12 @@ if (process.env.NODE_ENV === 'devel') {
   });
 }
 
-const STORAGE_PATH = process.env.NODE_ENV === 'devel' ?
+const STORAGE_PATH = process.env.NODE_ENV === 'develop' ?
                      path.join(os.tmpdir(), 'storj-bridge-develop') :
                      path.join(os.tmpdir(), 'storj-bridge-test');
 
 FARMERS.forEach(function(farmer) {
-  if (process.env.NODE_ENV !== 'devel') {
+  if (process.env.NODE_ENV !== 'develop') {
     if (fs.existsSync(STORAGE_PATH + '-' + farmer.key)) {
       rimraf.sync(STORAGE_PATH + '-' + farmer.key);
     }
@@ -91,7 +91,7 @@ var config = Config({
   storage: {
     host: '127.0.0.1',
     port: 27017,
-    name: process.env.NODE_ENV === 'devel' ?
+    name: process.env.NODE_ENV === 'develop' ?
           '__storj-bridge-develop' :
           Config.DEFAULTS.storage.name
   },
@@ -116,7 +116,7 @@ var config = Config({
 });
 
 module.exports = function start(callback) {
-  if (process.env.NODE_ENV === 'devel') {
+  if (process.env.NODE_ENV === 'develop') {
     console.log('Storj Bridge in DEVELOP mode with configuration:');
     console.log('');
     console.log(config);
@@ -132,7 +132,7 @@ module.exports = function start(callback) {
     // Set up Storj Farmer
     var farmer = storj.FarmerInterface({
       keypair: storj.KeyPair(key),
-      address: '127.0.0.1',
+      address: process.env.CONTACT_IP || '127.0.0.1',
       storage: {
         path: STORAGE_PATH + '-' + key,
         size: 10,
@@ -145,7 +145,8 @@ module.exports = function start(callback) {
       logger: logger,
       opcodes: ['0f01020202', '0f02020202', '0f03020202'],
       noforward: true,
-      concurrency: 12
+      concurrency: 12,
+      tunport: 0
     });
 
     // Seed the Bridge

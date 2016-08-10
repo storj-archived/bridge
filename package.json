@@ -1,6 +1,6 @@
 {
   "name": "storj-bridge",
-  "version": "0.10.0",
+  "version": "0.10.2",
   "description": "Access the Storj network using a simple REST API.",
   "main": "index.js",
   "directories": {
@@ -16,9 +16,10 @@
     "coverage": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=test ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- --recursive",
     "linter": "./node_modules/.bin/jshint --config .jshintrc ./index.js ./lib ./test",
     "test": "npm run testsuite && npm run linter",
-    "develop": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=devel node script/develop.js start",
+    "develop": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=develop node script/develop.js start",
     "make-docs": "./node_modules/.bin/jsdoc index.js lib -r -R README.md -u ./doc -c .jsdoc.json --verbose -d ./jsdoc",
-    "publish-docs": "npm run make-docs && node script/publishdoc.js"
+    "publish-docs": "npm run make-docs && node script/publishdoc.js",
+    "payout-report": "node script/payouts.js"
   },
   "repository": {
     "type": "git",
@@ -57,6 +58,7 @@
     "basic-auth": "^1.0.3",
     "concat-stream": "^1.5.1",
     "cors": "^2.7.1",
+    "csv-write-stream": "^2.0.0",
     "elliptic": "^6.0.2",
     "express": "^4.13.3",
     "handlebars": "^4.0.5",
@@ -71,7 +73,7 @@
     "nodemailer": "^2.0.0",
     "readable-stream": "^2.0.5",
     "redis": "^2.6.0-2",
-    "storj": "^2.0.0",
+    "storj": "^2.0.6",
     "through": "^2.3.8"
   }
 }

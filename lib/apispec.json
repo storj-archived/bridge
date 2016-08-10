@@ -193,7 +193,7 @@
           }
         ],
         "responses": {
-          "200": {
+          "201": {
             "description": "User successfully registered and activation email sent",
             "schema": {
               "type": "object",
@@ -904,7 +904,7 @@
           }
         ],
         "responses": {
-          "200": {
+          "201": {
             "description": "Bucket successfully created",
             "schema": {
               "type": "object",
@@ -1189,7 +1189,7 @@
           }
         ],
         "responses": {
-          "200": {
+          "201": {
             "description": "Token successfully created",
             "schema": {
               "type": "object",
