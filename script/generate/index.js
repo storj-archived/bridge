@@ -14,8 +14,8 @@ program.parse(process.argv);
 
 console.log("PATH: ", path.resolve(__dirname, 'factory.rb'))
 
-const factory_process = spawn('/usr/bin/env', [
-  'ruby', path.resolve(__dirname, 'factory.rb')
+const factory_process = spawn('ruby', [
+  path.resolve(__dirname, 'factory.rb')
 ], {cwd: process.cwd(), stdio: 'inherit'});
 
 console.log(program.email);
