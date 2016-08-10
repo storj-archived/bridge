@@ -4,3 +4,10 @@ development:
       database: '__storj-bridge-develop'
       hosts:
         - 'localhost:27017'
+
+test:
+  clients:
+    default:
+      database: '__storj-bridge-test'
+      hosts:
+        - 'localhost:27017'
