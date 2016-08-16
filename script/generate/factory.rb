@@ -28,14 +28,6 @@ class Debit
   belongs_to :user
 end
 
-# user = User.create _id: "lott.dylan@gmail.com"
-#
-# 5.times do |i|
-#   credit = Credit.create amount: 10000 + i, user: user
-# end
-#
-# puts(user.credits)
-
 FactoryGirl.define do
   sequence :_id do |n|
     "user#{n}@example.com"

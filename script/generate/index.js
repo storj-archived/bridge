@@ -12,12 +12,10 @@ program
 
 program.parse(process.argv);
 
-console.log("PATH: ", path.resolve(__dirname, 'factory.rb'))
-
 const factory_process = spawn('ruby', [
   path.resolve(__dirname, 'factory.rb')
 ], {cwd: process.cwd(), stdio: 'inherit'});
 
-console.log(program.email);
-console.log(program.credit);
-console.log(program.debit);
+// console.log(program.email);
+// console.log(program.credit);
+// console.log(program.debit);
