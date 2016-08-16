@@ -67,7 +67,7 @@
     "elliptic": "^6.0.2",
     "express": "^4.13.3",
     "express-graphql": "^0.5.3",
-    "graphqlMiddleware": "^0.6.2",
+    "graphql": "^0.6.2",
     "handlebars": "^4.0.5",
     "hat": "0.0.3",
     "kad-logger-json": "^0.1.2",
