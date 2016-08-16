@@ -14,6 +14,10 @@ class User
   include Mongoid::Document
   has_many :credits
   has_many :debits
+
+  field :hashpass, type: String
+  field :created, type: DateTime
+  field :activated, type: Boolean
 end
 
 class Credit
@@ -44,6 +48,9 @@ FactoryGirl.define do
 
   factory :user do
     _id
+    hashpass '3f432dff8834d517de9ed5428bad0df117b30894bff4eed4d2d515e4bc48bc7f' #badpassword
+    activated true
+    created DateTime.now
     transient {credits_count 4}
     transient {debits_count 5}
     after(:create) do |user, evaluator|
