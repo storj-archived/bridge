@@ -22,7 +22,7 @@ const nodeId = keypair.getNodeID();
 logger.info('[minion] started with %s', nodeId);
 
 let adapter = new MongoAdapter(storage);
-let manager = new storj.Manager(adapter);
+let manager = new storj.StorageManager(adapter);
 
 function _castArguments(message) {
   let contract;
@@ -97,20 +97,20 @@ messaging.start(worker, (err) => {
       gateways: options.gateways
     });
 
-    network._router.on('add', function(contact) {
+    network.router.on('add', function(contact) {
       storage.models.Contact.record(contact);
     });
 
-    network._router.on('shift', function(contact) {
+    network.router.on('shift', function(contact) {
       storage.models.Contact.record(contact);
     });
 
     network._getConnectedContacts = function(callback) {
       let connected = [];
 
-      for (var index in this._router._buckets) {
+      for (var index in this.router._buckets) {
         connected = connected.concat(
-          this._router._buckets[index].getContactList()
+          this.router._buckets[index].getContactList()
         );
       }
 
