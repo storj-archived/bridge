@@ -1,8 +1,17 @@
 source "https://rubygems.org"
 
-gem 'cucumber'
-gem 'watir-webdriver'
-gem 'rspec'
-gem 'mongoid'
-gem 'database_cleaner'
-gem 'factory_girl'
+group :development do
+  gem 'pry'
+end
+
+group :test do
+  gem 'cucumber'
+  gem 'watir-webdriver'
+  gem 'rspec'
+end
+
+group :test, :development do
+  gem 'mongoid'
+  gem 'database_cleaner'
+  gem 'factory_girl'
+end
