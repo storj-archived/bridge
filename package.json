@@ -71,7 +71,7 @@
     "ms": "^0.7.1",
     "nodemailer": "^2.0.0",
     "readable-stream": "^2.0.5",
-    "storj": "^3.0.1",
+    "storj": "^3.0.4",
     "through": "^2.3.8"
   }
 }
