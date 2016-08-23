@@ -20,9 +20,22 @@ def random_date_between_months_ago(min_months_ago, max_months_ago)
   DateTime.now - random_days
 end
 
-def dates_per_month(count, per_month)
-  months_ago = count/per_month
+def dates_per_month(index, per_month)
+  months_ago = index/per_month
   random_date_between_months_ago(months_ago, (months_ago + 1))
+end
+
+def debit_total_per_month(index, per_month)
+  min_months_ago = index/per_month
+  max_months_ago = min_months_ago + 1
+  now = DateTime.now
+  range_start = DateTime.new(now.year, now.month) - max_months_ago.months
+  range_end = DateTime.new(now.year, now.month) - min_months_ago.months
+  range = range_start..range_end
+  puts "range #{range}"
+  puts "debits: #{Debit.between(created: range).map &:amount}"
+  puts "total: #{Debit.between(created: range).map(&:amount).reduce :+}"
+  Debit.between(created: range).map(&:amount).reduce :+
 end
 
 class User
@@ -75,20 +88,26 @@ FactoryGirl.define do
   end
 
   factory :credit do
-    transient { automatic? }
-    amount { Random.rand(200..1500) }
-    type { automatic? ? 'automatic' : 'manual' }
     transient { credit_index }
+    transient { automatic? }
     created { dates_per_month(credit_index, 1) }
+    amount { debit_total_per_month(credit_index, 1) }
+    type do
+      if  credit_index == 1 #first payment is always manual
+        'manual'
+      else
+        automatic? ? 'automatic' : 'manual'
+      end
+    end
     user
   end
 
   factory :debit do
+    transient { debit_index }
     transient { audit? }
+    created { dates_per_month(debit_index, 5) }
     amount { audit? ? Random.rand(1..500) : Random.rand(10..1000) }
     type { audit? ? 'audit' : 'transfer' }
-    transient { debit_index }
-    created { dates_per_month(debit_index, 5) }
     user
   end
 
@@ -100,8 +119,8 @@ FactoryGirl.define do
     transient { credits_count 5 }
     transient { debits_count (5 * (DEBITS_PER_CREDIT + 1)) }
     after(:create) do |user, evaluator|
-      credits = create_list(:credit, evaluator.credits_count, user: user)
       debits = create_list(:debit, evaluator.debits_count, user: user)
+      credits = create_list(:credit, evaluator.credits_count, user: user)
     end
   end
 end
