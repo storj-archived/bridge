@@ -32,9 +32,6 @@ def debit_total_per_month(index, per_month)
   range_start = DateTime.new(now.year, now.month) - max_months_ago.months
   range_end = DateTime.new(now.year, now.month) - min_months_ago.months
   range = range_start..range_end
-  puts "range #{range}"
-  puts "debits: #{Debit.between(created: range).map &:amount}"
-  puts "total: #{Debit.between(created: range).map(&:amount).reduce :+}"
   Debit.between(created: range).map(&:amount).reduce :+
 end
 
@@ -50,7 +47,7 @@ end
 
 class Credit
   include Mongoid::Document
-  belongs_to :user
+  belongs_to :_user, class_name: 'User', foreign_key: :user
 
   field :amount, type: Integer
   field :created, type: DateTime
@@ -59,7 +56,7 @@ end
 
 class Debit
   include Mongoid::Document
-  belongs_to :user
+  belongs_to :_user, class_name: 'User', foreign_key: :user
 
   field :amount, type: Integer
   field :created, type: DateTime
@@ -99,7 +96,7 @@ FactoryGirl.define do
         automatic? ? 'automatic' : 'manual'
       end
     end
-    user
+    _user
   end
 
   factory :debit do
@@ -108,10 +105,10 @@ FactoryGirl.define do
     created { dates_per_month(debit_index, 5) }
     amount { audit? ? Random.rand(1..500) : Random.rand(10..1000) }
     type { audit? ? 'audit' : 'transfer' }
-    user
+    _user
   end
 
-  factory :user do
+  factory :user, aliases: [:_user] do
     _id
     hashpass '3f432dff8834d517de9ed5428bad0df117b30894bff4eed4d2d515e4bc48bc7f' #badpassword
     activated true
@@ -119,8 +116,8 @@ FactoryGirl.define do
     transient { credits_count 5 }
     transient { debits_count (5 * (DEBITS_PER_CREDIT + 1)) }
     after(:create) do |user, evaluator|
-      debits = create_list(:debit, evaluator.debits_count, user: user)
-      credits = create_list(:credit, evaluator.credits_count, user: user)
+      debits = create_list(:debit, evaluator.debits_count, _user: user)
+      credits = create_list(:credit, evaluator.credits_count, _user: user)
     end
   end
 end
