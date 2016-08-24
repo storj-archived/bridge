@@ -73,7 +73,7 @@
     "nodemailer": "^2.0.0",
     "readable-stream": "^2.0.5",
     "redis": "^2.6.0-2",
-    "storj": "^2.0.6",
+    "storj": "^3.0.4",
     "through": "^2.3.8"
   }
 }
