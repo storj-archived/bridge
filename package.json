@@ -74,6 +74,7 @@
     "knuth-shuffle": "^1.0.1",
     "merge": "^1.2.0",
     "mime-db": "^1.22.0",
+    "moment": "^2.14.1",
     "mongoose": "^4.3.4",
     "mongoose-currency": "^0.2.0",
     "mongoose-int32": "^0.1.0",
