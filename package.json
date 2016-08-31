@@ -12,6 +12,8 @@
   },
   "scripts": {
     "generate": "node ./bin/generate.js",
+    "start-dev": "NODE_ENV=develop LOG_LEVEL=warn nodemon ./bin/storj-bridge.js",
+    "start-dev-minions": "NODE_ENV=develop LOG_LEVEL=warn nodemon ./script/develop.js start",
     "coverage": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=test ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- --recursive",
     "linter": "./node_modules/.bin/jshint --config .jshintrc ./index.js ./lib ./test",
     "test": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=test node ./bin/test.js",
@@ -78,6 +80,7 @@
     "mongoose": "^4.3.4",
     "mongoose-currency": "^0.2.0",
     "mongoose-int32": "^0.1.0",
+    "mongoose-schema-extend": "^0.2.2",
     "mongoose-types": "^1.0.3",
     "ms": "^0.7.1",
     "nodemailer": "^2.0.0",
