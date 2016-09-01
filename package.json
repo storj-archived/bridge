@@ -12,7 +12,8 @@
   },
   "scripts": {
     "generate": "node ./bin/generate.js",
-    "start-dev": "NODE_ENV=develop LOG_LEVEL=warn nodemon ./bin/storj-bridge.js",
+    "start-dev": "NODE_ENV=develop LOG_LEVEL=warn nodemon -L ./bin/storj-bridge.js",
+    "start-debug": "NODE_ENV=develop LOG_LEVEL=warn node-debug --web-host 0.0.0.0 --no-preload ./bin/storj-bridge.js",
     "start-dev-minions": "NODE_ENV=develop LOG_LEVEL=warn nodemon ./script/develop.js start",
     "coverage": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=test ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- --recursive",
     "linter": "./node_modules/.bin/jshint --config .jshintrc ./index.js ./lib ./test",
