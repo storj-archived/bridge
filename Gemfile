@@ -8,6 +8,7 @@ group :test do
   gem 'cucumber'
   gem 'watir-webdriver'
   gem 'rspec'
+  gem 'rest-client'
 end
 
 group :test, :development do

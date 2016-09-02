@@ -73,15 +73,11 @@ const typeSuites = [
 // no types specified, run all
 const noTypes = !(typeSuites.some(suite => !!program[suite.typeName]));
 
-console.log(`types: ${typeSuites.map(s => s.typeName)}`);
-
 eachSeries(typeSuites,
     (suite, next) => {
       const typeName = suite.typeName;
 
       // checking for `-a || --all`, specific type option, or no type options
-      console.log(`typeName: ${typeName}`);
-      console.log(`noTypes: ${noTypes}`);
       if (program.all || program[typeName] || noTypes) {
         console.info(`BEGINNING tests for type ${typeName}:`.cyan);
         const typePath = path.resolve(__dirname, `${typeName}.js`);

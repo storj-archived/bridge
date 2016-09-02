@@ -37,6 +37,7 @@ end
 
 class User
   include Mongoid::Document
+  embeds_many :payment_processors, store_as: :paymentProcessors
   has_many :credits
   has_many :debits
 
@@ -45,13 +46,27 @@ class User
   field :activated, type: Boolean
 end
 
+class PaymentProcessor
+  include Mongoid::Document
+  embedded_in :user
+
+  field :name, type: String
+  field :default, type: Boolean
+  field :created, type: DateTime
+  field :rawData, type: Array
+end
+
 class Credit
   include Mongoid::Document
   belongs_to :_user, class_name: 'User', foreign_key: :user
 
-  field :amount, type: Integer
+  field :paid_amount, type: Integer
+  field :invoiced_amount, type: Integer
+  field :promo_code, type: String
+  field :promo_amount, type: Integer
   field :created, type: DateTime
   field :type, type: String
+  field :paid, type: Boolean
 end
 
 class Debit
@@ -88,7 +103,11 @@ FactoryGirl.define do
     transient { credit_index }
     transient { automatic? }
     created { dates_per_month(credit_index, 1) }
-    amount { debit_total_per_month(credit_index, 1) }
+    invoiced_amount { debit_total_per_month(credit_index, 1) }
+    paid_amount 0
+    paid false
+    promo_amount 0
+    promo_code nil
     type do
       if  credit_index == 1 #first payment is always manual
         'manual'
@@ -108,6 +127,13 @@ FactoryGirl.define do
     _user
   end
 
+  factory :payment_processor do
+    name :stripe
+    default true
+    created DateTime.now - 365
+    rawData { [stripe_data] }
+  end
+
   factory :user, aliases: [:_user] do
     _id
     hashpass '3f432dff8834d517de9ed5428bad0df117b30894bff4eed4d2d515e4bc48bc7f' #badpassword
@@ -115,6 +141,7 @@ FactoryGirl.define do
     created DateTime.now - 365 #1 year ago
     transient { credits_count 5 }
     transient { debits_count (5 * (DEBITS_PER_CREDIT + 1)) }
+    payment_processors { build_list(:payment_processor, 1) }
     after(:create) do |user, evaluator|
       debits = create_list(:debit, evaluator.debits_count, _user: user)
       credits = create_list(:credit, evaluator.credits_count, _user: user)
@@ -122,4 +149,99 @@ FactoryGirl.define do
   end
 end
 
-FactoryGirl.create :user
+#FactoryGirl.create :user
+
+def stripe_data
+JSON.parse %q(
+    {
+        "billingDate" : 2,
+        "customer" : {
+            "subscriptions" : {
+                "url" : "/v1/customers/cus_97YiKPOYvPQ8Ha/subscriptions",
+                "total_count" : 1,
+                "has_more" : false,
+                "data" : [
+                    {
+                        "trial_start" : null,
+                        "trial_end" : null,
+                        "tax_percent" : null,
+                        "status" : "active",
+                        "start" : 1472830106,
+                        "quantity" : 1,
+                        "plan" : {
+                            "trial_period_days" : null,
+                            "statement_descriptor" : "Storj.io account usage",
+                            "name" : "premium",
+                            "livemode" : false,
+                            "interval_count" : 1,
+                            "interval" : "month",
+                            "currency" : "usd",
+                            "created" : 1472738058,
+                            "amount" : 0,
+                            "object" : "plan",
+                            "id" : "premium"
+                        },
+                        "livemode" : false,
+                        "ended_at" : null,
+                        "discount" : null,
+                        "customer" : "cus_97YiKPOYvPQ8Ha",
+                        "current_period_start" : 1472830106,
+                        "current_period_end" : 1475422106,
+                        "created" : 1472830106,
+                        "canceled_at" : null,
+                        "cancel_at_period_end" : false,
+                        "application_fee_percent" : null,
+                        "object" : "subscription",
+                        "id" : "sub_97Yi6fsBzeDW6C"
+                    }
+                ],
+                "object" : "list"
+            },
+            "sources" : {
+                "url" : "/v1/customers/cus_97YiKPOYvPQ8Ha/sources",
+                "total_count" : 1,
+                "has_more" : false,
+                "data" : [
+                    {
+                        "tokenization_method" : null,
+                        "name" : null,
+                        "last4" : "4242",
+                        "funding" : "credit",
+                        "fingerprint" : "DbXmpVpiNsp7lcnp",
+                        "exp_year" : 2019,
+                        "exp_month" : 9,
+                        "dynamic_last4" : null,
+                        "cvc_check" : "pass",
+                        "customer" : "cus_97YiKPOYvPQ8Ha",
+                        "country" : "US",
+                        "brand" : "Visa",
+                        "address_zip_check" : null,
+                        "address_zip" : null,
+                        "address_state" : null,
+                        "address_line2" : null,
+                        "address_line1_check" : null,
+                        "address_line1" : null,
+                        "address_country" : null,
+                        "address_city" : null,
+                        "object" : "card",
+                        "id" : "card_18pJafHUqQsjaswpAm1uLT8b"
+                    }
+                ],
+                "object" : "list"
+            },
+            "shipping" : null,
+            "livemode" : false,
+            "email" : "user1@example.com",
+            "discount" : null,
+            "description" : null,
+            "delinquent" : false,
+            "default_source" : "card_18pJafHUqQsjaswpAm1uLT8b",
+            "currency" : "usd",
+            "created" : 1472830106,
+            "account_balance" : 0,
+            "object" : "customer",
+            "id" : "cus_97YiKPOYvPQ8Ha"
+        }
+    }
+)
+end
