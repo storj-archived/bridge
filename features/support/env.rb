@@ -6,7 +6,7 @@ require 'rspec/expectations'
 require 'mongoid'
 require 'database_cleaner'
 require 'factory_girl'
-require 'RestClient'
+require 'rest-client'
 
 # Require files in ./helpers recursively
 Dir["#{__dir__}/helpers/*{,*/*}"].each {|file| require file}
