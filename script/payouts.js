@@ -87,7 +87,9 @@ cursor.on('data', function(doc) {
     reports[subdoc.nodeID].downloadedBytes += c * subdoc.contract.data_size;
     reports[subdoc.nodeID].contracts++;
     reports[subdoc.nodeID].downloadCount += c;
-    var bytes = reports[subdoc.nodeID].storedBytes += subdoc.contract.data_size;
+    
+    var bytes = subdoc.contract.data_size;
+    reports[subdoc.nodeID].storedBytes += bytes;
 
     var time = contractIsActive ?
       Date.now() - subdoc.contract.store_begin :
