@@ -95,7 +95,6 @@ cursor.on('data', function(doc) {
     }
 
     var c = getDownloadCountForContract(subdoc.nodeID);
-     
     var dest = subdoc.contract.payment_destination;
 
     reports[subdoc.nodeID].downloadedBytes += c * subdoc.contract.data_size;
@@ -104,8 +103,6 @@ cursor.on('data', function(doc) {
     
     var bytes = subdoc.contract.data_size;
     reports[subdoc.nodeID].storedBytes += bytes;
-
-    
 
     var contractIsActive = endDate < subdoc.contract.store_end;
     var wasActiveAtStart = startDate > subdoc.contract.store_begin;
@@ -117,14 +114,12 @@ cursor.on('data', function(doc) {
     // The contract started before the range
     // The contract is fully inside the range
     if ( contractIsActive ) {
-
       var time = wasActiveAtStart ? 
         endDate - startDate : 
         endDate - subdoc.contract.store_begin;
     }
     
     else if ( !contractIsActive ) {
-      
       var time = wasActiveAtStart ?
         contract.subdoc.store_end - startDate :
         contract.subdoc.store_end - contract.subdoc.store_begin;
