@@ -89,9 +89,12 @@ cursor.on('data', function(doc) {
     reports[subdoc.nodeID].downloadCount += c;
     var bytes = reports[subdoc.nodeID].storedBytes += subdoc.contract.data_size;
 
-    var time = reports[subdoc.nodeID].storedTime += contractIsActive ?
+    var time = contractIsActive ?
       Date.now() - subdoc.contract.store_begin :
       subdoc.contract.store_end - subdoc.contract.store_begin;
+
+    reports[subdoc.nodeID].storedTime += time;
+
     var hours = parseInt((time / (1000 * 60 * 60)) % 24);
     var gigabytes = bytes / (1000 * 1000 * 1000);
     var gibibytes = bytes / (1024 * 1024 * 1024);
