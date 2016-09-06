@@ -67,12 +67,6 @@ cursor.on('data', function(doc) {
     return count;
   }
 
-  // 8/1/16 0:00:00
-  startDate = 1470009600;
-
-  // 9/1/16 0:00:0
-  endDate = 1472688000; 
-
   doc.contracts.forEach(function(subdoc) {
     if (subdoc.nodeID.length !== 40) {
       return false;
@@ -85,12 +79,18 @@ cursor.on('data', function(doc) {
     if (!subdoc.contract) {
       return false;
     }
+   
+    // 8/1/16 0:00:00
+    var startDate = 1470009600;
+
+    // 9/1/16 0:00:0
+    var endDate = 1472688000; 
 
     // If the contract ended before the range
     // Or if the contract started after the range
     // Don't count it.
-    if (subdoc.contract.store_end < stateDate 
-      ||  subdoc.contract.store_begin > endDate) {
+    if (subdoc.contract.store_end < startDate ||  
+        subdoc.contract.store_begin > endDate) {
       return false;
     }
 
@@ -106,7 +106,7 @@ cursor.on('data', function(doc) {
 
     var contractIsActive = endDate < subdoc.contract.store_end;
     var wasActiveAtStart = startDate > subdoc.contract.store_begin;
-    
+    var time = 0;
     // We only want the portion of the contract that overlaps with the range
     // The 4 cases in order:
     // The contract started before and ended after the range
@@ -114,15 +114,15 @@ cursor.on('data', function(doc) {
     // The contract started before the range
     // The contract is fully inside the range
     if ( contractIsActive ) {
-      var time = wasActiveAtStart ? 
+      time = wasActiveAtStart ? 
         endDate - startDate : 
         endDate - subdoc.contract.store_begin;
     }
     
     else if ( !contractIsActive ) {
-      var time = wasActiveAtStart ?
-        contract.subdoc.store_end - startDate :
-        contract.subdoc.store_end - contract.subdoc.store_begin;
+      time = wasActiveAtStart ?
+        subdoc.contract.store_end - startDate :
+        subdoc.contract.store_end - subdoc.contract.store_begin;
     }
 
     reports[subdoc.nodeID].storedTime += time;
