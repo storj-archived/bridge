@@ -23,8 +23,11 @@ if (!csvOutPath) {
 }
 
 if (!startDate || !endDate) {
-  log.info('NO DATE RANGE SUPPLIED, WILL GET RECORDS FOR ALL TIME');
+  log.info('NO START AND END DATE SUPPLIED. YOU MUST SUPPLY A START AND END DATE');
+  return process.exit(1);
 }
+
+console.log('Running payouts reports from %s to %s', startDateString, endDateString);
 
 function dateStringToTimestamp(timestampString) {
   var timestamp = new Date(timestampString);
