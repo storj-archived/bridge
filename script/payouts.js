@@ -79,9 +79,22 @@ cursor.on('data', function(doc) {
     if (!subdoc.contract) {
       return false;
     }
+   
+    // 8/1/16 0:00:00
+    var startDate = 1470009600;
+
+    // 9/1/16 0:00:0
+    var endDate = 1472688000; 
+
+    // If the contract ended before the range
+    // Or if the contract started after the range
+    // Don't count it.
+    if (subdoc.contract.store_end < startDate ||  
+        subdoc.contract.store_begin > endDate) {
+      return false;
+    }
 
     var c = getDownloadCountForContract(subdoc.nodeID);
-    var contractIsActive = Date.now() < subdoc.contract.store_end;
     var dest = subdoc.contract.payment_destination;
 
     reports[subdoc.nodeID].downloadedBytes += c * subdoc.contract.data_size;
@@ -91,9 +104,26 @@ cursor.on('data', function(doc) {
     var bytes = subdoc.contract.data_size;
     reports[subdoc.nodeID].storedBytes += bytes;
 
-    var time = contractIsActive ?
-      Date.now() - subdoc.contract.store_begin :
-      subdoc.contract.store_end - subdoc.contract.store_begin;
+    var contractIsActive = endDate < subdoc.contract.store_end;
+    var wasActiveAtStart = startDate > subdoc.contract.store_begin;
+    var time = 0;
+    // We only want the portion of the contract that overlaps with the range
+    // The 4 cases in order:
+    // The contract started before and ended after the range
+    // The contract ended after the range
+    // The contract started before the range
+    // The contract is fully inside the range
+    if ( contractIsActive ) {
+      time = wasActiveAtStart ? 
+        endDate - startDate : 
+        endDate - subdoc.contract.store_begin;
+    }
+    
+    else if ( !contractIsActive ) {
+      time = wasActiveAtStart ?
+        subdoc.contract.store_end - startDate :
+        subdoc.contract.store_end - subdoc.contract.store_begin;
+    }
 
     reports[subdoc.nodeID].storedTime += time;
 
