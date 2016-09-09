@@ -9,7 +9,7 @@
   },
   "bin": {
     "storj-bridge": "bin/storj-bridge.js",
-    "audit-service": "bin/audit-service.js"
+    "storj-audit-service": "bin/audit-service.js"
   },
   "scripts": {
     "testsuite": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=test _mocha test/**",
