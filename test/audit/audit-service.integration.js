@@ -1,24 +1,60 @@
 'use strict'
 
+const os = require('os');
 const fs = require('fs');
+const path = require('path');
 const crypto = require('crypto');
+const merge = require('merge');
 const noisegen = require('noisegen');
 const async = require('async');
 const expect = require('chai').expect;
 const sinon = require('sinon');
+const redis = require('redis');
 const proxyquire = require('proxyquire');
 const storj = require('storj');
 const Storage = require('../../lib/storage');
 const Config = require('../../lib/config');
 const Audit = require('../../lib/audit');
+const Queue = require('../../lib/audit/adapters/redis/queue');
 const develop = require('../../script/develop');
 
-describe('Audit/Integration', function() {
+const ENV = process.env;
+const PLATFORM = os.platform();
+const DIRNAME = '.storj-bridge';
+const HOME = PLATFORM === 'win32' ? ENV.USERPROFILE : ENV.HOME;
 
+const DATADIR = path.join(HOME, DIRNAME);
+const CONFDIR = path.join(DATADIR, 'config');
+const ITEMDIR = path.join(DATADIR, 'items');
+
+if (!fs.existsSync(DATADIR)) {
+  fs.mkdirSync(DATADIR);
+}
+
+if (!fs.existsSync(CONFDIR)) {
+  fs.mkdirSync(CONFDIR);
+}
+
+if (!fs.existsSync(ITEMDIR)) {
+  fs.mkdirSync(ITEMDIR);
+}
+
+describe('Audit/Integration', function() {
+  var adapter = {
+    host: '127.0.0.1',
+    port: 6379,
+    user: null,
+    pass: null,
+    polling: {
+      interval: 10000,
+      padding: 1000
+    }
+  };
   var environment, storage;
   var aInterface = Audit.interface();
   var keypair = storj.KeyPair();
   var client = storj.BridgeClient('http://127.0.0.1:6382');
+  var rClient = redis.createClient(adapter);
   var cred = {
     email: 'auditwizard@tardis.ooo',
     password: 'password',
@@ -32,14 +68,40 @@ describe('Audit/Integration', function() {
     console.log('  ********************************  ');
     console.log('  (this can take up to 30 seconds)  ');
     console.log('                                    ');
-    this.timeout(80000);
-    Audit.service();
+    this.timeout(100000);
+    if (!fs.existsSync(ITEMDIR)) {
+      fs.mkdirSync(ITEMDIR);
+    }
+
     storage = Storage(Config.DEFAULTS.storage);
     storage.connection.on('connected', function() {
       async.forEachOf(storage.models, function(model, name, done) {
         model.remove({}, done);
       }, function() {
-        environment = develop(createUser);
+        environment = develop(function(err, config) {
+          adapter.type = 'redis';
+          Audit.service({
+            adapter: adapter,
+            workers: [{
+              uuid: 123,
+              limit: 20,
+              network: {
+                address: '127.0.0.1',
+                port: 6234,
+                privkey: config.network.minions[0].privkey,
+                verbosity: 3,
+                datadir: ITEMDIR,
+                farmer: false,
+                noforward: true,
+                tunnels: 0,
+                tunport: null,
+                gateways: { min: 0, max: 0 }
+              }
+            }]
+          });
+
+          createUser();
+        });
       });
     });
 
@@ -97,10 +159,18 @@ describe('Audit/Integration', function() {
   after(function(done) {
     var allKeys = [];
     environment.kill(function() {
-      for(var key in aInterface.redisQueue.rKeys) {
-        allKeys.push(aInterface.redisQueue.rKeys[key]);
+      for(var key in Queue.sharedKeys) {
+        allKeys.push(Queue.sharedKeys[key]);
       }
-      aInterface.redisQueue.client.DEL(allKeys, done);
+
+      allKeys.push(
+        'storj:audit:full:pending:123',
+        'storj:audit:full:pending:undefined'
+      );
+
+      rClient.DEL(allKeys, function() {
+        done();
+      });
     });
 
     function logErr(err, item) {
@@ -110,18 +180,20 @@ describe('Audit/Integration', function() {
 
   describe('E2E', function() {
     before(function(done) {
+      this.timeout(100000);
       //set up subscriber
       aInterface.subscriber.on('message', function(channel, msg){
+        console.log('pubsub')
         console.log(channel);
         console.log(message);
       });
 
       //revise audit timeline
       var lastTime;
-      var command = [aInterface.redisQueue.rKeys.backlog];
+      var command = [Queue.sharedKeys.backlog];
 
-      aInterface.redisQueue.client.ZREVRANGE(
-        aInterface.redisQueue.rKeys.backlog,
+      rClient.ZREVRANGE(
+        Queue.sharedKeys.backlog,
         0,
         -1,
         function(err, audits) {
@@ -134,10 +206,10 @@ describe('Audit/Integration', function() {
               command.push(elem);
             }
           })
-          console.log(command)
-          aInterface.redisQueue.client.ZADD(command, function(err, resp) {
-            aInterface.redisQueue.client.ZREVRANGE(
-              aInterface.redisQueue.rKeys.backlog,
+
+          rClient.ZADD(command, function(err, resp) {
+            rClient.ZREVRANGE(
+              Queue.sharedKeys.backlog,
               0,
               -1,
               function() {
@@ -151,16 +223,16 @@ describe('Audit/Integration', function() {
 
     });
     */
-    it('should create a shedule of audits in the backlog', function() {
-
+    it('should create a shedule of audits in the backlog', function(done) {
+      this.timeout(100000);
     });
-
+/*
     it('should send audits in acceptable time window', function(done) {
       var acceptable = 1000;
       this.timeout(20100);
       setTimeout(done, 20000);
     });
-
+*/
     it('should pass all provided audits', function() {
 
     });
@@ -169,7 +241,7 @@ describe('Audit/Integration', function() {
 
   describe('Component Failures', function() {
     //tests behavior in case of DB failures
-    before(function(done) {
+    before(function() {
 
     });
 
