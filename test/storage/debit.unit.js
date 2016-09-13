@@ -50,9 +50,43 @@ describe('Storage/models/Debit', function() {
         user: 'user1@example.com',
         type: CONSTANTS.DEBIT_TYPES.AUDIT
       }, {}, function(err, debit) {
-        console.log(err);
         expect(err).to.be.instanceOf(err);
         expect(err.message).to.be.ok;
+        expect(debit).to.not.be.ok;
+      })
+    })
+
+    it('should not create a debit with a non-number amount', function() {
+      Debit.create({
+        user: 'user1@example.com',
+        type: CONSTANTS.DEBIT_TYPES.AUDIT,
+        amount: 'test'
+      }, {}, function(err, credit) {
+        expect(err).to.be.instanceOf(Error);
+        expect(err.message).to.equal('Debit validation failed');
+        expect(debit).to.not.be.ok;
+      })
+    })
+
+    it('should not create a debit with a string for an amount', function() {
+      Debit.create({
+        user: 'user1@example.com',
+        type: CONSTANTS.DEBIT_TYPES.AUDIT,
+        amount: '1000'
+      }, {}, function(err, debit) {
+        expect(err).to.be.instanceOf(Error);
+        expect(err.message).to.equal('Debit validation failed');
+        expect(debit).to.not.be.ok;
+      })
+    })
+
+    it('should not create a debit without a user', function() {
+      Debit.create({
+        amount: 1000,
+        type: CONSTANTS.DEBIT_TYPES.AUDIT
+      }, {}, function(err, debit) {
+        expect(err).to.be.instanceOf(Error);
+        expect(err.message).to.equal('Debit validation failed');
         expect(debit).to.not.be.ok;
       })
     })
