@@ -11,10 +11,33 @@ const Storage = require('../lib/storage');
 const config = new Config(process.env.NODE_ENV);
 const storage = new Storage(config.storage);
 const cursor = storage.models.Shard.find({}).cursor();
-const csvOutPath = process.argv[2];
+const startDateString = process.argv[2];
+const endDateString = process.argv[3];
+const csvOutPath = process.argv[4];
+
+var startDate = '1451606400000';
+var endDate = Date.now().toString();
 
 if (!csvOutPath) {
   log.info('NO OUT PATH SUPPLIED FOR CSV, WILL PRINT TO CONSOLE');
+}
+
+if (!startDate || !endDate) {
+  log.info('NO START AND END DATE SUPPLIED. YOU MUST SUPPLY A START AND END DATE');
+  return process.exit(1);
+}
+
+console.log('Running payouts reports from %s to %s', startDateString, endDateString);
+
+function dateStringToTimestamp(timestampString) {
+  var timestamp = new Date(timestampString);
+  var timestampSeconds = timestamp.valueOf();
+  return timestampSeconds;
+}
+
+if (startDateString && endDateString) {
+  startDate = dateStringToTimestamp(startDateString);
+  endDate = dateStringToTimestamp(endDateString);
 }
 
 var reports = {};
@@ -67,6 +90,7 @@ cursor.on('data', function(doc) {
     return count;
   }
 
+
   doc.contracts.forEach(function(subdoc) {
     if (subdoc.nodeID.length !== 40) {
       return false;
@@ -79,17 +103,8 @@ cursor.on('data', function(doc) {
     if (!subdoc.contract) {
       return false;
     }
-   
-    // 8/1/16 0:00:00
-    var startDate = 1470009600;
 
-    // 9/1/16 0:00:0
-    var endDate = 1472688000; 
-
-    // If the contract ended before the range
-    // Or if the contract started after the range
-    // Don't count it.
-    if (subdoc.contract.store_end < startDate ||  
+    if (subdoc.contract.store_end < startDate ||
         subdoc.contract.store_begin > endDate) {
       return false;
     }
@@ -100,7 +115,7 @@ cursor.on('data', function(doc) {
     reports[subdoc.nodeID].downloadedBytes += c * subdoc.contract.data_size;
     reports[subdoc.nodeID].contracts++;
     reports[subdoc.nodeID].downloadCount += c;
-    
+
     var bytes = subdoc.contract.data_size;
     reports[subdoc.nodeID].storedBytes += bytes;
 
@@ -114,11 +129,11 @@ cursor.on('data', function(doc) {
     // The contract started before the range
     // The contract is fully inside the range
     if ( contractIsActive ) {
-      time = wasActiveAtStart ? 
-        endDate - startDate : 
+      time = wasActiveAtStart ?
+        endDate - startDate :
         endDate - subdoc.contract.store_begin;
     }
-    
+
     else if ( !contractIsActive ) {
       time = wasActiveAtStart ?
         subdoc.contract.store_end - startDate :
