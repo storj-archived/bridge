@@ -50,8 +50,9 @@ describe('Audit/Integration', function() {
       padding: 1000
     }
   };
+
   var environment, storage;
-  var aInterface = Audit.interface();
+  var aInterface = Audit.interface(adapter);
   var keypair = storj.KeyPair();
   var client = storj.BridgeClient('http://127.0.0.1:6382');
   var rClient = redis.createClient(adapter);
@@ -68,7 +69,7 @@ describe('Audit/Integration', function() {
     console.log('  ********************************  ');
     console.log('  (this can take up to 30 seconds)  ');
     console.log('                                    ');
-    this.timeout(100000);
+    this.timeout(120000);
     if (!fs.existsSync(ITEMDIR)) {
       fs.mkdirSync(ITEMDIR);
     }
@@ -180,7 +181,6 @@ describe('Audit/Integration', function() {
 
   describe('E2E', function() {
     before(function(done) {
-      this.timeout(100000);
       //set up subscriber
       aInterface.subscriber.on('message', function(channel, msg){
         console.log('pubsub')
