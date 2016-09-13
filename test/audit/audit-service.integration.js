@@ -183,9 +183,7 @@ describe('Audit/Integration', function() {
     before(function(done) {
       //set up subscriber
       aInterface.subscriber.on('message', function(channel, msg){
-        console.log('pubsub')
-        console.log(channel);
-        console.log(message);
+
       });
 
       //revise audit timeline
