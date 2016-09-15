@@ -12,9 +12,9 @@ var stubRefs = {
   subscribe: sinon.stub(),
   on: sinon.stub(),
   add: sinon.stub(RQueue.prototype, 'add'),
-  createJobFromStorageItem: sinon.stub(
+  createAuditJobs: sinon.stub(
     AuditInterface.prototype,
-    'createJobFromStorageItem'
+    'createAuditJobs'
   ),
   abs: sinon.spy(AuditInterface),
   pass: sinon.stub(
@@ -45,27 +45,31 @@ var service = new Interface(Object.assign({}, Config.adapter));
 
 describe('audit/adapters/redis/interface', function() {
   describe('@constructor', function() {
-    it('creates a queue property', function() {
-      expect(service.redisQueue).to.exist;
+    it('inherits from AbstractAuditInterface', function() {
+      expect(service instanceof AuditInterface).to.be.true;
     });
 
-    it('creates a subscriber client', function() {
+    it('creates a subscriber redis client', function() {
       expect(service.subscriber).to.exist;
     });
 
+    it('creates an adding redis client', function() {
+      expect(service.adder).to.exist;
+    });
+
     it('subscribes to the pass and fail channels', function() {
-      expect(service.subscriber.subscribe.calledWith(service.redisQueue.pass));
-      expect(service.subscriber.subscribe.calledWith(service.redisQueue.fail));
+      expect(service.subscriber.subscribe.calledWith(RQueue.sharedKeys.pass));
+      expect(service.subscriber.subscribe.calledWith(RQueue.sharedKeys.fail));
     });
 
     it('calls failHandler on failed messages', function() {
-      stubRefs.on.callsArgWith(1, service.redisQueue.rKeys.fail, 'pass')
+      stubRefs.on.callsArgWith(1, RQueue.sharedKeys.fail, 'fail')
       service = new Interface(Object.assign({}, Config.adapter));
       expect(stubRefs.fail.called).to.be.true;
     });
 
     it('calls passHandler on passed messages', function() {
-      stubRefs.on.callsArgWith(1, service.redisQueue.rKeys.pass, 'pass')
+      stubRefs.on.callsArgWith(1, RQueue.sharedKeys.pass, 'pass')
       service = new Interface(Object.assign({}, Config.adapter));
       expect(stubRefs.pass.called).to.be.true;
     });
@@ -73,24 +77,30 @@ describe('audit/adapters/redis/interface', function() {
 
   describe('add', function() {
     it('calls add on the Redis Queue', function() {
-      service.add(null, null);
-      expect(stubRefs.add.called).to.be.true;
+      service.adder.ZADD = sinon.stub();
+      service.add([1,2,3], function() {
+      });
+      expect(service.adder.ZADD.args[0][0].length).to.be.equal(7);
     });
   });
 
-  describe('createJobFromStorageItem', function() {
-    it('calls the super createJobFromStorageItem', function() {
-      service.createJobFromStorageItem('123', {
-        contracts: {'123':{
-          start_time: 1,
-          end_time: 1
-        }},
-        challenges: {'123':{
-            challenges: []
-        }}
-      });
-
-      expect(stubRefs.createJobFromStorageItem.called).to.be.true;
+  describe('createAuditJobs', function() {
+    var jobs = service.createAuditJobs({
+      start: 123,
+      end: 123,
+      farmer: 123,
+      hash: 123,
+      root: 123,
+      depth: 123,
+      challenges: [123,123,123,123,123]
     });
+
+    it('calls the super createAuditJobs', function() {
+      expect(stubRefs.createAuditJobs.called).to.be.true;
+    });
+
+    it('creates a job per challenge', function() {
+      expect(jobs.length).to.equal(5);
+    })
   });
 });
