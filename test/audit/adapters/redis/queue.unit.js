@@ -4,6 +4,7 @@ const expect = require('chai').expect;
 const sinon = require('sinon');
 const Config = require('../../../../lib/config')('devel').audits;
 const proxyquire = require('proxyquire');
+const RedQueue = require('../../../../lib/audit/adapters/redis/queue.js');
 
 var testAudits = [
   {
@@ -34,14 +35,19 @@ var stubRefs = {
 
 var clientStubs = {
   watch: sinon.stub(),
+  unwatch: sinon.stub(),
   multi: sinon.stub(),
+  sadd: sinon.stub(),
+  lrem: sinon.stub(),
   auth: sinon.stub(),
   ZADD: sinon.stub(),
+  RPOPLPUSH: sinon.stub(),
   BRPOPLPUSH: sinon.stub(),
   LRANGE: sinon.stub(),
   ZRANGEBYSCORE: sinon.stub(),
   on: sinon.stub(),
-  exec: sinon.stub()
+  exec: sinon.stub(),
+  publish: sinon.stub()
 };
 
 clientStubs.multi.returns({
@@ -76,7 +82,15 @@ describe('audit/adapters/redis/queue', function() {
     });
 
     it('should create a redis client connection', function() {
-      expect(stubRefs.createClient.called).to.be.true;
+      expect(service.client).to.exist;
+    });
+
+    it('should create a client for redis pubsub', function() {
+      expect(service.pubSubClient).to.exist;
+    });
+
+    it('should create a client for blocking redis operations', function() {
+      expect(service.blockingClient).to.exist;
     });
   });
 
@@ -98,19 +112,15 @@ describe('audit/adapters/redis/queue', function() {
     });
 
     it('should call ZADD on the backlog key', function() {
-      expect(command[0]).to.equal(service.rKeys.backlog);
-    });
-
-    it('should call ZADD with the NX flag', function() {
-      expect(command[1]).to.equal('NX');
+      expect(command[0]).to.equal(RedQueue.sharedKeys.backlog);
     });
 
     it('should call ZADD with the test audits', function() {
-      expect(command[2]).to.equal(testAudits[0].ts);
-      expect(command[3]).to.deep.equal(JSON.stringify(testAudits[0].data));
+      expect(command[1]).to.equal(testAudits[0].ts);
+      expect(command[2]).to.deep.equal(JSON.stringify(testAudits[0].data));
 
-      expect(command[4]).to.equal(testAudits[1].ts);
-      expect(command[5]).to.deep.equal(JSON.stringify(testAudits[1].data));
+      expect(command[3]).to.equal(testAudits[1].ts);
+      expect(command[4]).to.deep.equal(JSON.stringify(testAudits[1].data));
     });
   });
 
@@ -119,7 +129,7 @@ describe('audit/adapters/redis/queue', function() {
     var result;
 
     before(function(done) {
-      clientStubs.watch.callsArgWith(1, null, 'OK');
+      //clientStubs.watch.callsArgWith(1, null, 'OK');
       clientStubs.exec.callsArgWith(0, null, ['test', 1])
       stubRefs._get.callsArgWith(2, null, [])
       service.populateReadyQueue(null, null, function(err, success) {
@@ -129,7 +139,7 @@ describe('audit/adapters/redis/queue', function() {
     });
 
     it('should watch the backlog for changes', function() {
-      expect(clientStubs.watch.args[0][0]).to.equal(service.rKeys.backlog);
+      expect(clientStubs.watch.args[0][0]).to.equal(RedQueue.sharedKeys.backlog);
     });
 
     it('should call _get on the backlog', function() {
@@ -153,17 +163,19 @@ describe('audit/adapters/redis/queue', function() {
       var startInd = clientStubs.multi.args[0][0][0];
 
       expect(startInd[0]).to.equal('ZREMRANGEBYSCORE');
-      expect(startInd[1]).to.equal(service.rKeys.backlog);
+      expect(startInd[1]).to.equal(RedQueue.sharedKeys.backlog);
       expect(startInd[2]).to.equal(0);
     });
 
     it('should call the RPUSH command', function() {
       var startInd = clientStubs.multi.args[0][0][1];
-
+      var tempAudit;
+      var auditRes = [];
+      
       expect(startInd[0]).to.equal('RPUSH');
-      expect(startInd[1]).to.equal(service.rKeys.ready);
-      expect(startInd[2]).to.deep.equal(testAudits[0]);
-      expect(startInd[3]).to.deep.equal(testAudits[1]);
+      expect(startInd[1]).to.equal(RedQueue.sharedKeys.ready);
+      expect(startInd[2]).to.equal(JSON.stringify(testAudits[0]));
+      expect(startInd[3]).to.deep.equal(JSON.stringify(testAudits[1]));
     });
 
     it('should call multi exec', function() {
@@ -187,13 +199,23 @@ describe('audit/adapters/redis/queue', function() {
 
   });
 
+  describe('awaitReadyQueue', function() {
+    before(function() {
+      service.awaitReadyQueue(function() {});
+    });
+
+    it('should call the BRPOPLPUSH commands', function() {
+      expect(clientStubs.BRPOPLPUSH.called).to.be.true;
+    });
+  });
+
   describe('popReadyQueue', function() {
     before(function() {
       service.popReadyQueue(function() {});
     });
 
-    it('should call the BRPOPLPUSH commands', function() {
-      expect(clientStubs.BRPOPLPUSH.called).to.be.true;
+    it('should call the RPOPLPUSH commands', function() {
+      expect(clientStubs.RPOPLPUSH.called).to.be.true;
     });
   });
 
@@ -216,10 +238,11 @@ describe('audit/adapters/redis/queue', function() {
       clientStubs.watch = sinon.stub();
 
       clientStubs.multi.returns({
-        exec: clientStubs.exec
+        exec: clientStubs.exec,
+        lrem: clientStubs.lrem,
+        sadd: clientStubs.sadd
       });
 
-      clientStubs.watch.callsArgWith(1, null, 'OK');
       clientStubs.exec.callsArgWith(0, null, [2, 2])
 
       service.pushResultQueue(testAudits[0], true, function(err, success) {
@@ -228,27 +251,27 @@ describe('audit/adapters/redis/queue', function() {
     });
 
     it('should watch the pending queue', function() {
-      expect(clientStubs.watch.args[0][0]).to.equal(service.rKeys.pending);
+      expect(clientStubs.watch.args[0][0]).to.equal(service._workerKeys.pending);
     });
 
     it('should place items on the passed queue when true is passed', function() {
-      expect(clientStubs.multi.args[0][0][1][1]).to.equal('storj:audit:full:pass');
+      expect(clientStubs.sadd.args[0][0]).to.equal('storj:audit:full:pass');
     });
 
-    it('should execute the LREM command via multi', function() {
-      var baseArgs = clientStubs.multi.args[0][0][0];
-
-      expect(baseArgs[0]).to.equal('LREM');
-      expect(baseArgs[1]).to.equal('storj:audit:full:pending:undefined');
-      expect(baseArgs[2]).to.equal(1);
-      expect(baseArgs[3]).to.deep.equal(testAudits[0]);
+    it('should execute the LREM command on the pending queue', function() {
+      expect(clientStubs.lrem.called).to.be.true;
+      expect(clientStubs.lrem.args[0][0]).to.equal('storj:audit:full:pending:undefined');
+      expect(clientStubs.lrem.args[0][1]).to.equal(1);
+      expect(clientStubs.lrem.args[0][2]).to.equal(JSON.stringify(testAudits[0]));
     });
 
-    it('should execute the SADD command via multi', function() {
-      var baseArgs = clientStubs.multi.args[0][0][1];
+    it('should execute the SADD command on the final queue', function() {
+      expect(clientStubs.sadd.called).to.be.true;
+      expect(clientStubs.sadd.args[0][1]).to.equal(JSON.stringify(testAudits[0]));
+    });
 
-      expect(baseArgs[0]).to.equal('SADD');
-      expect(baseArgs[2]).to.deep.equal(testAudits[0]);
+    it('should execute the transaction', function() {
+      expect(clientStubs.exec.called).to.be.true;
     });
 
     it('should retry while the transaction remains null', function() {
@@ -264,11 +287,9 @@ describe('audit/adapters/redis/queue', function() {
 
     it('should place items on the failed queue when false is passed', function(done) {
       service.pushResultQueue(testAudits[0], false, function(err, success) {
-        expect(clientStubs.multi.args[1][0][1][1]).to.equal('storj:audit:full:fail');
+        expect(clientStubs.sadd.args[6][0]).to.equal('storj:audit:full:fail');
         done();
       });
-
-
     });
   });
 
@@ -281,7 +302,7 @@ describe('audit/adapters/redis/queue', function() {
     it('should call the ZRANGEBYSCORE command', function() {
       var baseArgs = clientStubs.ZRANGEBYSCORE.args[0][0];
       expect(clientStubs.ZRANGEBYSCORE.called).to.be.true;
-      expect(baseArgs[0]).to.equal(service.rKeys.backlog)
+      expect(baseArgs[0]).to.equal(RedQueue.sharedKeys.backlog)
       expect(baseArgs[1]).to.equal(0)
       expect(baseArgs[2]).to.equal(0)
     });
