@@ -312,9 +312,9 @@ describe('Engine/Integration', function() {
       it('should update the bucket information', function(done) {
         client.getBuckets(function(err, buckets) {
           client.updateBucketById(buckets[0].id, {
-            storage: 10
+            storage: 3
           }, function(err, bucket) {
-            expect(bucket.storage).to.equal(10);
+            expect(bucket.storage).to.equal(3);
             done();
           });
         });
