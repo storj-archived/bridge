@@ -104,8 +104,8 @@ FactoryGirl.define do
     transient { automatic? }
     created { dates_per_month(credit_index, 1) }
     invoiced_amount { debit_total_per_month(credit_index, 1) }
-    paid_amount 0
-    paid false
+    paid_amount { invoiced_amount }
+    paid true
     promo_amount 0
     promo_code nil
     type do
