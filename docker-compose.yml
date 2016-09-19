@@ -2,6 +2,8 @@ version: "2"
 services:
   mongo:
     image: mongo
+    ports:
+      - '27017:27017'
   rabbitmq:
     image: rabbitmq
   bridge:
@@ -14,20 +16,20 @@ services:
     command: /usr/bin/env node /bridge/bin/storj-bridge.js
     environment:
       NODE_ENV: 'develop'
-      LOG_LEVEL: 'info'
+#      LOG_LEVEL: 'info'
     volumes:
       - .:/bridge
     links:
       - mongo
       - rabbitmq
-  ruby:
-    build:
-      context: .
-      dockerfile: docker/ruby.dockerfile
-    working_dir: '/bridge'
-    command: ['/usr/bin/env', 'cucumber']
-    volumes:
-      - .:/bridge
-    links:
-      - bridge
-      - mongo
+#  ruby:
+#    build:
+#      context: .
+#      dockerfile: docker/ruby.dockerfile
+#    working_dir: '/bridge'
+#    command: ['/usr/bin/env', 'cucumber']
+#    volumes:
+#      - .:/bridge
+#    links:
+#      - bridge
+#      - mongo

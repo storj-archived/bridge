@@ -1,16 +1,3 @@
-require 'rubygems'
-require 'bundler/setup'
-require 'factory_girl'
-require 'mongoid'
-require 'database_cleaner'
-require 'date'
-include FactoryGirl
-
-Mongoid.load!("#{__dir__}/mongoid.yml", :development)
-
-DatabaseCleaner.strategy = :truncation
-DatabaseCleaner.clean
-
 DEBITS_PER_CREDIT = 5
 
 def random_date_between_months_ago(min_months_ago, max_months_ago)
@@ -148,8 +135,6 @@ FactoryGirl.define do
     end
   end
 end
-
-#FactoryGirl.create :user
 
 def stripe_data
 JSON.parse %q(
