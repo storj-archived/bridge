@@ -13,7 +13,7 @@ program
 program.parse(process.argv);
 
 const factory_process = spawn('ruby', [
-  path.resolve(__dirname, 'factory.rb')
+  path.resolve(__dirname, 'index.rb')
 ], {cwd: process.cwd(), stdio: 'inherit'});
 
 // console.log(program.email);

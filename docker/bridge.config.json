@@ -1,0 +1,42 @@
+{
+  "storage": {
+    "host": "mongo",
+    "port": 27017,
+    "name": "__storj-bridge-develop",
+    "user": null,
+    "pass": null,
+    "mongos": false,
+    "ssl": false
+},
+  "messaging": {
+    "url": "amqp://rabbitmq",
+    "queues": {
+      "renterpool": {
+        "name": "storj.work.renterpool",
+        "options": {
+          "exclusive": false,
+          "durable": true,
+          "arguments": {
+            "messageTtl": 120000
+          }
+        }
+      },
+      "callback": {
+        "name": "",
+        "options": {
+          "exclusive": true,
+          "durable": false
+        }
+      }
+    },
+    "exchanges": {
+      "events": {
+        "name": "storj.events",
+        "type": "topic",
+        "options": {
+          "durable": true
+        }
+      }
+    }
+  }
+}
