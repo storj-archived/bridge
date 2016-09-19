@@ -113,6 +113,15 @@ describe('Storage/models/Bucket', function() {
       });
     });
 
+    it('should reject the bucket with 24 character hex name', function(done) {
+      Bucket.create({ _id: 'user@domain.tld' }, {
+        name: '0123456789ab0123456789ab'
+      }, function(err) {
+        expect(err.message).to.equal('Name cannot be 24 character hex');
+        done();
+      });
+    });
+
   });
 
 });
