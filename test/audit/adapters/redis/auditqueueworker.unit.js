@@ -30,11 +30,7 @@ stubRefs.auditorStub.process.callsArgWith(1);
 const AuditQueueWorker = proxyquire(
   '../../../../lib/audit/adapters/redis/auditqueueworker.js', {
     'storj': {
-      Verification: function() {
-        return {
-          verify: sinon.stub()
-        };
-      },
+      StorageManager: sinon.stub(),
       Manager: sinon.stub(),
       KeyPair: sinon.stub(),
       RenterInterface: stubRefs.renterStub
