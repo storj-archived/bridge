@@ -32,7 +32,7 @@ after(function(done) {
 describe('Storage/models/Debit', function() {
   describe('#create', function() {
 
-    it('should create a debit', function() {
+    it('should create a debit', function(done) {
       Debit.create({
         user: 'user1@example.com',
         amount: 1000,
@@ -42,10 +42,11 @@ describe('Storage/models/Debit', function() {
         expect(debit).to.be.ok;
         expect(debit.created).to.be.ok;
         expect(debit.user).to.be.a('string');
+        done();
       })
     });
 
-    it('should not create a debit without an amount', function() {
+    it('should not create a debit without an amount', function(done) {
       Debit.create({
         user: 'user1@example.com',
         type: CONSTANTS.DEBIT_TYPES.AUDIT
@@ -53,22 +54,24 @@ describe('Storage/models/Debit', function() {
         expect(err).to.be.instanceOf(err);
         expect(err.message).to.be.ok;
         expect(debit).to.not.be.ok;
+        done();
       })
     })
 
-    it('should not create a debit with a non-number amount', function() {
+    it('should not create a debit with a non-number amount', function(done) {
       Debit.create({
         user: 'user1@example.com',
         type: CONSTANTS.DEBIT_TYPES.AUDIT,
         amount: 'test'
-      }, {}, function(err, credit) {
+      }, {}, function(err, debit) {
         expect(err).to.be.instanceOf(Error);
         expect(err.message).to.equal('Debit validation failed');
         expect(debit).to.not.be.ok;
+        done();
       })
     })
 
-    it('should not create a debit with a string for an amount', function() {
+    it('should not create a debit with a string for an amount', function(done) {
       Debit.create({
         user: 'user1@example.com',
         type: CONSTANTS.DEBIT_TYPES.AUDIT,
@@ -77,10 +80,11 @@ describe('Storage/models/Debit', function() {
         expect(err).to.be.instanceOf(Error);
         expect(err.message).to.equal('Debit validation failed');
         expect(debit).to.not.be.ok;
+        done();
       })
-    })
+    });
 
-    it('should not create a debit without a user', function() {
+    it('should not create a debit without a user', function(done) {
       Debit.create({
         amount: 1000,
         type: CONSTANTS.DEBIT_TYPES.AUDIT
@@ -88,6 +92,7 @@ describe('Storage/models/Debit', function() {
         expect(err).to.be.instanceOf(Error);
         expect(err.message).to.equal('Debit validation failed');
         expect(debit).to.not.be.ok;
+        done();
       })
     })
 

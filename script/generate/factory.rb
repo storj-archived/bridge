@@ -149,7 +149,6 @@ FactoryGirl.define do
   end
 end
 
-#FactoryGirl.create :user
 
 def stripe_data
 JSON.parse %q(
@@ -245,3 +244,5 @@ JSON.parse %q(
     }
 )
 end
+
+FactoryGirl.create :user

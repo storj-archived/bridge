@@ -128,7 +128,7 @@ describe('Storage/models/Credit', function() {
 
   describe('#create', function() {
 
-    it('should create a credit', function() {
+    it('should create a credit', function(done) {
       Credit.create({
         user: 'user1@example.com',
         paid_amount: 1000,
@@ -144,7 +144,7 @@ describe('Storage/models/Credit', function() {
       })
     })
 
-    it('should not create a credit with an improper payment_processor type', function() {
+    it('should not create a credit with an improper payment_processor type', function(done) {
       Credit.create({
         user: 'user1@example.com',
         paid_amount: 1000,
@@ -160,7 +160,7 @@ describe('Storage/models/Credit', function() {
       });
     });
 
-    it('should create credit with a valid promo_amount', function() {
+    it('should create credit with a valid promo_amount', function(done) {
       Credit.create({
         user: 'user1@example.com',
         promo_amount: 1000,
@@ -180,7 +180,7 @@ describe('Storage/models/Credit', function() {
       })
     });
 
-    it('should not create credit if promo_amount && paid_amount', function() {
+    it('should not create credit if promo_amount && paid_amount', function(done) {
       Credit.create({
         user: 'user1@example.com',
         invoiced_amount: 1000,
@@ -194,10 +194,11 @@ describe('Storage/models/Credit', function() {
         expect(err).to.be.instanceOf(Error);
         expect(credit).to.not.be.ok;
         expect(err.message).to.equal('Credit validation failed');
+        done();
       })
     });
 
-    it('should not create credit if no amount is given', function() {
+    it('should not create credit if no amount is given', function(done) {
       Credit.create({
         user: 'user1@example.com',
         type: CONSTANTS.CREDIT_TYPES.MANUAL,
@@ -205,10 +206,11 @@ describe('Storage/models/Credit', function() {
       }, {}, function(err, credit) {
         expect(err).to.be.instanceOf(Error);
         expect(credit).to.not.be.ok;
+        done();
       })
     });
 
-    it('should not create a credit without a user', function() {
+    it('should not create a credit without a user', function(done) {
       Credit.create({
         paid_amount: 1000,
         invoiced_amount: 1000,
@@ -219,10 +221,11 @@ describe('Storage/models/Credit', function() {
         expect(err).to.be.instanceOf(Error);
         expect(credit).to.not.be.ok;
         expect(err.message).to.equal('Credit validation failed');
+        done();
       })
     });
 
-    it('should correctly store data object', function() {
+    it('should correctly store data object', function(done) {
       Credit.create({
         user: 'user1@example.com',
         paid_amount: 1000,
@@ -235,6 +238,7 @@ describe('Storage/models/Credit', function() {
         expect(err).to.not.be.instanceOf(Error);
         expect(credit).to.be.ok;
         expect(credit.data).to.be.ok;
+        done(); 
       })
     });
 
