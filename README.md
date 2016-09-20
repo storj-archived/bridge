@@ -133,13 +133,13 @@ Start the server (set the `NODE_ENV` environment variable to specify the config)
 NODE_ENV=production
 ```
 
-This will use the configuration file located at `~/.storj-bridge/config/develop.json`.
+This will use the configuration file located at (if running the service as a Local System account) `C:\Windows\System32\config\systemprofile\.storj-bridge\config\production.json`.
 For local testing and development, you can run Storj Bridge and a farmer to seed
 it using the included development script:
 
 ```
 cd /path/to/storj-bridge
-npm run develop
+npm run production
 ```
 
 Windows
