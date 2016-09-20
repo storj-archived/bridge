@@ -363,6 +363,52 @@
       }
     },
     "/activations/{token}": {
+      "post": {
+        "tags": ["users"],
+        "summary": "Sends the user an activation email for reactivating a disabled account",
+         "parameters": [
+          {
+            "name": "user",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "description": "Email address for account activation and login",
+                  "type": "string"
+                },
+                "redirect": {
+                  "description": "URL for redirect in email confirmation",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "User activation email sent",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "example": "gordon@storj.io"
+                },
+                "created": {
+                  "type": "string",
+                  "example": "2016-03-04T17:01:02.629Z"
+                },
+                "activated": {
+                  "type": "boolean",
+                  "example": false
+                }
+              }
+            }
+          }
+        }
+      },
       "get": {
         "tags": ["users"],
         "summary": "Activates a registered user and optionally redirects",
