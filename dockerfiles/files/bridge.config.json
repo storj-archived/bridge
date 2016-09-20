@@ -1,6 +1,6 @@
 {
   "storage": {
-    "host": "127.0.0.1",
+    "host": "mongo",
     "port": 27017,
     "name": "__storj-bridge-develop",
     "user": null,
