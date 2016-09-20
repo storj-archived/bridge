@@ -876,16 +876,6 @@
             "schema": {
               "type": "object",
               "properties": {
-                "storage": {
-                  "type": "number",
-                  "description": "Amount of storage space in GB",
-                  "example": 10
-                },
-                "transfer": {
-                  "type": "number",
-                  "description": "Amount of transfer in GB",
-                  "example": 30
-                },
                 "pubkeys": {
                   "type": "array",
                   "items": {
@@ -1052,17 +1042,7 @@
             "schema": {
               "type": "object",
               "properties": {
-                "storage": {
-                  "type": "number",
-                  "description": "Amount of storage space in GB",
-                  "example": 10
-                },
-                "transfer": {
-                  "type": "number",
-                  "description": "Amount of transfer in GB",
-                  "example": 30
-                },
-                "pubkeys": {
+               "pubkeys": {
                   "type": "array",
                   "items": {
                     "type": "string",
