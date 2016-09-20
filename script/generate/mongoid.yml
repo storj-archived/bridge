@@ -17,4 +17,4 @@ docker_development:
     default:
       database: '__storj-bridge-develop'
       hosts:
-        - '192.168.99.100:27017'
+        - 'localhost:27017'

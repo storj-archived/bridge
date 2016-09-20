@@ -8,7 +8,7 @@ include FactoryGirl
 
 require_relative "#{__dir__}/factory"
 
-Mongoid.load!("#{__dir__}/mongoid.yml", :development)
+Mongoid.load!("#{__dir__}/mongoid.yml", :docker_development)
 
 DatabaseCleaner.strategy = :truncation
 DatabaseCleaner.clean
