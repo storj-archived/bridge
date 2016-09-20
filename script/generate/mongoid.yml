@@ -1,0 +1,20 @@
+development:
+  clients:
+    default:
+      database: '__storj-bridge-develop'
+      hosts:
+        - '172.17.200.10:27017'
+
+test:
+  clients:
+    default:
+      database: '__storj-bridge-test'
+      hosts:
+        - '172.17.200.10:27017'
+
+docker_development:
+  clients:
+    default:
+      database: '__storj-bridge-develop'
+      hosts:
+        - 'localhost:27017'

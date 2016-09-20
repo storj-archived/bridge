@@ -1,0 +1,6 @@
+test:
+  clients:
+    default:
+      database: __storj-bridge-test
+      hosts:
+        - localhost:27017
