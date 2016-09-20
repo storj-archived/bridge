@@ -104,7 +104,7 @@ messaging.start(worker, (err) => {
       seeds: seeds.map(function(seed) {
         return seed.toString();
       }),
-      bridge: false,
+      bridge: options.bridge,
       address: options.address,
       port: options.port,
       tunnels: options.tunnels,
