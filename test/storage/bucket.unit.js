@@ -34,12 +34,12 @@ describe('Storage/models/Bucket', function() {
     it('should create the bucket with the default props', function(done) {
       Bucket.create({ _id: 'user@domain.tld' }, {}, function(err, bucket) {
         expect(err).to.not.be.instanceOf(Error);
-        expect(bucket.storage).to.equal(10);
-        expect(bucket.transfer).to.equal(30);
+        expect(bucket.storage).to.equal(0);
+        expect(bucket.transfer).to.equal(0);
         Bucket.findOne({ _id: bucket.id }, function(err, bucket) {
           expect(err).to.not.be.instanceOf(Error);
-          expect(bucket.storage).to.equal(10);
-          expect(bucket.transfer).to.equal(30);
+          expect(bucket.storage).to.equal(0);
+          expect(bucket.transfer).to.equal(0);
           expect(bucket.status).to.equal('Active');
           expect(bucket.name).to.equal('New Bucket');
           expect(bucket.pubkeys).to.have.lengthOf(0);
@@ -51,15 +51,11 @@ describe('Storage/models/Bucket', function() {
 
     it('should create the bucket with the given special character', function(done) {
       Bucket.create({ _id: 'user@domain.tld' }, {
-        storage: 33.3,
-        transfer: 55.5,
         name: 'My Bucket with special character üèß'
       }, function(err, bucket) {
         expect(err).to.not.be.instanceOf(Error);
         Bucket.findOne({ _id: bucket.id }, function(err, bucket) {
           expect(err).to.equal(null);
-          expect(bucket.storage).to.equal(33.3);
-          expect(bucket.transfer).to.equal(55.5);
           expect(bucket.status).to.equal('Active');
           expect(bucket.name).to.equal('My Bucket with special character üèß');
           expect(bucket.pubkeys).to.have.lengthOf(0);
@@ -77,12 +73,8 @@ describe('Storage/models/Bucket', function() {
         pubkeys: [publicKey1, publicKey2]
       }, function(err, bucket) {
         expect(err).to.not.be.instanceOf(Error);
-        expect(bucket.storage).to.equal(10);
-        expect(bucket.transfer).to.equal(30);
         Bucket.findOne({ _id: bucket.id }, function(err, bucket) {
           expect(err).to.not.be.instanceOf(Error);
-          expect(bucket.storage).to.equal(10);
-          expect(bucket.transfer).to.equal(30);
           expect(bucket.status).to.equal('Active');
           expect(bucket.name).to.equal('New Bucket');
           expect(bucket.pubkeys[0]).to.equal(publicKey1);
@@ -99,12 +91,8 @@ describe('Storage/models/Bucket', function() {
         pubkeys: [publicKey, publicKey]
       }, function(err, bucket) {
         expect(err).to.not.be.instanceOf(Error);
-        expect(bucket.storage).to.equal(10);
-        expect(bucket.transfer).to.equal(30);
         Bucket.findOne({ _id: bucket.id }, function(err, bucket) {
           expect(err).to.not.be.instanceOf(Error);
-          expect(bucket.storage).to.equal(10);
-          expect(bucket.transfer).to.equal(30);
           expect(bucket.status).to.equal('Active');
           expect(bucket.name).to.equal('New Bucket');
           expect(bucket.pubkeys[0]).to.equal(publicKey);

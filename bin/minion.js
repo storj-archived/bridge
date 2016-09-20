@@ -9,6 +9,7 @@ const config = Config(process.env.NODE_ENV || 'develop');
 const Messaging = require('../lib/messaging');
 const messaging = new Messaging(config.messaging);
 const CONSTANTS = require('../lib/constants');
+const Logger = require('kad-logger-json');
 
 if (process.env.NODE_ENV === 'develop') {
   config.storage.name = '__storj-bridge-develop';
