@@ -67,6 +67,27 @@
             "description": "Paginagtion indicator, defaults to 1"
           },
           {
+            "name": "address",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "Hostname or IP address"
+          },
+          {
+            "name": "protocol",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "SemVer protocol tag"
+          },
+          {
+            "name": "userAgent",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "Storj user agent string for farming client"
+          },
+          {
             "name": "connected",
             "in": "query",
             "required": false,
