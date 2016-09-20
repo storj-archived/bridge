@@ -22,4 +22,5 @@ module.exports.Mailer = require('./lib/mailer');
 /** {@link Network} */
 module.exports.RenterPool = require('./lib/network/pool');
 
+/** {@link module:storj-bridge/logger} */
 module.exports.logger = require('./lib/logger');
