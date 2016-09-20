@@ -861,6 +861,70 @@
         }
       }
     },
+    "/buckets/{id}/mirrors": {
+      "post": {
+        "tags": ["buckets"],
+        "security": [
+          { "basic": [] },
+          { "ecdsa public key": [] },
+          { "ecdsa signature": [] }
+        ],
+        "summary": "Establishes a series of mirrors for the given file",
+        "parameters": [
+          {
+            "name": "bucket_id",
+            "in": "path",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "replicas",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "file": {
+                  "type": "string",
+                  "description": "The unique file ID",
+                  "example": "507f1f77bcf86cd799439011"
+                },
+                "redundancy": {
+                  "type": "number",
+                  "description": "The number of mirrors requested",
+                  "example": 3
+                } 
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The shard was successfully added and contract negotiated",
+            "schema": {
+              "type": "object",
+              "properties": { 
+                "hash": {
+                  "type": "string",
+                  "description": "The shard's RIPEMD-160 SHA-256 hash",
+                  "example": "fde400fe0b6a5488e10d7317274a096aaa57914d"
+                },
+                "mirrors": {
+                  "type": "number",
+                  "description": "The number of requested mirrors",
+                  "example": 3
+                },
+                "status": {
+                  "type": "string",
+                  "description": "The operation status",
+                  "example": "pending"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/buckets": {
       "get": {
         "tags": ["buckets"],
