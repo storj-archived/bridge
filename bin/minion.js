@@ -8,6 +8,7 @@ const Config = require('../lib/config');
 const config = Config(process.env.NODE_ENV || 'develop');
 const Messaging = require('../lib/messaging');
 const messaging = new Messaging(config.messaging);
+const CONSTANTS = require('../lib/constants');
 
 if (process.env.NODE_ENV === 'develop') {
   config.storage.name = '__storj-bridge-develop';
@@ -75,8 +76,23 @@ function handleError(err) {
 }
 
 const worker = true;
+
 messaging.start(worker, (err) => {
   handleError(err);
+
+  let level;
+
+  if (process.env.NODE_ENV === 'test') {
+    level = CONSTANTS.LOG_LEVEL_NONE;
+  } else {
+    level = config.logger.minionLevel;
+  }
+
+  let logger = Logger(level);
+
+  if (level) {
+    logger.pipe(process.stdout);
+  }
 
   storage.models.Contact.recall(3, function(err, seeds) {
     handleError(err);
