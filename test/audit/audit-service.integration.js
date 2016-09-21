@@ -27,6 +27,14 @@ const DATADIR = path.join(HOME, DIRNAME);
 const CONFDIR = path.join(DATADIR, 'config');
 const ITEMDIR = path.join(DATADIR, 'items');
 
+var auditResponses = {
+  backlog: [],
+  ready: [],
+  pending: [],
+  pass: [],
+  fail: []
+};
+
 if (!fs.existsSync(DATADIR)) {
   fs.mkdirSync(DATADIR);
 }
@@ -39,7 +47,23 @@ if (!fs.existsSync(ITEMDIR)) {
   fs.mkdirSync(ITEMDIR);
 }
 
+function awaitAuditProcessing(done) {
+  var total, pass, fail;
+
+  var checkInt = setInterval(function(){
+    pass = auditResponses.pass.length;
+    fail = auditResponses.fail.length;
+    total = pass + fail;
+    if(total >= 8) {
+      clearInterval(checkInt);
+      return done();
+    }
+  }, 1000)
+}
+
 describe('Audit/Integration', function() {
+  this.timeout(0);
+
   var adapter = {
     host: '127.0.0.1',
     port: 6379,
@@ -53,6 +77,39 @@ describe('Audit/Integration', function() {
 
   var environment, storage;
   var aInterface = Audit.interface(adapter);
+//subscribe to all internal queues for testing
+  var subscriber = redis.createClient(adapter);
+  subscriber.subscribe(
+    Queue.sharedKeys.backlog,
+    Queue.sharedKeys.ready,
+    Queue.sharedKeys.pass,
+    Queue.sharedKeys.fail,
+    "storj:audit:full:pending:123"
+  );
+
+  subscriber.on('message', function(channel, msg){
+    switch (channel) {
+      case Queue.sharedKeys.backlog:
+        channel = 'backlog'
+        break;
+      case Queue.sharedKeys.ready:
+        channel = 'ready'
+        break;
+      case Queue.sharedKeys.pass:
+        channel = 'pass'
+        break;
+      case Queue.sharedKeys.fail:
+        channel = 'fail'
+        break;
+      case "storj:audit:full:pending:123":
+        channel = 'pending'
+        break;
+    }
+
+    auditResponses[channel].push(msg)
+
+  });
+
   var keypair = storj.KeyPair();
   var client = storj.BridgeClient('http://127.0.0.1:6382');
   var rClient = redis.createClient(adapter);
@@ -65,11 +122,11 @@ describe('Audit/Integration', function() {
     console.log('                                    ');
     console.log('  ********************************  ');
     console.log('  * SPINNING UP TEST ENVIRONMENT *  ');
+    console.log('  * CREATING AND AUDITING SHARDS *  ');
     console.log('  *       GRAB A COCKTAIL!       *  ');
     console.log('  ********************************  ');
-    console.log('  (this can take up to 30 seconds)  ');
     console.log('                                    ');
-    this.timeout(120000);
+
     if (!fs.existsSync(ITEMDIR)) {
       fs.mkdirSync(ITEMDIR);
     }
@@ -102,6 +159,12 @@ describe('Audit/Integration', function() {
           });
 
           createUser();
+        });
+
+        process.on('beforeExit', function() {
+          environment.kill(function(){
+            done();
+          });
         });
       });
     });
@@ -138,6 +201,7 @@ describe('Audit/Integration', function() {
       var target = fs.createWriteStream(filePath);
       target.on('finish', function() {
         client.getBuckets(function(err, buckets) {
+
           if (err) { return done(err); }
           client.createToken(buckets[0].id, 'PUSH', function(err, token) {
             if (err) { return done(err); }
@@ -159,33 +223,22 @@ describe('Audit/Integration', function() {
 
   after(function(done) {
     var allKeys = [];
-    environment.kill(function() {
-      for(var key in Queue.sharedKeys) {
-        allKeys.push(Queue.sharedKeys[key]);
-      }
-
-      allKeys.push(
-        'storj:audit:full:pending:123',
-        'storj:audit:full:pending:undefined'
-      );
-
-      rClient.DEL(allKeys, function() {
-        done();
-      });
-    });
-
-    function logErr(err, item) {
-      if(err) {console.log(err);}
+    for(var key in Queue.sharedKeys) {
+      allKeys.push(Queue.sharedKeys[key]);
     }
+
+    allKeys.push(
+      'storj:audit:full:pending:123',
+      'storj:audit:full:pending:undefined'
+    );
+
+    rClient.DEL(allKeys, function() {
+      done();
+    });
   });
 
   describe('E2E', function() {
     before(function(done) {
-      //set up subscriber
-      aInterface.subscriber.on('message', function(channel, msg){
-
-      });
-
       //revise audit timeline
       var lastTime;
       var command = [Queue.sharedKeys.backlog];
@@ -195,6 +248,7 @@ describe('Audit/Integration', function() {
         0,
         -1,
         function(err, audits) {
+          console.log(audits)
           lastTime = Date.now();
           audits.forEach(function(elem, ind, arr) {
             if(ind === 0 || ind % 2 === 0) {
@@ -211,30 +265,50 @@ describe('Audit/Integration', function() {
               0,
               -1,
               function() {
-                done();
+                awaitAuditProcessing(function() {
+                  done();
+                })
               });
           });
       });
     });
 
-    /*
-    after(function(done) {
+    it('should create a shedule of audits in the backlog', function() {
+      var flatBacklog = [];
 
-    });
-    */
-    it('should create a shedule of audits in the backlog', function(done) {
-      this.timeout(100000);
-    });
-/*
-    it('should send audits in acceptable time window', function(done) {
-      var acceptable = 1000;
-      this.timeout(20100);
-      setTimeout(done, 20000);
-    });
-*/
-    it('should pass all provided audits', function() {
+      auditResponses.backlog.forEach(function(elem) {
+        var item = JSON.parse(elem)
+        item.forEach(function(elem) {
+          flatBacklog.push(elem.data);
+        });
+      });
 
+      auditResponses.backlog = flatBacklog;
+      expect(flatBacklog.length).to.equal(12);
     });
+
+    it('should move audits to the ready queue', function() {
+      var flatReady = [];
+
+      auditResponses.ready.forEach(function(elem) {
+        var item = JSON.parse(elem);
+        item.forEach(function(elem) {
+          flatReady.push(elem);
+        });
+      });
+
+      auditResponses.ready = flatReady;
+      expect(flatReady.length).to.equal(8);
+    });
+
+    it('should move audits to a worker queue', function() {
+      expect(auditResponses.pending.length).to.equal(8);
+    });
+
+    it('should move audits to a final queue', function() {
+      expect(auditResponses.pass.length).to.equal(8);
+    });
+
 
   });
 
