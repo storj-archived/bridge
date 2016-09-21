@@ -32,7 +32,7 @@ describe('Storage/models/Bucket', function() {
   describe('#create', function() {
 
     it('should create the bucket with the default props', function(done) {
-      Bucket.create({ _id: 'user@domain.tld' }, {}, function(err, bucket) {
+      Bucket.create({ _id: 'user@domain.tld' }, { name: 'New Bucket' }, function(err, bucket) {
         expect(err).to.not.be.instanceOf(Error);
         expect(bucket.storage).to.equal(10);
         expect(bucket.transfer).to.equal(30);
@@ -84,7 +84,6 @@ describe('Storage/models/Bucket', function() {
           expect(bucket.storage).to.equal(10);
           expect(bucket.transfer).to.equal(30);
           expect(bucket.status).to.equal('Active');
-          expect(bucket.name).to.equal('New Bucket');
           expect(bucket.pubkeys[0]).to.equal(publicKey1);
           expect(bucket.pubkeys[1]).to.equal(publicKey2);
           expect(bucket.user).to.equal('user@domain.tld');
@@ -106,12 +105,20 @@ describe('Storage/models/Bucket', function() {
           expect(bucket.storage).to.equal(10);
           expect(bucket.transfer).to.equal(30);
           expect(bucket.status).to.equal('Active');
-          expect(bucket.name).to.equal('New Bucket');
           expect(bucket.pubkeys[0]).to.equal(publicKey);
           expect(bucket.pubkeys[1]).to.equal(publicKey);
           expect(bucket.user).to.equal('user@domain.tld');
           done();
         });
+      });
+    });
+
+    it('should reject the bucket with 24 character hex name', function(done) {
+      Bucket.create({ _id: 'user@domain.tld' }, {
+        name: '0123456789ab0123456789ab'
+      }, function(err) {
+        expect(err.message).to.equal('Name cannot be 24 character hex');
+        done();
       });
     });
 

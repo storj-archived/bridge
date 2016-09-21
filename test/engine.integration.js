@@ -258,6 +258,17 @@ describe('Engine/Integration', function() {
         });
       });
 
+      it('should reject a duplicate name', function(done) {
+        client.createBucket({
+          name: 'Test Bucket'
+        }, function(err) {
+          expect(err.message).to.equal(
+            'Name already used by another bucket'
+          );
+          done();
+        });
+      });
+
       it('should reject an invalid ecdsa key', function(done) {
         client.createBucket({
           name: 'Test Bucket invalid ecdsa key',
@@ -301,9 +312,9 @@ describe('Engine/Integration', function() {
       it('should update the bucket information', function(done) {
         client.getBuckets(function(err, buckets) {
           client.updateBucketById(buckets[0].id, {
-            name: 'My App Name'
+            storage: 3
           }, function(err, bucket) {
-            expect(bucket.name).to.equal('My App Name');
+            expect(bucket.storage).to.equal(3);
             done();
           });
         });
@@ -312,7 +323,6 @@ describe('Engine/Integration', function() {
       it('should update the bucket information', function(done) {
         client.getBuckets(function(err, buckets) {
           client.updateBucketById(buckets[0].id, {
-            name: 'Test Bucket invalid ecdsa key',
             pubkeys: [ 'testkey' ]
           }, function(err) {
             expect(err.message).to.equal(
