@@ -1,8 +1,6 @@
 'use strict';
 
 const expect = require('chai').expect;
-
-const RenterPool = require('..').RenterPool;
 const Engine = require('..').Engine;
 const Config = require('..').Config;
 const Storage = require('..').Storage;
@@ -53,7 +51,6 @@ describe('Engine', function() {
         expect(err).to.equal(undefined);
         expect(engine.storage).to.be.instanceOf(Storage);
         expect(engine.mailer).to.be.instanceOf(Mailer);
-        expect(engine.network).to.be.instanceOf(RenterPool);
         expect(engine.server).to.be.instanceOf(Server);
         engine.server.server.close(function() {
           done();

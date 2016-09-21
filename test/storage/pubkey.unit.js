@@ -1,6 +1,6 @@
 'use strict';
 
-const storj = require('storj');
+const storj = require('storj-lib');
 const expect = require('chai').expect;
 const mongoose = require('mongoose');
 

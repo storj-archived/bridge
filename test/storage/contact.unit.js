@@ -3,7 +3,7 @@
 const async = require('async');
 const expect = require('chai').expect;
 const mongoose = require('mongoose');
-const storj = require('storj');
+const storj = require('storj-lib');
 
 require('mongoose-types').loadTypes(mongoose);
 
@@ -63,20 +63,6 @@ describe('Storage/models/Contact', function() {
       Contact.recall(2, function(err, contacts) {
         expect(err).to.equal(null);
         expect(contacts).to.have.lengthOf(2);
-        done();
-      });
-    });
-
-  });
-
-  describe('#toString', function() {
-
-    it('should return the storj URI for the contact', function(done) {
-      Contact.findOne({}, function(err, c) {
-        expect(err).to.equal(null);
-        expect(c.toString()).to.equal(
-          ['storj://', c.address, ':', c.port, '/', c.nodeID].join('')
-        );
         done();
       });
     });
