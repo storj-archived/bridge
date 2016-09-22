@@ -1,6 +1,27 @@
-test:
+vagrant_development:
   clients:
     default:
-      database: __storj-bridge-test
+      database: '__storj-bridge-develop'
       hosts:
-        - localhost:27017
+        - '172.17.200.10:27017'
+
+vagrant_test:
+  clients:
+    default:
+      database: '__storj-bridge-test'
+      hosts:
+        - '172.17.200.10:27017'
+
+docker_test:
+  clients:
+    default:
+      database: '__storj-bridge-test'
+      hosts:
+        - 'mongo:27017'
+
+docker_development:
+  clients:
+    default:
+      database: '__storj-bridge-develop'
+      hosts:
+        - '192.168.99.100:27017'

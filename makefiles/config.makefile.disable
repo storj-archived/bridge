@@ -1,0 +1,22 @@
+.SILENT:
+.DEFAULT:
+
+help: longdesc
+	echo ''
+
+shortdesc:
+	echo ''
+
+longdesc:
+	echo 'Usage: make config <property> [<value>]'
+
+%:
+	if [ $@ == $(firstword $(MAKECMDGOALS)) ]; then \
+		if [ $(words $(MAKECMDGOALS)) -lt 3 ]; then \
+			echo `$(word 2, $(MAKECMDGOALS))` \
+		 else; \
+			 \
+		fi \
+	fi
+
+.PHONY: % #all targets are phony

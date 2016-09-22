@@ -8,28 +8,17 @@ services:
     image: rabbitmq
   bridge:
     build:
-      context: .
-      dockerfile: docker/develop.dockerfile
+      context: ..
+      dockerfile: ./dockerfiles/bridge-develop.dockerfile
     ports:
       - '6382:6382'
     working_dir: '/bridge'
     command: /usr/bin/env node /bridge/bin/storj-bridge.js
     environment:
       NODE_ENV: 'develop'
-#      LOG_LEVEL: 'info'
     volumes:
-      - .:/bridge
+      - ../bin:/bridge/bin
+      - ../lib:/bridge/lib
     links:
       - mongo
       - rabbitmq
-#  ruby:
-#    build:
-#      context: .
-#      dockerfile: docker/ruby.dockerfile
-#    working_dir: '/bridge'
-#    command: ['/usr/bin/env', 'cucumber']
-#    volumes:
-#      - .:/bridge
-#    links:
-#      - bridge
-#      - mongo

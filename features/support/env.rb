@@ -8,6 +8,8 @@ require 'database_cleaner'
 require 'factory_girl'
 require 'rest-client'
 
+sleep 10
+
 # Require files in ./helpers recursively
 Dir["#{__dir__}/helpers/*{,*/*}"].each {|file| require file}
 
@@ -18,7 +20,7 @@ include Helpers
 include FactoryGirl::Syntax::Methods
 
 # TODO: reference `ENV['DATABASE_URL']` instead
-#Mongoid.load!("#{__dir__}/mongoid.yml", :test)
+Mongoid.load!("#{__dir__}/mongoid.yml", :docker_test)
 DatabaseCleaner[:mongoid].strategy = :truncation
 
 Before do
