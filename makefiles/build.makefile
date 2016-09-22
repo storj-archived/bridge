@@ -22,10 +22,10 @@ longdesc:
 
 %:
 	if [ $(firstword $(MAKECMDGOALS)) != $@ ]; then \
-		if [ $(words $(MAKECMDGOALS)) -lt 4 ]; then \
-			docker-compose -f dockerfiles/$(word 2, $(MAKECMDGOALS))-$(word 3, $(MAKECMDGOALS)).yml build \
-		else; \
-			docker-compose -f dockerfiles/$(word 2, $(MAKECMDGOALS))-$(word 3, $(MAKECMDGOALS)).yml build $(word 4, $(MAKECMDGOALS)) \
+		if [ $(words $(MAKECMDGOALS)) -lt 3 ]; then \
+			docker-compose -f dockerfiles/$(word 1, $(MAKECMDGOALS))-$(word 2, $(MAKECMDGOALS)).yml build; \
+		else \
+			docker-compose -f dockerfiles/$(word 1, $(MAKECMDGOALS))-$(word 2, $(MAKECMDGOALS)).yml build $(word 3, $(MAKECMDGOALS)); \
 		fi; \
 	fi
 

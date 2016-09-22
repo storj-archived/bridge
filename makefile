@@ -8,7 +8,7 @@ help:
 		echo 'Run `make <command> help` for more specific help' | fold -s; \
 		echo ''; \
 		echo 'commands:'; \
-		for file in $(wildcard $(MAKEFILES_DIR)/*); do \
+		for file in $(wildcard $(MAKEFILES_DIR)/*.makefile); do \
 			echo "	`$(MAKE) -f $$file shortdesc`"; \
 		done \
 	fi
@@ -16,13 +16,12 @@ help:
 test: run-tests
 
 run-tests:
-	if [ $(firstword $(MAKECMDGOALS)) == $@ ]; then \
+	if [ 'run-tests' == $@ ]; then \
 		$(MAKE) -f $(MAKEFILES_DIR)/test.makefile $(filter-out 'test',$(MAKECMDGOALS)); \
 	fi
 
 %:
 	if [ $(firstword $(MAKECMDGOALS)) == $@ ] && [ $@ != 'test' ] && [ -a $(MAKEFILES_DIR)/$@.makefile ]; then \
-		echo 'test' \
 		$(MAKE) -f $(MAKEFILES_DIR)/$@.makefile $(filter-out $@,$(MAKECMDGOALS)); \
 	fi
 
