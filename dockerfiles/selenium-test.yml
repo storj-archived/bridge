@@ -3,7 +3,7 @@ services:
   mongo:
     image: mongo
     ports:
-      - '27017:27017'
+      - '27017:27018'
   rabbitmq:
     image: rabbitmq
   bridge:
@@ -11,7 +11,7 @@ services:
       context: ..
       dockerfile: ./dockerfiles/bridge-develop.dockerfile
     ports:
-      - '6382:6382'
+      - '6382:6383'
     working_dir: '/bridge'
     command: /usr/bin/env node /bridge/bin/storj-bridge.js
     environment:
@@ -22,3 +22,15 @@ services:
     links:
       - mongo
       - rabbitmq
+  ruby:
+    build:
+      context: ..
+      dockerfile: ./dockerfiles/selenium-test.dockerfile
+    working_dir: '/bridge'
+    command: ['/usr/bin/env', 'cucumber']
+    volumes:
+      - ../features:/bridge/features
+      - ../script:/bridge/script
+    links:
+      - bridge
+      - mongo

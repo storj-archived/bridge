@@ -2,10 +2,9 @@
 .DEFAULT:
 
 MAKEFILES_DIR = makefiles
-target = $@
 
 help:
-	if [ $(words $(MAKECMDGOALS)) -eq 1 ]; then \
+	if [ $(firstword $(MAKECMDGOALS)) == $@ ]; then \
 		echo 'Run `make <command> help` for more specific help' | fold -s; \
 		echo ''; \
 		echo 'commands:'; \
@@ -14,9 +13,17 @@ help:
 		done \
 	fi
 
+test: run-tests
+
+run-tests:
+	if [ $(firstword $(MAKECMDGOALS)) == $@ ]; then \
+		$(MAKE) -f $(MAKEFILES_DIR)/test.makefile $(filter-out 'test',$(MAKECMDGOALS)); \
+	fi
+
 %:
-	if [ -a $(MAKEFILES_DIR)/$@.makefile ]; then \
+	if [ $(firstword $(MAKECMDGOALS)) == $@ ] && [ $@ != 'test' ] && [ -a $(MAKEFILES_DIR)/$@.makefile ]; then \
+		echo 'test' \
 		$(MAKE) -f $(MAKEFILES_DIR)/$@.makefile $(filter-out $@,$(MAKECMDGOALS)); \
-	fi;
+	fi
 
 .PHONY: % #all targets are phony

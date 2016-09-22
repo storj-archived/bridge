@@ -1,5 +1,6 @@
 module Helpers
-  BASE_URL = "http://localhost:6382"
+  BASE_URL = "http://bridge:6382"
+  #BASE_URL = "http://localhost:6382"
   # TODO: pass port via env var
   #BASE_URL = "http://localhost:#{ENV['PORT'].to_i + 1}"
   # For those who are using vagrant but not forwarding ports
