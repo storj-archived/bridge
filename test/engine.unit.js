@@ -3,7 +3,7 @@
 const expect = require('chai').expect;
 const Engine = require('..').Engine;
 const Config = require('..').Config;
-const Storage = require('..').Storage;
+const Storage = require('storj-service-storage-models');
 const Mailer = require('..').Mailer;
 const Server = require('..').Server;
 

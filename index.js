@@ -10,9 +10,6 @@ module.exports.Engine = require('./lib/engine');
 /** {@link Config} */
 module.exports.Config = require('./lib/config');
 
-/** {@link Storage} */
-module.exports.Storage = require('./lib/storage');
-
 /** {@link Server} */
 module.exports.Server = require('./lib/server');
 
