@@ -17,7 +17,7 @@ test: run-tests
 
 run-tests:
 	if [ 'run-tests' == $@ ]; then \
-		$(MAKE) -f $(MAKEFILES_DIR)/test.makefile $(filter-out 'test',$(MAKECMDGOALS)); \
+		$(MAKE) -f $(MAKEFILES_DIR)/test.makefile $(filter-out test, $(MAKECMDGOALS)); \
 	fi
 
 %:

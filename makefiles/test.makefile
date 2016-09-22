@@ -17,10 +17,17 @@ help: longdesc
 	@echo '	unit	- javascript unit tests'
 
 e2e:
-	docker-compose -f dockerfiles/selenium-test.yml run ruby
+	if [ $@ == $(firstword $(MAKECMDGOALS)) ]; then \
+		if [ $(word 2, $(MAKECMDGOALS)) == 'only' ]; then \
+			docker-compose -f dockerfiles/selenium-test-only.yml run ruby; \
+		else \
+			docker-compose -f dockerfiles/selenium-test.yml run ruby; \
+		fi; \
+	fi
 
 %:
-	echo "$@ called and matched by %"
-
+	if [ $@ == $(firstword $(MAKECMDGOALS)) ]; then \
+		echo "$@ called and matched by %"; \
+	fi
 
 .PHONY: % #all targets are phony

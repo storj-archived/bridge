@@ -8,7 +8,7 @@ require 'database_cleaner'
 require 'factory_girl'
 require 'rest-client'
 
-sleep 10
+#sleep 10
 
 # Require files in ./helpers recursively
 Dir["#{__dir__}/helpers/*{,*/*}"].each {|file| require file}

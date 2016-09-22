@@ -6,11 +6,15 @@ RUN apt-get install -y git
 RUN mkdir /bridge
 WORKDIR /bridge
 
-ADD ./dockerfiles/files/bridge.config.json /bridge/bridge.config.json
+ADD ./dockerfiles/files/bridge.config.develop.json /bridge/bridge.config.develop.json
 RUN mkdir -p $HOME/.storj-bridge/config
-RUN mv /bridge/bridge.config.json $HOME/.storj-bridge/config/develop
-RUN cp $HOME/.storj-bridge/config/develop $HOME/.storj-bridge/config/test
+RUN mv /bridge/bridge.config.develop.json $HOME/.storj-bridge/config/develop
+
+ADD ./dockerfiles/files/bridge.config.test.json /bridge/bridge.config.test.json
+RUN mkdir -p $HOME/.storj-bridge/config
+RUN mv /bridge/bridge.config.test.json $HOME/.storj-bridge/config/test
 
 ADD ./package.json /bridge/package.json
 
-RUN npm install
+RUN npm i -g nodemon
+RUN npm i

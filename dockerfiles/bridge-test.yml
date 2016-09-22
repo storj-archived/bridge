@@ -3,7 +3,7 @@ services:
   mongo:
     image: mongo
     ports:
-      - '27017:27017'
+      - '27018:27017'
   rabbitmq:
     image: rabbitmq
   bridge:
@@ -11,11 +11,11 @@ services:
       context: ..
       dockerfile: ./dockerfiles/bridge-develop.dockerfile
     ports:
-      - '6382:6382'
+      - '6383:6382'
     working_dir: '/bridge'
-    command: /usr/bin/env npm run start-dev
+    command: /usr/bin/env npm run start-test
     environment:
-      NODE_ENV: 'develop'
+      NODE_ENV: 'test'
     volumes:
       - ../bin:/bridge/bin
       - ../lib:/bridge/lib
