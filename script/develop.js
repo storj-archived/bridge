@@ -169,7 +169,10 @@ module.exports = function start(callback) {
       // Start the farmers
       async.eachSeries(FARMERS, function(farmer, done) {
         farmers.push(createFarmer(farmer.key, farmer.port, done));
-      }, callback);
+      }, function(err) {
+        if(err) return callback(err);
+        return callback(null, config)
+      });
     });
   });
 

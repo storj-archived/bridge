@@ -8,7 +8,8 @@
     "test": "test"
   },
   "bin": {
-    "storj-bridge": "bin/storj-bridge.js"
+    "storj-bridge": "bin/storj-bridge.js",
+    "storj-audit-service": "bin/storj-audit-service.js"
   },
   "scripts": {
     "testsuite": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=test _mocha test/**",
@@ -71,6 +72,7 @@
     "ms": "^0.7.1",
     "nodemailer": "^2.0.0",
     "readable-stream": "^2.0.5",
+    "redis": "^2.6.2",
     "storj": "^3.1.0",
     "through": "^2.3.8"
   }
