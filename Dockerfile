@@ -23,7 +23,7 @@ RUN npm install --production
 RUN npm link
 
 # Start the app
-#CMD [ "storj-audit-service" ]
+CMD [ "storj-audit-service" ]
 
 # Use for testing
-CMD [ "/bin/sleep", "5000" ]
+# CMD [ "/bin/sleep", "5000" ]
