@@ -41,11 +41,8 @@ describe('Engine', function() {
 
   describe('#start', function() {
 
-    it('should setup storage, mailer, server, and network', function(done) {
+    it('should setup storage, mailer, server', function(done) {
       var config = Config('__tmptest');
-      config.network.minions = [];
-      // TODO: Somewhere in the tests we aren't closing a server down
-      config.network.port = 6484;
       var engine = new Engine(config);
       engine.start(function(err) {
         expect(err).to.equal(undefined);
