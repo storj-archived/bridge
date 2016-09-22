@@ -17,7 +17,7 @@ help: longdesc
 	@echo '	unit	- javascript unit tests'
 
 e2e:
-	docker-compose -f dockerfiles/selenium.yml up
+	docker-compose -f dockerfiles/selenium-test.yml run ruby
 
 %:
 	echo "$@ called and matched by %"
