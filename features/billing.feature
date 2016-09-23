@@ -1,6 +1,6 @@
 Feature: Billing
 
-  Background: Ensure dev server isup
+  Background: Ensure dev server is up
     Given the bridge server is running
 
   Scenario: Creating debits

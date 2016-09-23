@@ -1,6 +1,12 @@
 Given /^the bridge server is running$/ do
-  while @test_response.blank? do
-    @test_response = RestClient.get(URLS[:root]).to_str
-    @test_response.present?
+  test_response = ''
+
+  while test_response.blank? do
+    begin
+      test_response = RestClient.get(URLS[:root]).to_str
+    rescue
+    ensure
+      sleep 0.5
+    end
   end
 end
