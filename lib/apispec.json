@@ -67,6 +67,27 @@
             "description": "Paginagtion indicator, defaults to 1"
           },
           {
+            "name": "address",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "Hostname or IP address"
+          },
+          {
+            "name": "protocol",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "SemVer protocol tag"
+          },
+          {
+            "name": "userAgent",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "Storj user agent string for farming client"
+          },
+          {
             "name": "connected",
             "in": "query",
             "required": false,
@@ -363,6 +384,52 @@
       }
     },
     "/activations/{token}": {
+      "post": {
+        "tags": ["users"],
+        "summary": "Sends the user an activation email for reactivating a disabled account",
+         "parameters": [
+          {
+            "name": "user",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "description": "Email address for account activation and login",
+                  "type": "string"
+                },
+                "redirect": {
+                  "description": "URL for redirect in email confirmation",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "User activation email sent",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "example": "gordon@storj.io"
+                },
+                "created": {
+                  "type": "string",
+                  "example": "2016-03-04T17:01:02.629Z"
+                },
+                "activated": {
+                  "type": "boolean",
+                  "example": false
+                }
+              }
+            }
+          }
+        }
+      },
       "get": {
         "tags": ["users"],
         "summary": "Activates a registered user and optionally redirects",
@@ -794,6 +861,70 @@
         }
       }
     },
+    "/buckets/{id}/mirrors": {
+      "post": {
+        "tags": ["buckets"],
+        "security": [
+          { "basic": [] },
+          { "ecdsa public key": [] },
+          { "ecdsa signature": [] }
+        ],
+        "summary": "Establishes a series of mirrors for the given file",
+        "parameters": [
+          {
+            "name": "bucket_id",
+            "in": "path",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "replicas",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "file": {
+                  "type": "string",
+                  "description": "The unique file ID",
+                  "example": "507f1f77bcf86cd799439011"
+                },
+                "redundancy": {
+                  "type": "number",
+                  "description": "The number of mirrors requested",
+                  "example": 3
+                } 
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The shard was successfully added and contract negotiated",
+            "schema": {
+              "type": "object",
+              "properties": { 
+                "hash": {
+                  "type": "string",
+                  "description": "The shard's RIPEMD-160 SHA-256 hash",
+                  "example": "fde400fe0b6a5488e10d7317274a096aaa57914d"
+                },
+                "mirrors": {
+                  "type": "number",
+                  "description": "The number of requested mirrors",
+                  "example": 3
+                },
+                "status": {
+                  "type": "string",
+                  "description": "The operation status",
+                  "example": "pending"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/buckets": {
       "get": {
         "tags": ["buckets"],
@@ -876,16 +1007,6 @@
             "schema": {
               "type": "object",
               "properties": {
-                "storage": {
-                  "type": "number",
-                  "description": "Amount of storage space in GB",
-                  "example": 10
-                },
-                "transfer": {
-                  "type": "number",
-                  "description": "Amount of transfer in GB",
-                  "example": 30
-                },
                 "pubkeys": {
                   "type": "array",
                   "items": {
@@ -1052,17 +1173,7 @@
             "schema": {
               "type": "object",
               "properties": {
-                "storage": {
-                  "type": "number",
-                  "description": "Amount of storage space in GB",
-                  "example": 10
-                },
-                "transfer": {
-                  "type": "number",
-                  "description": "Amount of transfer in GB",
-                  "example": 30
-                },
-                "pubkeys": {
+               "pubkeys": {
                   "type": "array",
                   "items": {
                     "type": "string",

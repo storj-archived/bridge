@@ -1,6 +1,6 @@
 {
   "name": "storj-bridge",
-  "version": "0.11.4",
+  "version": "1.0.0-rc.1",
   "description": "Access the Storj network using a simple REST API.",
   "main": "index.js",
   "directories": {
@@ -17,7 +17,7 @@
     "test": "npm run testsuite && npm run linter",
     "develop": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=develop node script/develop.js start",
     "make-docs": "./node_modules/.bin/jsdoc index.js lib -r -R README.md -u ./doc -c .jsdoc.json --verbose -d ./jsdoc",
-    "publish-docs": "npm run make-docs && node script/publishdoc.js",
+    "publish-docs": "gh-pages -d jsdoc --repo git@github.com:Storj/bridge.git",
     "payout-report": "node script/payouts.js"
   },
   "repository": {
@@ -40,7 +40,7 @@
   "devDependencies": {
     "chai": "^3.4.1",
     "coveralls": "^2.11.6",
-    "ink-docstrap": "^1.1.4",
+    "ink-docstrap": "boshevski/docstrap",
     "istanbul": "^0.4.1",
     "jsdoc": "^3.4.0",
     "jshint": "2.8.0",
@@ -52,10 +52,7 @@
     "sinon": "^1.17.2"
   },
   "dependencies": {
-    "amqplib": "^0.4.2",
     "async": "^1.5.2",
-    "basic-auth": "^1.0.3",
-    "concat-stream": "^1.5.1",
     "cors": "^2.7.1",
     "csv-write-stream": "^2.0.0",
     "elliptic": "^6.0.2",
@@ -66,12 +63,16 @@
     "knuth-shuffle": "^1.0.1",
     "merge": "^1.2.0",
     "mime-db": "^1.22.0",
-    "mongoose": "4.6.0",
-    "mongoose-types": "^1.0.3",
     "ms": "^0.7.1",
     "nodemailer": "^2.0.0",
     "readable-stream": "^2.0.5",
-    "storj": "^3.1.0",
+    "storj-complex": "^1.0.0-rc.1",
+    "storj-lib": "^4.0.0-rc.5",
+    "storj-mongodb-adapter": "^1.0.1",
+    "storj-service-error-types": "^1.0.0",
+    "storj-service-mailer": "^1.0.0",
+    "storj-service-middleware": "^1.0.0",
+    "storj-service-storage-models": "^1.0.0",
     "through": "^2.3.8"
   }
 }

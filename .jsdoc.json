@@ -7,14 +7,15 @@
     "copyright":  "Copyright 2016 Storj Labs",
     "includeDate": false,
     "navType": "vertical",
-    "theme": "lumen",
-    "linenums": true,
+    "logoFile": "img/storj-bridge.svg",
+    "theme": "storj",
+    "linenums": false,
     "collapseSymbols": false,
-    "inverseNav": true,
+    "inverseNav": false,
     "outputSourceFiles": true,
     "outputSourcePath": true,
     "dateFormat": "",
-    "syntaxTheme": "default",
-    "sort": "true"
+    "sort": "longname",
+    "syntaxTheme": "default"
   }
 }
