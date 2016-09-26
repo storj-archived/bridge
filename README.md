@@ -1,5 +1,5 @@
-Storj Bridge
-============
+[![Storj Bridge](https://nodei.co/npm/storj-bridge.png?downloads=true)](http://storj.github.io/bridge)
+=======================================================================================================
 
 [![Build Status](https://img.shields.io/travis/Storj/bridge.svg?style=flat-square)](https://travis-ci.org/Storj/bridge)
 [![Coverage Status](https://img.shields.io/coveralls/Storj/bridge.svg?style=flat-square)](https://coveralls.io/r/Storj/bridge)
@@ -37,6 +37,10 @@ Start the server (set the `NODE_ENV` environment variable to specify the config)
 ```
 NODE_ENV=develop storj-bridge
 ```
+
+> **Note:** Storj Bridge cannot communicate with the network on it's own, but 
+> instead must communicate with a running 
+> [Storj Complex](https://github.com/Storj/complex) instance.
 
 This will use the configuration file located at `~/.storj-bridge/config/develop.json`.
 
