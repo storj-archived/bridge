@@ -69,11 +69,18 @@ Register public key (HTTP basic auth)
 curl -u user:password -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d '{ "key": "043874de22536decc5508257cc806a9e5af5e8be6a80056843d5c0c2b112903430f9a46c128ca17e30e2fb54f541416185dda2df878adbb90d66811452f4162125" }' 'https://api.storj.io/keys'
 ```
 
-Generate signature and use it for API call
+Generate signature and use it for POST API call
 
 ```
 printf "POST\n/buckets\n{\"storage\":10,\"transfer\":30,\"name\":\"MyBucket\",\"__nonce\":1453222669376}" | openssl dgst -sha256 -hex -sign private.key -keyform DER
 curl --header "x-signature:3046022100e5b534eba11f19d4e3e92398e4ffdf8195041a7de13a1ffe8eb3baf66eb694b8022100982837e3b449fc9e4524009acd03800abf6447cf225a83d6f21bfa67a8326465" --header "x-pubkey:043874de22536decc5508257cc806a9e5af5e8be6a80056843d5c0c2b112903430f9a46c128ca17e30e2fb54f541416185dda2df878adbb90d66811452f4162125" -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d '{"storage":10,"transfer":30,"name":"MyBucket","__nonce":1453222669376}' 'https://api.storj.io/buckets'
+```
+
+Generate signature and use it for GET API call
+
+```
+printf "GET\n/buckets\n__nonce=1453222669376" | openssl dgst -sha256 -hex -sign private.key -keyform DER
+curl --header "x-signature:304602210099eeb8f525ea1b1f385b8c3caba43a3e1efcc8fd839e8887528dd2fd6a4ae56b022100dfd0b7501d7fba047788fe0aef4d4868c8c493568f469d2cb42ecc998ad97ad6" --header "x-pubkey:04bb548b98f7d11d07384187fbdefc21f5c28b88c00ad0f1d3245e80d5f168273261558d4699f0a7d5cf2a82f937b50fe3f1c234256bb2d9f5e996e86576dc2d73" -X GET 'https://api.storj.io/buckets?__nonce=1453222669376'
 ```
 
 ### Single Use Tokens
