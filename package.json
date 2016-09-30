@@ -71,8 +71,8 @@
     "storj-mongodb-adapter": "^1.0.1",
     "storj-service-error-types": "^1.0.0",
     "storj-service-mailer": "^1.0.0",
-    "storj-service-middleware": "^1.0.0",
-    "storj-service-storage-models": "^1.0.0",
+    "storj-service-middleware": "^2.0.0",
+    "storj-service-storage-models": "^2.0.0",
     "through": "^2.3.8"
   }
 }
