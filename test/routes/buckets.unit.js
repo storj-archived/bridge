@@ -56,7 +56,7 @@ describe('BucketRoutes', function() {
           bucket: bucketId,
           frame: frameId,
           mimetype: mimetype,
-          filename: fileName
+          name: fileName
         }, function(err, entry){
           fileId = entry.id.toString();
           callback();
