@@ -54,6 +54,7 @@
   },
   "dependencies": {
     "async": "^1.5.2",
+    "commander": "^2.9.0",
     "cors": "^2.7.1",
     "csv-write-stream": "^2.0.0",
     "elliptic": "^6.0.2",
