@@ -67,7 +67,7 @@ describe('BucketRoutes', function() {
           callback();
         });
       },
-      // create soon to be public bucket
+      // create bucket which will be made public
       function(callback){
         models.Bucket.create({
             user: user
