@@ -23,16 +23,19 @@ describe('BucketRoutes', function() {
   var fileName = 'test.txt';
   var mimetype = 'text/plain';
 
-  var bucketId, fileId, frameId;
+  var bucketId, fileId, frameId, publicBucketId;
+  var publicBucketName = 'Public Bucket';
 
   var initialize = function(done) {
 
     async.series([
+      // create user
       function(callback) {
         models.User.create(user, hashedPassword, function(err, userModel){
           userModel.activate(callback);
         });
       },
+      // create private bucket
       function(callback) {
         models.Bucket.create({
           user: user
@@ -45,12 +48,14 @@ describe('BucketRoutes', function() {
           callback();
         });
       },
+      // create frame
       function(callback) {
         models.Frame.create(user, function(err, frame){
           frameId = frame.id.toString();
           callback();
         });
       },
+      // create bucket entry for private bucket
       function(callback) {
         models.BucketEntry.create({
           bucket: bucketId,
@@ -61,6 +66,19 @@ describe('BucketRoutes', function() {
           fileId = entry.id.toString();
           callback();
         });
+      },
+      // create soon to be public bucket
+      function(callback){
+        models.Bucket.create({
+            user: user
+          },
+          {
+            pubkeys: [],
+            name: publicBucketName
+          }, function(err, bucket){
+            publicBucketId = bucket.id.toString();
+            callback();
+          });
       }
     ], done);
 
@@ -81,6 +99,31 @@ describe('BucketRoutes', function() {
     for(var key in models) {
       models[key].remove({}, storj.utils.noop);
     }
+  });
+
+  describe('#updateBucketById', function() {
+
+    it('should return internal error message', function(done) {
+      var badBucketId = 'asdf';
+      request(app)
+        .patch('/buckets/' + badBucketId)
+        .auth(user, hashedPassword)
+        .expect(500)
+        .end(function(err, res) {
+          expect(err).to.equal(null);
+          expect(res.res.statusMessage).to.equal('Internal Server Error');
+          done();
+      });
+    });
+
+  });
+
+  describe('#createBucketToken', function() {
+
+    it('Should reject due to invalid auth', function(done) {
+      done();
+    });
+
   });
 
   describe('#getFileInfo', function() {
