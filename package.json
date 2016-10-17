@@ -76,6 +76,7 @@
     "hat": "0.0.3",
     "kad-logger-json": "^0.1.2",
     "knuth-shuffle": "^1.0.1",
+    "lodash": "^4.16.4",
     "merge": "^1.2.0",
     "mime-db": "^1.22.0",
     "moment": "^2.14.1",
