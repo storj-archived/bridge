@@ -1572,6 +1572,65 @@
           }
         }
       }
+    },
+    "/buckets/{id}/files/{file_id}/info": {
+      "tags": ["buckets"],
+      "security": [
+        { "basic": [] },
+        { "ecdsa public key": [] },
+        { "ecdsa signature": [] }
+      ],
+      "summary": "Get metadata about a file",
+      "parameters": [
+        {
+          "type": "string",
+          "in": "path",
+          "name": "id",
+          "description": "The unique bucket ID for the request",
+          "required": true
+        },
+        {
+          "type": "string",
+          "in": "path",
+          "name": "file_id",
+          "description": "The file ID to get pointers for",
+          "required": true
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "File metadata successfully retrieved",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "bucket": {
+                "type": "string",
+                "example": "507f1f77bcf86cd799439011"
+              },
+              "mimetype": {
+                "type": "string",
+                "example": "video/mpeg"
+              },
+              "filename": {
+                "type": "string",
+                "example": "big_buck_bunny.mp4"
+              },
+              "frame": {
+                "type": "string",
+                "example": "507f1f77bcf86cd799439191"
+              },
+              "id": {
+                "type": "string",
+                "example": "507f1f77bcf86cd799430909"
+              },
+              "size": {
+                "type": "number",
+                "example": 5071076
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
