@@ -23,19 +23,24 @@ describe('BucketRoutes', function() {
   var fileName = 'test.txt';
   var mimetype = 'text/plain';
 
-  var bucketId, fileId, frameId;
+  var bucketId, fileId, frameId, publicBucketId;
+  var publicBucketName = 'Public Bucket';
+  var encryptionKey = 'abcdef';
+  var publicPermissions = ['PULL', 'PUSH'];
 
   var initialize = function(done) {
 
     async.series([
+      // create user
       function(callback) {
         models.User.create(user, hashedPassword, function(err, userModel){
           userModel.activate(callback);
         });
       },
+      // create private bucket
       function(callback) {
         models.Bucket.create({
-          user: user
+          _id: user
         },
         {
           pubkeys: [],
@@ -45,12 +50,14 @@ describe('BucketRoutes', function() {
           callback();
         });
       },
+      // create frame
       function(callback) {
         models.Frame.create(user, function(err, frame){
           frameId = frame.id.toString();
           callback();
         });
       },
+      // create bucket entry for private bucket
       function(callback) {
         models.BucketEntry.create({
           bucket: bucketId,
@@ -61,6 +68,19 @@ describe('BucketRoutes', function() {
           fileId = entry.id.toString();
           callback();
         });
+      },
+      // create bucket which will be made public
+      function(callback){
+        models.Bucket.create({
+            _id: user
+          },
+          {
+            pubkeys: [],
+            name: publicBucketName
+          }, function(err, bucket){
+            publicBucketId = bucket.id.toString();
+            callback();
+          });
       }
     ], done);
 
@@ -81,6 +101,97 @@ describe('BucketRoutes', function() {
     for(var key in models) {
       models[key].remove({}, storj.utils.noop);
     }
+  });
+
+  describe('#updateBucketById', function() {
+
+    it('should return internal error message', function(done) {
+      var badBucketId = '01234567891ab';
+      request(app)
+        .patch('/buckets/' + badBucketId)
+        .auth(user, hashedPassword)
+        .expect(500)
+        .end(function(err, res) {
+          expect(err).to.equal(null);
+          expect(res.res.statusMessage).to.equal('Internal Server Error');
+          done();
+      });
+    });
+
+    it('should reject invalid update', function(done) {
+      request(app)
+        .patch('/buckets/' + publicBucketId)
+        .send({ publicPermissions: ['Invalid'] })
+        .auth(user, hashedPassword)
+        .expect(500)
+        .end(function(err, res) {
+          expect(err).to.equal(null);
+          expect(res.res.statusMessage).to.equal('Internal Server Error');
+          done();
+      });
+    });
+
+    it('should update the bucket permissions and encryptionKey', function(done) {
+      request(app)
+        .patch('/buckets/' + publicBucketId)
+        .send({
+          publicPermissions: publicPermissions,
+          encryptionKey: encryptionKey,
+        })
+        .auth(user, hashedPassword)
+        .expect(200)
+        .end(function(err, res) {
+          expect(err).to.equal(null);
+          var body = res.body;
+          expect(body.publicPermissions).to.include.members(publicPermissions);
+          expect(body.encryptionKey).to.equal(encryptionKey);
+          done();
+      });
+    });
+
+  });
+
+  describe('#createBucketToken', function() {
+
+    it('Should reject due to invalid auth', function(done) {
+      request(app)
+        .post('/buckets/' + bucketId + '/tokens')
+        .send({ operation: 'PULL' })
+        .expect(500)
+        .end(function(err, res) {
+          expect(err).to.equal(null);
+          expect(res.res.statusMessage).to.equal('Internal Server Error');
+          done();
+      });
+    });
+
+    it('Should allow access to bucket with auth', function(done) {
+      request(app)
+        .post('/buckets/' + bucketId + '/tokens')
+        .auth(user, hashedPassword)
+        .send({ operation: 'PULL' })
+        .expect(201)
+        .end(function(err, res) {
+          expect(err).to.equal(null);
+          var body = res.body;
+          expect(body.encryptionKey).to.equal('');
+          done();
+      });
+    });
+
+    it('Should allow access to public bucket without auth', function(done) {
+      request(app)
+        .post('/buckets/' + publicBucketId + '/tokens')
+        .send({ operation: 'PULL' })
+        .expect(201)
+        .end(function(err, res) {
+          expect(err).to.equal(null);
+          var body = res.body;
+          expect(body.encryptionKey).to.equal(encryptionKey);
+          done();
+      });
+    });
+
   });
 
   describe('#getFileInfo', function() {
