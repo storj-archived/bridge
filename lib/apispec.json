@@ -389,6 +389,13 @@
         "summary": "Sends the user an activation email for reactivating a disabled account",
          "parameters": [
           {
+            "name": "token",
+            "in": "path",
+            "type": "string",
+            "description": "Deactivation token sent to user's email address",
+            "required": true
+          },
+          {
             "name": "user",
             "in": "body",
             "required": true,
@@ -872,7 +879,7 @@
         "summary": "Establishes a series of mirrors for the given file",
         "parameters": [
           {
-            "name": "bucket_id",
+            "name": "id",
             "in": "path",
             "type": "string",
             "required": true
@@ -1574,58 +1581,60 @@
       }
     },
     "/buckets/{id}/files/{file_id}/info": {
-      "tags": ["buckets"],
-      "security": [
-        { "basic": [] },
-        { "ecdsa public key": [] },
-        { "ecdsa signature": [] }
-      ],
-      "summary": "Get metadata about a file",
-      "parameters": [
-        {
-          "type": "string",
-          "in": "path",
-          "name": "id",
-          "description": "The unique bucket ID for the request",
-          "required": true
-        },
-        {
-          "type": "string",
-          "in": "path",
-          "name": "file_id",
-          "description": "The file ID to get pointers for",
-          "required": true
-        }
-      ],
-      "responses": {
-        "200": {
-          "description": "File metadata successfully retrieved",
-          "schema": {
-            "type": "object",
-            "properties": {
-              "bucket": {
-                "type": "string",
-                "example": "507f1f77bcf86cd799439011"
-              },
-              "mimetype": {
-                "type": "string",
-                "example": "video/mpeg"
-              },
-              "filename": {
-                "type": "string",
-                "example": "big_buck_bunny.mp4"
-              },
-              "frame": {
-                "type": "string",
-                "example": "507f1f77bcf86cd799439191"
-              },
-              "id": {
-                "type": "string",
-                "example": "507f1f77bcf86cd799430909"
-              },
-              "size": {
-                "type": "number",
-                "example": 5071076
+      "get": {
+        "tags": ["buckets"],
+        "security": [
+          { "basic": [] },
+          { "ecdsa public key": [] },
+          { "ecdsa signature": [] }
+        ],
+        "summary": "Get metadata about a file",
+        "parameters": [
+          {
+            "type": "string",
+            "in": "path",
+            "name": "id",
+            "description": "The unique bucket ID for the request",
+            "required": true
+          },
+          {
+            "type": "string",
+            "in": "path",
+            "name": "file_id",
+            "description": "The file ID to get pointers for",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File metadata successfully retrieved",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "bucket": {
+                  "type": "string",
+                  "example": "507f1f77bcf86cd799439011"
+                },
+                "mimetype": {
+                  "type": "string",
+                  "example": "video/mpeg"
+                },
+                "filename": {
+                  "type": "string",
+                  "example": "big_buck_bunny.mp4"
+                },
+                "frame": {
+                  "type": "string",
+                  "example": "507f1f77bcf86cd799439191"
+                },
+                "id": {
+                  "type": "string",
+                  "example": "507f1f77bcf86cd799430909"
+                },
+                "size": {
+                  "type": "number",
+                  "example": 5071076
+                }
               }
             }
           }
