@@ -1,12 +1,10 @@
 'use strict';
 
 const expect = require('chai').expect;
-
-const RenterPool = require('..').RenterPool;
 const Engine = require('..').Engine;
 const Config = require('..').Config;
-const Storage = require('..').Storage;
-const Mailer = require('..').Mailer;
+const Storage = require('storj-service-storage-models');
+const Mailer = require('storj-service-mailer');
 const Server = require('..').Server;
 
 describe('Engine', function() {
@@ -43,17 +41,13 @@ describe('Engine', function() {
 
   describe('#start', function() {
 
-    it('should setup storage, mailer, server, and network', function(done) {
+    it('should setup storage, mailer, server', function(done) {
       var config = Config('__tmptest');
-      config.network.minions = [];
-      // TODO: Somewhere in the tests we aren't closing a server down
-      config.network.port = 6484;
       var engine = new Engine(config);
       engine.start(function(err) {
         expect(err).to.equal(undefined);
         expect(engine.storage).to.be.instanceOf(Storage);
         expect(engine.mailer).to.be.instanceOf(Mailer);
-        expect(engine.network).to.be.instanceOf(RenterPool);
         expect(engine.server).to.be.instanceOf(Server);
         engine.server.server.close(function() {
           done();
