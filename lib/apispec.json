@@ -1327,6 +1327,10 @@
                 "operation": {
                   "type": "string",
                   "description": "The operation the token is for"
+                },
+                "encryptionKey": {
+                  "type": "string",
+                  "description": "Bucket encryption key if the bucket is public"
                 }
               }
             }
