@@ -91,5 +91,12 @@
     "storj-service-storage-models": "^2.1.4",
     "stripe": "^4.9.0",
     "through": "^2.3.8"
+  },
+  "devopsBase": {
+    "npmLinkDeps": {
+      "storj-lib": "core",
+      "storj-service-middleware": "service-middleware",
+      "storj-service-storage-models": "service-storage-models"
+    }
   }
 }
