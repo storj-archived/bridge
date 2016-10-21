@@ -1,4 +1,4 @@
-FROM bryanchriswhite/devops:thor
+FROM storjlabs/storj:thor
 
 RUN mkdir /bridge
 WORKDIR /bridge
