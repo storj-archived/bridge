@@ -95,6 +95,7 @@
   "devopsBase": {
     "npmLinkDeps": {
       "storj-lib": "core",
+      "storj-complex": "complex@billing",
       "storj-service-middleware": "service-middleware",
       "storj-service-storage-models": "service-storage-models"
     }
