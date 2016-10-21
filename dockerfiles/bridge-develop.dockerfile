@@ -1,4 +1,4 @@
-FROM bryanchriswhite/devops:thor
+FROM storjlabs/storj:thor
 
 RUN apt-get update
 RUN apt-get install -y git
