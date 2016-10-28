@@ -98,7 +98,8 @@
       "storj-lib": "core",
       "storj-complex": "complex@billing",
       "storj-service-middleware": "service-middleware",
-      "storj-service-storage-models": "service-storage-models@billing-models"
+      "storj-service-storage-models": "service-storage-models@billing-models",
+      "storj-mongodb-adapter": "mongodb-adapter@master"
     }
   }
 }
