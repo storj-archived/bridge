@@ -2,10 +2,22 @@
 
 'use strict';
 
+const httpMocks = require('node-mocks-http');
+const sinon = require('sinon');
+const storj = require('storj-lib');
 const expect = require('chai').expect;
+const EventEmitter = require('events').EventEmitter;
 const FramesRouter = require('../../../lib/server/routes/frames');
 
 describe('FramesRouter', function() {
+
+  var framesRouter = new FramesRouter(
+    require('../../_fixtures/router-opts')
+  );
+  var someUser = new framesRouter.storage.models.User({
+    _id: 'gordon@storj.io',
+    hashpass: storj.utils.sha256('password')
+  });
 
   describe('#createFrame', function() {
 
