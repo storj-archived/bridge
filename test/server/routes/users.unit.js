@@ -1,3 +1,5 @@
+/* jshint unused:false */ // TODO: REMOVE ME
+
 'use strict';
 
 const expect = require('chai').expect;
