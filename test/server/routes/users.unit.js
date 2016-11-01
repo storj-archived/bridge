@@ -1,5 +1,6 @@
 'use strict';
 
+const crypto = require('crypto');
 const httpMocks = require('node-mocks-http');
 const sinon = require('sinon');
 const storj = require('storj-lib');
@@ -911,17 +912,223 @@ describe('UsersRouter', function() {
 
   describe('#confirmPasswordReset', function() {
 
-    it.skip('should return error if invalid token');
+    it('should return error if invalid token', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/resets/badtoken',
+        params: {
+          token: 'badtoken'
+        }
+      });
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _userCount = sinon.stub(
+        usersRouter.storage.models.User,
+        'count'
+      ).callsArgWith(1, null, 1);
+      var _userFindOne = sinon.stub(
+        usersRouter.storage.models.User,
+        'findOne'
+      ).returns({
+        skip: function() {
+          return this;
+        },
+        exec: sinon.stub().callsArg(0)
+      });
+      usersRouter.confirmPasswordReset(request, response, function(err) {
+        _userCount.restore();
+        _userFindOne.restore();
+        expect(err.message).to.equal(
+          'Resetter must be hex encoded 256 byte string'
+        );
+        done();
+      });
+    });
 
-    it.skip('should internal error if query fails');
+    it('should internal error if query fails', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/resets/badtoken',
+        params: {
+          token: crypto.randomBytes(256).toString('hex')
+        }
+      });
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _userCount = sinon.stub(
+        usersRouter.storage.models.User,
+        'count'
+      ).callsArgWith(1, null, 1);
+      var _userFindOne = sinon.stub(
+        usersRouter.storage.models.User,
+        'findOne'
+      ).returns({
+        skip: function() {
+          return this;
+        },
+        exec: sinon.stub().callsArg(0)
+      });
+      _userFindOne.onCall(0).callsArgWith(1, new Error('Panic!'));
+      usersRouter.confirmPasswordReset(request, response, function(err) {
+        _userCount.restore();
+        _userFindOne.restore();
+        expect(err.message).to.equal('Panic!');
+        done();
+      });
+    });
 
-    it.skip('should not found error if user not found');
+    it('should not found error if user not found', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/resets/badtoken',
+        params: {
+          token: crypto.randomBytes(256).toString('hex')
+        }
+      });
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _userCount = sinon.stub(
+        usersRouter.storage.models.User,
+        'count'
+      ).callsArgWith(1, null, 1);
+      var _userFindOne = sinon.stub(
+        usersRouter.storage.models.User,
+        'findOne'
+      ).returns({
+        skip: function() {
+          return this;
+        },
+        exec: sinon.stub().callsArg(0)
+      });
+      _userFindOne.onCall(0).callsArgWith(1, null, null);
+      usersRouter.confirmPasswordReset(request, response, function(err) {
+        _userCount.restore();
+        _userFindOne.restore();
+        expect(err.message).to.equal('User not found');
+        done();
+      });
+    });
 
-    it.skip('should internal error if saving user fails');
+    it('should internal error if saving user fails', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/resets/badtoken',
+        params: {
+          token: crypto.randomBytes(256).toString('hex')
+        }
+      });
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _userCount = sinon.stub(
+        usersRouter.storage.models.User,
+        'count'
+      ).callsArgWith(1, null, 1);
+      var _userFindOne = sinon.stub(
+        usersRouter.storage.models.User,
+        'findOne'
+      ).returns({
+        skip: function() {
+          return this;
+        },
+        exec: sinon.stub().callsArg(0)
+      });
+      var _userSave = sinon.stub(
+        someUser,
+        'save'
+      ).callsArgWith(0, new Error('Failed to save user'));
+      _userFindOne.onCall(0).callsArgWith(1, null, someUser);
+      usersRouter.confirmPasswordReset(request, response, function(err) {
+        _userCount.restore();
+        _userFindOne.restore();
+        _userSave.restore();
+        expect(err.message).to.equal('Failed to save user');
+        done();
+      });
+    });
 
-    it.skip('should redirect on success if specified');
+    it('should redirect on success if specified', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/resets/badtoken',
+        params: {
+          token: crypto.randomBytes(256).toString('hex')
+        },
+        query: {
+          redirect: 'someredirecturl'
+        }
+      });
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _userCount = sinon.stub(
+        usersRouter.storage.models.User,
+        'count'
+      ).callsArgWith(1, null, 1);
+      var _userFindOne = sinon.stub(
+        usersRouter.storage.models.User,
+        'findOne'
+      ).returns({
+        skip: function() {
+          return this;
+        },
+        exec: sinon.stub().callsArg(0)
+      });
+      var _userSave = sinon.stub(someUser, 'save').callsArg(0);
+      _userFindOne.onCall(0).callsArgWith(1, null, someUser);
+      response.redirect = function() {
+        _userCount.restore();
+        _userFindOne.restore();
+        _userSave.restore();
+        delete response.redirect;
+        done();
+      };
+      usersRouter.confirmPasswordReset(request, response);
+    });
 
-    it.skip('should send back user on success');
+    it('should send back user on success', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/resets/badtoken',
+        params: {
+          token: crypto.randomBytes(256).toString('hex')
+        }
+      });
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _userCount = sinon.stub(
+        usersRouter.storage.models.User,
+        'count'
+      ).callsArgWith(1, null, 1);
+      var _userFindOne = sinon.stub(
+        usersRouter.storage.models.User,
+        'findOne'
+      ).returns({
+        skip: function() {
+          return this;
+        },
+        exec: sinon.stub().callsArg(0)
+      });
+      var _userSave = sinon.stub(someUser, 'save').callsArg(0);
+      _userFindOne.onCall(0).callsArgWith(1, null, someUser);
+      response.on('end', function() {
+        _userCount.restore();
+        _userFindOne.restore();
+        _userSave.restore();
+        done();
+      });
+      usersRouter.confirmPasswordReset(request, response);
+    });
 
   });
 
