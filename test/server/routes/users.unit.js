@@ -432,31 +432,303 @@ describe('UsersRouter', function() {
 
   describe('#destroyUser', function() {
 
-    it.skip('should internal error if query fails');
+    it('should internal error if query fails', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'DELETE',
+        url: '/users/gordon@storj.io',
+        params: {
+          id: 'gordon@storj.io'
+        }
+      });
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _userFindOne = sinon.stub(
+        usersRouter.storage.models.User,
+        'findOne'
+      ).callsArgWith(1, new Error('Panic!'));
+      usersRouter.destroyUser(request, response, function(err) {
+        _userFindOne.restore();
+        expect(err.message).to.equal('Panic!');
+        done();
+      });
+    });
 
-    it.skip('should not found error if user not found');
+    it('should not found error if user not found', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'DELETE',
+        url: '/users/gordon@storj.io',
+        params: {
+          id: 'gordon@storj.io'
+        }
+      });
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _userFindOne = sinon.stub(
+        usersRouter.storage.models.User,
+        'findOne'
+      ).callsArgWith(1, null, null);
+      usersRouter.destroyUser(request, response, function(err) {
+        _userFindOne.restore();
+        expect(err.message).to.equal('User not found');
+        done();
+      });
+    });
 
-    it.skip('should not authorized error if user does not match');
+    it('should not authorized error if user does not match', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'DELETE',
+        url: '/users/gordon@storj.io',
+        params: {
+          id: 'gordon@storj.io'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _userFindOne = sinon.stub(
+        usersRouter.storage.models.User,
+        'findOne'
+      ).callsArgWith(1, null, { _id: 'alex@storj.io' });
+      usersRouter.destroyUser(request, response, function(err) {
+        _userFindOne.restore();
+        expect(err.message).to.equal('Not authorized');
+        done();
+      });
+    });
 
-    it.skip('should callback error if mailer fails');
+    it('should callback error if mailer fails', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'DELETE',
+        url: '/users/gordon@storj.io',
+        params: {
+          id: 'gordon@storj.io'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _userFindOne = sinon.stub(
+        usersRouter.storage.models.User,
+        'findOne'
+      ).callsArgWith(1, null, someUser);
+      var _dispatch = sinon.stub(
+        usersRouter.mailer,
+        'dispatch'
+      ).callsArgWith(3, new Error('Failed to send mail'));
+      usersRouter.destroyUser(request, response, function(err) {
+        _userFindOne.restore();
+        _dispatch.restore();
+        expect(err.message).to.equal('Failed to send mail');
+        done();
+      });
+    });
 
-    it.skip('should internal error if user cannot be saved');
+    it('should internal error if user cannot be saved', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'DELETE',
+        url: '/users/gordon@storj.io',
+        params: {
+          id: 'gordon@storj.io'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _userFindOne = sinon.stub(
+        usersRouter.storage.models.User,
+        'findOne'
+      ).callsArgWith(1, null, someUser);
+      var _dispatch = sinon.stub(
+        usersRouter.mailer,
+        'dispatch'
+      ).callsArgWith(3, null);
+      var _userSave = sinon.stub(someUser, 'save').callsArgWith(
+        0,
+        new Error('Failed to update user')
+      );
+      usersRouter.destroyUser(request, response, function(err) {
+        _userFindOne.restore();
+        _dispatch.restore();
+        _userSave.restore();
+        expect(err.message).to.equal('Failed to update user');
+        done();
+      });
+    });
 
-    it.skip('should send back user if mailer succeeds');
+    it('should send back user if mailer succeeds', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'DELETE',
+        url: '/users/gordon@storj.io',
+        params: {
+          id: 'gordon@storj.io'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _userFindOne = sinon.stub(
+        usersRouter.storage.models.User,
+        'findOne'
+      ).callsArgWith(1, null, someUser);
+      var _dispatch = sinon.stub(
+        usersRouter.mailer,
+        'dispatch'
+      ).callsArgWith(3, null);
+      var _userSave = sinon.stub(someUser, 'save').callsArg(0);
+      response.on('end', function() {
+        _userFindOne.restore();
+        _dispatch.restore();
+        _userSave.restore();
+        expect(response._getData().email).to.equal('gordon@storj.io');
+        done();
+      });
+      usersRouter.destroyUser(request, response);
+    });
 
   });
 
   describe('#confirmDestroyUser', function() {
 
-    it.skip('should internal error if query fails');
+    it('should internal error if query fails', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/deactivations/token',
+        params: {
+          token: 'token'
+        }
+      });
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _userFindOne = sinon.stub(
+        usersRouter.storage.models.User,
+        'findOne'
+      ).callsArgWith(1, new Error('Panic!'));
+      usersRouter.confirmDestroyUser(request, response, function(err) {
+        _userFindOne.restore();
+        expect(err.message).to.equal('Panic!');
+        done();
+      });
+    });
 
-    it.skip('should not found error if user not found');
+    it('should not found error if user not found', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/deactivations/token',
+        params: {
+          token: 'token'
+        }
+      });
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _userFindOne = sinon.stub(
+        usersRouter.storage.models.User,
+        'findOne'
+      ).callsArgWith(1, null, null);
+      usersRouter.confirmDestroyUser(request, response, function(err) {
+        _userFindOne.restore();
+        expect(err.message).to.equal('User not found');
+        done();
+      });
+    });
 
-    it.skip('should internal error if deactivate fails');
+    it('should internal error if deactivate fails', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/deactivations/token',
+        params: {
+          token: 'token'
+        }
+      });
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _deactivate = sinon.stub(someUser, 'deactivate').callsArgWith(
+        0,
+        new Error('Failed to deactivate user')
+      );
+      var _userFindOne = sinon.stub(
+        usersRouter.storage.models.User,
+        'findOne'
+      ).callsArgWith(1, null, someUser);
+      usersRouter.confirmDestroyUser(request, response, function(err) {
+        _userFindOne.restore();
+        _deactivate.restore();
+        expect(err.message).to.equal('Failed to deactivate user');
+        done();
+      });
+    });
 
-    it.skip('should redirect on success if specified');
+    it('should redirect on success if specified', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/deactivations/token',
+        params: {
+          token: 'token'
+        },
+        query: {
+          redirect: 'someredirecturl'
+        }
+      });
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _deactivate = sinon.stub(someUser, 'deactivate').callsArg(0);
+      var _userFindOne = sinon.stub(
+        usersRouter.storage.models.User,
+        'findOne'
+      ).callsArgWith(1, null, someUser);
+      response.redirect = function() {
+        _userFindOne.restore();
+        _deactivate.restore();
+        delete response.redirect;
+        done();
+      };
+      usersRouter.confirmDestroyUser(request, response);
+    });
 
-    it.skip('should send back user on successful deactivate');
+    it('should send back user on successful deactivate', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/deactivations/token',
+        params: {
+          token: 'token'
+        }
+      });
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _deactivate = sinon.stub(someUser, 'deactivate').callsArg(0);
+      var _userFindOne = sinon.stub(
+        usersRouter.storage.models.User,
+        'findOne'
+      ).callsArgWith(1, null, someUser);
+      response.on('end', function() {
+        _userFindOne.restore();
+        _deactivate.restore();
+        delete response.redirect;
+        done();
+      });
+      usersRouter.confirmDestroyUser(request, response);
+    });
 
   });
 
