@@ -734,17 +734,178 @@ describe('UsersRouter', function() {
 
   describe('#createPasswordResetToken', function() {
 
-    it.skip('should bad request error if invalid password');
+    it('should bad request error if invalid password', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'PATCH',
+        url: '/users/gordon@storj.io',
+        params: {
+          id: 'gordon@storj.io'
+        },
+        body: {
+          password: 'badpassword'
+        }
+      });
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      usersRouter.createPasswordResetToken(request, response, function(err) {
+        expect(err.message).to.equal(
+          'Password must be hex encoded SHA-256 hash'
+        );
+        done();
+      });
+    });
 
-    it.skip('should internal error if query fails');
+    it('should internal error if query fails', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'PATCH',
+        url: '/users/gordon@storj.io',
+        params: {
+          id: 'gordon@storj.io'
+        },
+        body: {
+          password: storj.utils.sha256('password')
+        }
+      });
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _userFindOne = sinon.stub(
+        usersRouter.storage.models.User,
+        'findOne'
+      ).callsArgWith(1, new Error('Panic!'));
+      usersRouter.createPasswordResetToken(request, response, function(err) {
+        _userFindOne.restore();
+        expect(err.message).to.equal('Panic!');
+        done();
+      });
+    });
 
-    it.skip('should not found error if user not found');
+    it('should not found error if user not found', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'PATCH',
+        url: '/users/gordon@storj.io',
+        params: {
+          id: 'gordon@storj.io'
+        },
+        body: {
+          password: storj.utils.sha256('password')
+        }
+      });
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _userFindOne = sinon.stub(
+        usersRouter.storage.models.User,
+        'findOne'
+      ).callsArgWith(1, null, null);
+      usersRouter.createPasswordResetToken(request, response, function(err) {
+        _userFindOne.restore();
+        expect(err.message).to.equal('User not found');
+        done();
+      });
+    });
 
-    it.skip('should internal error if user cannot save');
+    it('should internal error if user cannot save', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'PATCH',
+        url: '/users/gordon@storj.io',
+        params: {
+          id: 'gordon@storj.io'
+        },
+        body: {
+          password: storj.utils.sha256('password')
+        }
+      });
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _userSave = sinon.stub(someUser, 'save').callsArgWith(
+        0,
+        new Error('Failed to save user')
+      );
+      var _userFindOne = sinon.stub(
+        usersRouter.storage.models.User,
+        'findOne'
+      ).callsArgWith(1, null, someUser);
+      usersRouter.createPasswordResetToken(request, response, function(err) {
+        _userFindOne.restore();
+        _userSave.restore();
+        expect(err.message).to.equal('Failed to save user');
+        done();
+      });
+    });
 
-    it.skip('should internal error if mailer fails');
+    it('should internal error if mailer fails', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'PATCH',
+        url: '/users/gordon@storj.io',
+        params: {
+          id: 'gordon@storj.io'
+        },
+        body: {
+          password: storj.utils.sha256('password')
+        }
+      });
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _userSave = sinon.stub(someUser, 'save').callsArg(0);
+      var _userFindOne = sinon.stub(
+        usersRouter.storage.models.User,
+        'findOne'
+      ).callsArgWith(1, null, someUser);
+      var _dispatch = sinon.stub(
+        usersRouter.mailer,
+        'dispatch'
+      ).callsArgWith(3, new Error('Failed to send mail'));
+      usersRouter.createPasswordResetToken(request, response, function(err) {
+        _userFindOne.restore();
+        _userSave.restore();
+        _dispatch.restore();
+        expect(err.message).to.equal('Failed to send mail');
+        done();
+      });
+    });
 
-    it.skip('should send back user if mailer succeeds');
+    it('should send back user if mailer succeeds', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'PATCH',
+        url: '/users/gordon@storj.io',
+        params: {
+          id: 'gordon@storj.io'
+        },
+        body: {
+          password: storj.utils.sha256('password')
+        }
+      });
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _userSave = sinon.stub(someUser, 'save').callsArg(0);
+      var _userFindOne = sinon.stub(
+        usersRouter.storage.models.User,
+        'findOne'
+      ).callsArgWith(1, null, someUser);
+      var _dispatch = sinon.stub(
+        usersRouter.mailer,
+        'dispatch'
+      ).callsArg(3);
+      response.on('end', function() {
+        _userFindOne.restore();
+        _userSave.restore();
+        _dispatch.restore();
+        expect(response._getData().email).to.equal('gordon@storj.io');
+        done();
+      });
+      usersRouter.createPasswordResetToken(request, response);
+    });
 
   });
 
