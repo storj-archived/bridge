@@ -316,7 +316,7 @@ describe('UsersRouter', function() {
       response.on('end', function() {
         _userFindOne.restore();
         _userActivate.restore();
-        expect(response._getData().email).to.equal('gordon@storj.io')
+        expect(response._getData().email).to.equal('gordon@storj.io');
         done();
       });
       usersRouter.confirmActivateUser(request, response);
@@ -417,7 +417,7 @@ describe('UsersRouter', function() {
         usersRouter,
         '_dispatchActivationEmail'
       );
-      response.on('end', function(err) {
+      response.on('end', function() {
         _userFindOne.restore();
         _dispatchActivationEmail.restore();
         expect(_dispatchActivationEmail.called).to.equal(true);
