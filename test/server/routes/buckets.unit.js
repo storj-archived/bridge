@@ -481,17 +481,277 @@ describe('BucketsRouter', function() {
 
   describe('#createEntryFromFrame', function() {
 
-    it.skip('should internal error if bucket query fails');
+    it('should internal error if bucket query fails', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'POST',
+        url: '/buckets/:bucket_id/files',
+        body: {
+          frame: 'frameid'
+        },
+        params: {
+          id: 'bucketid'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _bucketFindOne = sinon.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, new Error('Failed to lookup bucket'));
+      bucketsRouter.createEntryFromFrame(request, response, function(err) {
+        _bucketFindOne.restore();
+        expect(err.message).to.equal('Failed to lookup bucket');
+        done();
+      });
+    });
 
-    it.skip('should not found error if bucket not found');
+    it('should not found error if bucket not found', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'POST',
+        url: '/buckets/:bucket_id/files',
+        body: {
+          frame: 'frameid'
+        },
+        params: {
+          id: 'bucketid'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _bucketFindOne = sinon.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, null);
+      bucketsRouter.createEntryFromFrame(request, response, function(err) {
+        _bucketFindOne.restore();
+        expect(err.message).to.equal('Bucket not found');
+        done();
+      });
+    });
 
-    it.skip('should bad request error if frame is locked');
+    it('should internal error if frame query fails', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'POST',
+        url: '/buckets/:bucket_id/files',
+        body: {
+          frame: 'frameid'
+        },
+        params: {
+          id: 'bucketid'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _bucketFindOne = sinon.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, { _id: 'bucketid' });
+      var _frameFindOne = sinon.stub(
+        bucketsRouter.storage.models.Frame,
+        'findOne'
+      ).callsArgWith(1, new Error('Frame lookup failed'));
+      bucketsRouter.createEntryFromFrame(request, response, function(err) {
+        _bucketFindOne.restore();
+        _frameFindOne.restore();
+        expect(err.message).to.equal('Frame lookup failed');
+        done();
+      });
+    });
 
-    it.skip('should internal error if bucket entry creation fails');
+    it('should not found error if frame not found', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'POST',
+        url: '/buckets/:bucket_id/files',
+        body: {
+          frame: 'frameid'
+        },
+        params: {
+          id: 'bucketid'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _bucketFindOne = sinon.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, { _id: 'bucketid' });
+      var _frameFindOne = sinon.stub(
+        bucketsRouter.storage.models.Frame,
+        'findOne'
+      ).callsArgWith(1, null, null);
+      bucketsRouter.createEntryFromFrame(request, response, function(err) {
+        _bucketFindOne.restore();
+        _frameFindOne.restore();
+        expect(err.message).to.equal('Frame not found');
+        done();
+      });
+    });
 
-    it.skip('should internal error if frame lock fails');
+    it('should bad request error if frame is locked', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'POST',
+        url: '/buckets/:bucket_id/files',
+        body: {
+          frame: 'frameid'
+        },
+        params: {
+          id: 'bucketid'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _bucketFindOne = sinon.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, { _id: 'bucketid' });
+      var _frameFindOne = sinon.stub(
+        bucketsRouter.storage.models.Frame,
+        'findOne'
+      ).callsArgWith(1, null, { locked: true });
+      bucketsRouter.createEntryFromFrame(request, response, function(err) {
+        _bucketFindOne.restore();
+        _frameFindOne.restore();
+        expect(err.message).to.equal('Frame is already locked');
+        done();
+      });
+    });
 
-    it.skip('should send back bucket entry if success');
+    it('should internal error if bucket entry creation fails', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'POST',
+        url: '/buckets/:bucket_id/files',
+        body: {
+          frame: 'frameid'
+        },
+        params: {
+          id: 'bucketid'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _bucketFindOne = sinon.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, { _id: 'bucketid' });
+      var _frameFindOne = sinon.stub(
+        bucketsRouter.storage.models.Frame,
+        'findOne'
+      ).callsArgWith(1, null, { locked: false });
+      var _bucketEntryCreate = sinon.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'create'
+      ).callsArgWith(1, new Error('Failed to create entry'));
+      bucketsRouter.createEntryFromFrame(request, response, function(err) {
+        _bucketFindOne.restore();
+        _frameFindOne.restore();
+        _bucketEntryCreate.restore();
+        expect(err.message).to.equal('Failed to create entry');
+        done();
+      });
+    });
+
+    it('should internal error if frame lock fails', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'POST',
+        url: '/buckets/:bucket_id/files',
+        body: {
+          frame: 'frameid'
+        },
+        params: {
+          id: 'bucketid'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _bucketFindOne = sinon.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, { _id: 'bucketid' });
+      var _frameFindOne = sinon.stub(
+        bucketsRouter.storage.models.Frame,
+        'findOne'
+      ).callsArgWith(1, null, {
+        locked: false,
+        lock: sinon.stub().callsArgWith(0, new Error('Cannot lock frame'))
+      });
+      var _bucketEntryCreate = sinon.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'create'
+      ).callsArgWith(1, null, {});
+      bucketsRouter.createEntryFromFrame(request, response, function(err) {
+        _bucketFindOne.restore();
+        _frameFindOne.restore();
+        _bucketEntryCreate.restore();
+        expect(err.message).to.equal('Cannot lock frame');
+        done();
+      });
+    });
+
+    it('should send back bucket entry if success', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'POST',
+        url: '/buckets/:bucket_id/files',
+        body: {
+          frame: 'frameid'
+        },
+        params: {
+          id: 'bucketid'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _bucketFindOne = sinon.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, { _id: 'bucketid' });
+      var _frameFindOne = sinon.stub(
+        bucketsRouter.storage.models.Frame,
+        'findOne'
+      ).callsArgWith(1, null, {
+        locked: false,
+        lock: sinon.stub().callsArg(0)
+      });
+      var entry = { frame: 'frameid', bucket: 'bucketid' };
+      var _bucketEntryCreate = sinon.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'create'
+      ).callsArgWith(1, null, {
+        toObject: sinon.stub().returns(entry)
+      });
+      response.on('end', function() {
+        _bucketFindOne.restore();
+        _frameFindOne.restore();
+        _bucketEntryCreate.restore();
+        expect(response._getData().frame).to.equal('frameid');
+        expect(response._getData().bucket).to.equal('bucketid');
+        done();
+      });
+      bucketsRouter.createEntryFromFrame(request, response);
+    });
 
   });
 
