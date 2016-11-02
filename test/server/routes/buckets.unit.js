@@ -561,29 +561,310 @@ describe('BucketsRouter', function() {
 
   describe('#listFilesInBucket', function() {
 
-    it.skip('should internal error if bucket query fails');
+    it('should internal error if bucket query fails', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/buckets/:bucket_id/files',
+        params: {
+          id: 'bucketid'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _bucketFindOne = sinon.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, new Error('Failed to lookup bucket'));
+      bucketsRouter.listFilesInBucket(request, response, function(err) {
+        _bucketFindOne.restore();
+        expect(err.message).to.equal('Failed to lookup bucket');
+        done();
+      });
+    });
 
-    it.skip('should not found error if bucket not found');
+    it('should not found error if bucket not found', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/buckets/:bucket_id/files',
+        params: {
+          id: 'bucketid'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _bucketFindOne = sinon.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, null);
+      bucketsRouter.listFilesInBucket(request, response, function(err) {
+        _bucketFindOne.restore();
+        expect(err.message).to.equal('Bucket not found');
+        done();
+      });
+    });
 
-    it.skip('should internal error if bucket entry query fails');
+    it('should internal error if bucket entry query fails', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/buckets/:bucket_id/files',
+        params: {
+          id: 'bucketid'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _bucketFindOne = sinon.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, new bucketsRouter.storage.models.Bucket({
+        user: someUser._id
+      }));
+      var _bucketEntryFind = sinon.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'find'
+      ).returns({
+        populate: function() {
+          return this;
+        },
+        exec: sinon.stub().callsArgWith(0, new Error('Failed to lookup entry'))
+      });
+      bucketsRouter.listFilesInBucket(request, response, function(err) {
+        _bucketFindOne.restore();
+        _bucketEntryFind.restore();
+        expect(err.message).to.equal('Failed to lookup entry');
+        done();
+      });
+    });
 
-    it.skip('should send back bucket entries');
+    it('should send back bucket entries', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/buckets/:bucket_id/files',
+        params: {
+          id: 'bucketid'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var bucket = new bucketsRouter.storage.models.Bucket({
+        user: someUser._id
+      });
+      var _bucketFindOne = sinon.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, bucket);
+      var _bucketEntryFind = sinon.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'find'
+      ).returns({
+        populate: function() {
+          return this;
+        },
+        exec: sinon.stub().callsArgWith(
+          0,
+          null,
+          [{ frame: {} }]
+        )
+      });
+      response.on('end', function() {
+        _bucketFindOne.restore();
+        _bucketEntryFind.restore();
+        expect(response._getData()).to.have.lengthOf(1);
+        done();
+      });
+      bucketsRouter.listFilesInBucket(request, response);
+    });
 
   });
 
   describe('#removeFile', function() {
 
-    it.skip('should internal error if bucket query fails');
+    it('should internal error if bucket query fails', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'DELETE',
+        url: '/buckets/:bucket_id/files/:file_id',
+        params: {
+          id: 'bucketid',
+          file: 'fileid'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _bucketFindOne = sinon.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, new Error('Failed to lookup bucket'));
+      bucketsRouter.removeFile(request, response, function(err) {
+        _bucketFindOne.restore();
+        expect(err.message).to.equal('Failed to lookup bucket');
+        done();
+      });
+    });
 
-    it.skip('should not found error if bucket not found');
+    it('should not found error if bucket not found', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'DELETE',
+        url: '/buckets/:bucket_id/files/:file_id',
+        params: {
+          id: 'bucketid',
+          file: 'fileid'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _bucketFindOne = sinon.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, null);
+      bucketsRouter.removeFile(request, response, function(err) {
+        _bucketFindOne.restore();
+        expect(err.message).to.equal('Bucket not found');
+        done();
+      });
+    });
 
-    it.skip('should internal error if bucket entry not found');
+    it('should internal error if bucket entry not found', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'DELETE',
+        url: '/buckets/:bucket_id/files/:file_id',
+        params: {
+          id: 'bucketid',
+          file: 'fileid'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _bucketFindOne = sinon.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, {});
+      var _bucketEntryFindOne = sinon.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'findOne'
+      ).callsArgWith(1, new Error('Failed to lookup bucket entry'));
+      bucketsRouter.removeFile(request, response, function(err) {
+        _bucketFindOne.restore();
+        _bucketEntryFindOne.restore();
+        expect(err.message).to.equal('Failed to lookup bucket entry');
+        done();
+      });
+    });
 
-    it.skip('should not found error if bucket entry not found');
+    it('should not found error if bucket entry not found', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'DELETE',
+        url: '/buckets/:bucket_id/files/:file_id',
+        params: {
+          id: 'bucketid',
+          file: 'fileid'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _bucketFindOne = sinon.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, {});
+      var _bucketEntryFindOne = sinon.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'findOne'
+      ).callsArgWith(1, null, null);
+      bucketsRouter.removeFile(request, response, function(err) {
+        _bucketFindOne.restore();
+        _bucketEntryFindOne.restore();
+        expect(err.message).to.equal('File not found');
+        done();
+      });
+    });
 
-    it.skip('should internal error if deletion fails');
+    it('should internal error if deletion fails', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'DELETE',
+        url: '/buckets/:bucket_id/files/:file_id',
+        params: {
+          id: 'bucketid',
+          file: 'fileid'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _bucketFindOne = sinon.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, {});
+      var _bucketEntryFindOne = sinon.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'findOne'
+      ).callsArgWith(1, null, {
+        remove: sinon.stub().callsArgWith(0, new Error('Failed to delete'))
+      });
+      bucketsRouter.removeFile(request, response, function(err) {
+        _bucketFindOne.restore();
+        _bucketEntryFindOne.restore();
+        expect(err.message).to.equal('Failed to delete');
+        done();
+      });
+    });
 
-    it.skip('should return 204 on success');
+    it('should return 204 on success', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'DELETE',
+        url: '/buckets/:bucket_id/files/:file_id',
+        params: {
+          id: 'bucketid',
+          file: 'fileid'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _bucketFindOne = sinon.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, {});
+      var _bucketEntryFindOne = sinon.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'findOne'
+      ).callsArgWith(1, null, {
+        remove: sinon.stub().callsArg(0)
+      });
+      response.on('end', function() {
+        _bucketFindOne.restore();
+        _bucketEntryFindOne.restore();
+        expect(response.statusCode).to.equal(204);
+        done();
+      });
+      bucketsRouter.removeFile(request, response);
+    });
 
   });
 
