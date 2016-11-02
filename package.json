@@ -11,7 +11,7 @@
     "storj-bridge": "bin/storj-bridge.js"
   },
   "scripts": {
-    "testsuite": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=test _mocha test/**",
+    "testsuite": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=test _mocha --recursive test/**",
     "coverage": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=test ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- --recursive",
     "linter": "./node_modules/.bin/jshint --config .jshintrc ./index.js ./lib ./test",
     "test": "npm run testsuite && npm run linter",
@@ -70,11 +70,11 @@
     "readable-stream": "^2.0.5",
     "storj-complex": "braydonf/storj-complex#hdkeys",
     "storj-lib": "^5.0.0",
-    "storj-mongodb-adapter": "^3.0.0",
+    "storj-mongodb-adapter": "^4.0.0",
     "storj-service-error-types": "^1.0.0",
     "storj-service-mailer": "^1.0.0",
     "storj-service-middleware": "^1.1.0",
-    "storj-service-storage-models": "^4.0.0",
+    "storj-service-storage-models": "^5.0.0",
     "through": "^2.3.8"
   }
 }
