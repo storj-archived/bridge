@@ -7,6 +7,7 @@ const expect = require('chai').expect;
 const EventEmitter = require('events').EventEmitter;
 const BucketsRouter = require('../../../lib/server/routes/buckets');
 
+/* jshint maxstatements:false */
 describe('BucketsRouter', function() {
 
   var bucketsRouter = new BucketsRouter(
