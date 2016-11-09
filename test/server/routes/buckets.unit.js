@@ -6,6 +6,7 @@ const storj = require('storj-lib');
 const expect = require('chai').expect;
 const EventEmitter = require('events').EventEmitter;
 const BucketsRouter = require('../../../lib/server/routes/buckets');
+const ReadableStream = require('stream').Readable;
 
 /* jshint maxstatements:false */
 describe('BucketsRouter', function() {
@@ -964,42 +965,6 @@ describe('BucketsRouter', function() {
       });
     });
 
-    it('should internal error if bucket entry query fails', function(done) {
-      var request = httpMocks.createRequest({
-        method: 'GET',
-        url: '/buckets/:bucket_id/files',
-        params: {
-          id: 'bucketid'
-        }
-      });
-      request.user = someUser;
-      var response = httpMocks.createResponse({
-        req: request,
-        eventEmitter: EventEmitter
-      });
-      var _bucketFindOne = sinon.stub(
-        bucketsRouter.storage.models.Bucket,
-        'findOne'
-      ).callsArgWith(1, null, new bucketsRouter.storage.models.Bucket({
-        user: someUser._id
-      }));
-      var _bucketEntryFind = sinon.stub(
-        bucketsRouter.storage.models.BucketEntry,
-        'find'
-      ).returns({
-        populate: function() {
-          return this;
-        },
-        exec: sinon.stub().callsArgWith(0, new Error('Failed to lookup entry'))
-      });
-      bucketsRouter.listFilesInBucket(request, response, function(err) {
-        _bucketFindOne.restore();
-        _bucketEntryFind.restore();
-        expect(err.message).to.equal('Failed to lookup entry');
-        done();
-      });
-    });
-
     it('should send back bucket entries', function(done) {
       var request = httpMocks.createRequest({
         method: 'GET',
@@ -1020,6 +985,17 @@ describe('BucketsRouter', function() {
         bucketsRouter.storage.models.Bucket,
         'findOne'
       ).callsArgWith(1, null, bucket);
+      var entries = [
+        { frame: {} },
+        { frame: {} },
+        { frame: {} }
+      ];
+      var cursor = new ReadableStream({
+        read: function() {
+          this.push(entries.shift() || null);
+        },
+        objectMode: true
+      });
       var _bucketEntryFind = sinon.stub(
         bucketsRouter.storage.models.BucketEntry,
         'find'
@@ -1027,16 +1003,11 @@ describe('BucketsRouter', function() {
         populate: function() {
           return this;
         },
-        exec: sinon.stub().callsArgWith(
-          0,
-          null,
-          [{ frame: {} }]
-        )
+        cursor: sinon.stub().returns(cursor)
       });
       response.on('end', function() {
         _bucketFindOne.restore();
         _bucketEntryFind.restore();
-        expect(response._getData()).to.have.lengthOf(1);
         done();
       });
       bucketsRouter.listFilesInBucket(request, response);
