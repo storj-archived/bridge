@@ -465,13 +465,25 @@ describe('BucketsRouter', function() {
 
   });
 
+  describe('#_getBucketUnregistered', function() {
+
+    it.skip('should return internal error if query fails');
+
+    it.skip('should return not found if no bucket');
+
+    it.skip('should return the bucket if authenticated');
+
+    it.skip('should return the bucket if it is public');
+
+    it.skip('should return the bucket if the pubkey is authed');
+
+    it.skip('should not authed error if not allowed');
+
+  });
+
   describe('#createBucketToken', function() {
 
-    it.skip('should not authorized error if authorize fails');
-
-    it.skip('should internal error if bucket query fails');
-
-    it.skip('should not found error if bucket not found');
+    it.skip('should error if bucket not accessible');
 
     it.skip('should internal error if token creation fails');
 
@@ -755,43 +767,131 @@ describe('BucketsRouter', function() {
 
   });
 
+  describe('#_getBucketById', function() {
+
+    it.skip('should filter by user id if supplied');
+
+    it.skip('should internal error if query fails');
+
+    it.skip('should not found error if bucket not found');
+
+    it.skip('should return bucket');
+
+  });
+
+  describe('#getBucketEntryById', function() {
+
+    it.skip('should internal error if query fails');
+
+    it.skip('should not found error if entry not found');
+
+    it.skip('should return the bucket entry');
+
+  });
+
+  describe('#getPointersForEntry', function() {
+
+    it.skip('should internal error if query fails');
+
+    it.skip('should return pointers');
+
+  });
+
+  describe('#getMirrorsForPointers', function() {
+
+    it.skip('should return a mirror map from pointers');
+
+  });
+
+  describe('#getContactById', function() {
+
+    it.skip('should internal error if query fails');
+
+    it.skip('should not found error if contact not found');
+
+    it.skip('should return the contact');
+
+  });
+
+  describe('#getMirrorAuthorization', function() {
+
+    it.skip('should internal error if cannot load contract');
+
+    it.skip('should internal error if contacts cannot load');
+
+    it.skip('should internal error if cannot get pointer');
+
+    it.skip('should return mirro authorization');
+
+  });
+
+  describe('#getMirroringTokens', function() {
+
+    it.skip('should get mirror authorizations for each token');
+
+  });
+
+  describe('#createMirrorsFromTokenMap', function() {
+
+    it.skip('should internal error if canno load contract');
+
+    it.skip('should internal error if mirror fails to save');
+
+    it.skip('should internal error if contract canno save');
+
+    it.skip('should mirror the data to the mirrors in the map');
+
+  });
+
   describe('#replicateFile', function() {
 
     it.skip('should bad request error if no file supplied');
 
     it.skip('should bad request error if invalid mirrors supplied');
 
-    it.skip('should internal error if bucket lookup fails');
-
-    it.skip('should not found error if bucket not found');
-
-    it.skip('should internal error if bucket entry lookup fails');
-
-    it.skip('should not found error if bucket entry not found');
-
-    it.skip('should internal error if pointer lookup fails');
-
-    it.skip('should internal error if mirrors lookup fails');
-
-    it.skip('should internal error if cannon load contract');
-
-    it.skip('should internal error if contact lookup fails');
-
-    it.skip('should not found error if contact no found');
-
-    it.skip('should internal error if retrieval pointer fails');
-
-    it.skip('should internal error if mirron contact query fails');
-
-    it.skip('should not found error if mirror contact lookup fails');
-
-    it.skip('should return early if no mirrors found');
-
-    it.skip('should internal error if contract cannot be loaded for mirror');
-
-    it.skip('should internal error if contract cannot be updated');
+    it.skip('should internal error if waterfall fails at any point');
 
     it.skip('should send back mirror contacts for shards');
+
+  });
+
+  describe('#_getRetrievalToken', function() {
+
+    it.skip('should internal error if contract cannot load');
+
+    it.skip('should internal error if no token retrieved');
+
+    it.skip('should callback with pointer when received');
+
+  });
+
+  describe('#_requestRetrievalPointer', function() {
+
+    it.skip('should callback empty if query fails');
+
+    it.skip('should callback empty if no contact returned');
+
+    it.skip('should callback empty if cannot get pointer');
+
+    it.skip('should callback empty if response has no token');
+
+    it.skip('should add download count to item if not there');
+
+    it.skip('should set download count to 1 if not exists');
+
+    it.skip('should internal error if cannot save contract');
+
+    it.skip('should callback with pointer');
+
+  });
+
+  describe('#_getPointersFromEntry', function() {
+
+    it.skip('should internal error if query fails');
+
+    it.skip('should internal error if any retreive token fails');
+
+    it.skip('should callback with results');
 
   });
 
@@ -799,7 +899,7 @@ describe('BucketsRouter', function() {
 
     it.skip('should not authorized error if token is invalid');
 
-    it.skip('should internal error if bucket not found');
+    it.skip('should internal error if bucket query fails');
 
     it.skip('should not found error if bucket not found');
 
@@ -807,13 +907,7 @@ describe('BucketsRouter', function() {
 
     it.skip('should not found error if bucket entry not found');
 
-    it.skip('should internal error if pointer query fails');
-
-    it.skip('should internal error if retrieval token fails');
-
-    it.skip('should error if retrieval token contract cannot load');
-
-    it.skip('should error if no farmers gave a token back');
+    it.skip('should internal error if fails to get pointers');
 
     it.skip('should send retrieval pointers');
 
@@ -1130,11 +1224,7 @@ describe('BucketsRouter', function() {
 
   describe('#getFileInfo', function() {
 
-    it.skip('should internal error if bucket query fails');
-
-    it.skip('should not found error if bucket not found');
-
-    it.skip('should not authorized error if not allowed');
+    it.skip('should internal error if cannot get bucket');
 
     it.skip('should internal error if bucket entry query fails');
 
