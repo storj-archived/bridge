@@ -1387,19 +1387,137 @@ describe('BucketsRouter', function() {
 
   describe('#getMirroringTokens', function() {
 
-    it.skip('should get mirror authorizations for each token');
+    it('should get mirror authorizations for each token', function(done) {
+      var _getMirrorAuth = sinon.stub(
+        bucketsRouter,
+        'getMirrorAuthorization'
+      ).callsArgWith(1, null, 'token');
+      bucketsRouter.getMirroringTokens(
+        [['mirror', 'mirror'], ['mirror','mirror']],
+        function(err, tokenMap) {
+          _getMirrorAuth.restore();
+          expect(tokenMap[0][0]).to.equal('token');
+          expect(tokenMap[0][1]).to.equal('token');
+          expect(tokenMap[1][0]).to.equal('token');
+          expect(tokenMap[1][1]).to.equal('token');
+          done();
+        }
+      );
+    });
 
   });
 
   describe('#createMirrorsFromTokenMap', function() {
 
-    it.skip('should internal error if canno load contract');
+    it('should internal error if cannot load contract', function(done) {
+      var _load = sinon.stub(bucketsRouter.contracts, 'load').callsArgWith(
+        1,
+        new Error('Failed to load item')
+      );
+      bucketsRouter.createMirrorsFromTokenMap([
+        [],
+        [{
+          source: {},
+          destination: {},
+          mirror: {}
+        }]
+      ], function(err) {
+        _load.restore();
+        expect(err.message).to.equal('Failed to load item');
+        done();
+      });
+    });
 
-    it.skip('should internal error if mirror fails to save');
+    it('should internal error if mirror fails to save', function(done) {
+      var _load = sinon.stub(bucketsRouter.contracts, 'load').callsArgWith(
+        1,
+        null,
+        new storj.StorageItem({ hash: storj.utils.rmd160('') })
+      );
+      bucketsRouter.createMirrorsFromTokenMap([
+        [{
+          source: {},
+          destination: storj.Contact({
+            address: '0.0.0.0',
+            port: 1337,
+            nodeID: storj.utils.rmd160('')
+          }),
+          mirror: {
+            contract: storj.Contract({ data_hash: storj.utils.rmd160('') }),
+            save: sinon.stub().callsArgWith(0, new Error('Failed to save'))
+          }
+        }]
+      ], function(err) {
+        _load.restore();
+        expect(err.message).to.equal('Failed to save');
+        done();
+      });
+    });
 
-    it.skip('should internal error if contract canno save');
+    it('should internal error if contract cannot save', function(done) {
+      var _load = sinon.stub(bucketsRouter.contracts, 'load').callsArgWith(
+        1,
+        null,
+        new storj.StorageItem({ hash: storj.utils.rmd160('') })
+      );
+      var _save = sinon.stub(bucketsRouter.contracts, 'save').callsArgWith(
+        1,
+        new Error('Failed to save item')
+      );
+      bucketsRouter.createMirrorsFromTokenMap([
+        [{
+          source: {},
+          destination: storj.Contact({
+            address: '0.0.0.0',
+            port: 1337,
+            nodeID: storj.utils.rmd160('')
+          }),
+          mirror: {
+            contract: storj.Contract({ data_hash: storj.utils.rmd160('') }),
+            save: sinon.stub().callsArg(0)
+          }
+        }]
+      ], function(err) {
+        _load.restore();
+        _save.restore();
+        expect(err.message).to.equal('Failed to save item');
+        done();
+      });
+    });
 
-    it.skip('should mirror the data to the mirrors in the map');
+    it('should mirror the data to the mirrors in the map', function(done) {
+      var _load = sinon.stub(bucketsRouter.contracts, 'load').callsArgWith(
+        1,
+        null,
+        new storj.StorageItem({ hash: storj.utils.rmd160('') })
+      );
+      var _save = sinon.stub(bucketsRouter.contracts, 'save').callsArgWith(
+        1,
+        null
+      );
+      var _getMirrorNodes = sinon.stub(
+        bucketsRouter.network,
+        'getMirrorNodes'
+      ).callsArg(2);
+      bucketsRouter.createMirrorsFromTokenMap([
+        [{
+          source: {},
+          destination: storj.Contact({
+            address: '0.0.0.0',
+            port: 1337,
+            nodeID: storj.utils.rmd160('')
+          }),
+          mirror: {
+            contract: storj.Contract({ data_hash: storj.utils.rmd160('') }),
+            save: sinon.stub().callsArg(0)
+          }
+        }]
+      ], function(err) {
+        _load.restore();
+        _save.restore();
+        done();
+      });
+    });
 
   });
 
