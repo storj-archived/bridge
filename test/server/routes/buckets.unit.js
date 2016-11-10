@@ -2028,13 +2028,143 @@ describe('BucketsRouter', function() {
 
   describe('#getFileInfo', function() {
 
-    it.skip('should internal error if cannot get bucket');
+    it('should internal error if cannot get bucket', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/buckets/:bucket_id/files/:file_id/info',
+        params: {
+          id: 'bucketid',
+          file: 'fileid'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _getBucketUnregistered = sinon.stub(
+        bucketsRouter,
+        '_getBucketUnregistered'
+      ).callsArgWith(2, new Error('Failed to get bucket'));
+      bucketsRouter.getFileInfo(request, response, function(err) {
+        _getBucketUnregistered.restore();
+        expect(err.message).to.equal('Failed to get bucket');
+        done();
+      });
+    });
 
-    it.skip('should internal error if bucket entry query fails');
+    it('should internal error if bucket entry query fails', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/buckets/:bucket_id/files/:file_id/info',
+        params: {
+          id: 'bucketid',
+          file: 'fileid'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _getBucketUnregistered = sinon.stub(
+        bucketsRouter,
+        '_getBucketUnregistered'
+      ).callsArgWith(2, null, { _id: 'bucketid' });
+      var _bucketEntryFindOne = sinon.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'findOne'
+      ).returns({
+        populate: function() {
+          return this;
+        },
+        exec: sinon.stub().callsArgWith(0, new Error('Failed to get entry'))
+      });
+      bucketsRouter.getFileInfo(request, response, function(err) {
+        _getBucketUnregistered.restore();
+        _bucketEntryFindOne.restore();
+        expect(err.message).to.equal('Failed to get entry');
+        done();
+      });
+    });
 
-    it.skip('should not found error if bucket entry not found');
+    it('should not found error if bucket entry not found', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/buckets/:bucket_id/files/:file_id/info',
+        params: {
+          id: 'bucketid',
+          file: 'fileid'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _getBucketUnregistered = sinon.stub(
+        bucketsRouter,
+        '_getBucketUnregistered'
+      ).callsArgWith(2, null, { _id: 'bucketid' });
+      var _bucketEntryFindOne = sinon.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'findOne'
+      ).returns({
+        populate: function() {
+          return this;
+        },
+        exec: sinon.stub().callsArgWith(0, null, null)
+      });
+      bucketsRouter.getFileInfo(request, response, function(err) {
+        _getBucketUnregistered.restore();
+        _bucketEntryFindOne.restore();
+        expect(err.message).to.equal('File not found');
+        done();
+      });
+    });
 
-    it.skip('should send back bucket entry');
+    it('should send back bucket entry', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/buckets/:bucket_id/files/:file_id/info',
+        params: {
+          id: 'bucketid',
+          file: 'fileid'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _getBucketUnregistered = sinon.stub(
+        bucketsRouter,
+        '_getBucketUnregistered'
+      ).callsArgWith(2, null, { _id: 'bucketid' });
+      var _bucketEntryFindOne = sinon.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'findOne'
+      ).returns({
+        populate: function() {
+          return this;
+        },
+        exec: sinon.stub().callsArgWith(0, null, {
+          bucket: 'bucketid',
+          mimetype: 'application/json',
+          filename: 'package.json',
+          frame: 'frameid',
+          size: 1024,
+          id: 'fileid'
+        })
+      });
+      response.on('end', function() {
+        _getBucketUnregistered.restore();
+        _bucketEntryFindOne.restore();
+        expect(response._getData().filename).to.equal('package.json');
+        done();
+      });
+      bucketsRouter.getFileInfo(request, response);
+    });
 
   });
 
