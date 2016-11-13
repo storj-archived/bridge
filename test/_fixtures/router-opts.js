@@ -1,15 +1,11 @@
 'use strict';
 
 var proxyquire = require('proxyquire');
-var mongoose = require('storj-service-storage-models/node_modules/mongoose');
+var mongoose = require('mongoose');
 var sinon = require('sinon');
 
-require(
-  'storj-service-storage-models/node_modules/mongoose-currency'
-).loadType(mongoose);
-require(
-  'storj-service-storage-models/node_modules/mongoose-types'
-).loadTypes(mongoose);
+require('mongoose-currency').loadType(mongoose);
+require('mongoose-types').loadTypes(mongoose);
 sinon.stub(mongoose, 'createConnection').returns(
   new mongoose.Connection(new mongoose.Mongoose())
 );
