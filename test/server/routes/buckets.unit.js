@@ -2386,7 +2386,7 @@ describe('BucketsRouter', function() {
         populate: function() {
           return this;
         },
-        stream: sinon.stub().returns(cursor)
+        cursor: sinon.stub().returns(cursor)
       });
       response.on('end', function() {
         _bucketFindOne.restore();
