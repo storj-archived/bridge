@@ -82,6 +82,8 @@ describe('ReportsRouter', function() {
       ).callsArgWith(2, null, []);
       reportsRouter.createExchangeReport(request, response, function(err) {
         expect(err).to.be.instanceOf(errors.NotFoundError);
+        var save = reportsRouter.storage.models.ExchangeReport.prototype.save;
+        expect(save.callCount).to.equal(0);
         done();
       });
     });
@@ -114,6 +116,42 @@ describe('ReportsRouter', function() {
       ).callsArgWith(2, null, null);
       reportsRouter.createExchangeReport(request, response, function(err) {
         expect(err).to.be.instanceOf(errors.NotFoundError);
+        var save = reportsRouter.storage.models.ExchangeReport.prototype.save;
+        expect(save.callCount).to.equal(0);
+        done();
+      });
+    });
+
+    it('should give error if datahash does not exist', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'POST',
+        url: '/reports/exchanges',
+        body: {
+          reporterId: storj.utils.rmd160('client'),
+          farmerId: storj.utils.rmd160('farmer'),
+          clientId: storj.utils.rmd160('client'),
+          dataHash: storj.utils.rmd160('data'),
+          exchangeTime: Date.now(),
+          exchangeResultCode: 1000,
+          exchangeResultMessage: 'SUCCESS'
+        }
+      });
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      sandbox.stub(
+        reportsRouter.storage.models.Shard,
+        'find'
+      ).callsArgWith(2, new Error('Internal error'));
+      sandbox.stub(
+        reportsRouter.storage.models.ExchangeReport.prototype,
+        'save'
+      ).callsArgWith(0, null);
+      reportsRouter.createExchangeReport(request, response, function(err) {
+        expect(err).to.be.instanceOf(errors.InternalError);
+        var save = reportsRouter.storage.models.ExchangeReport.prototype.save;
+        expect(save.callCount).to.equal(0);
         done();
       });
     });
