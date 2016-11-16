@@ -29,7 +29,8 @@ describe('ReportsRouter', function() {
           farmerId: storj.utils.rmd160('farmer'),
           clientId: storj.utils.rmd160('client'),
           dataHash: storj.utils.rmd160('data'),
-          exchangeTime: Date.now(),
+          exchangeStart: Date.now(),
+          exchangeEnd: Date.now(),
           exchangeResultCode: 1000,
           exchangeResultMessage: 'SUCCESS'
         }
@@ -63,7 +64,8 @@ describe('ReportsRouter', function() {
           farmerId: storj.utils.rmd160('farmer'),
           clientId: storj.utils.rmd160('client'),
           dataHash: storj.utils.rmd160('data'),
-          exchangeTime: Date.now(),
+          exchangeStart: Date.now(),
+          exchangeEnd: Date.now(),
           exchangeResultCode: 1000,
           exchangeResultMessage: 'SUCCESS'
         }
@@ -97,7 +99,8 @@ describe('ReportsRouter', function() {
           farmerId: storj.utils.rmd160('farmer'),
           clientId: storj.utils.rmd160('client'),
           dataHash: storj.utils.rmd160('data'),
-          exchangeTime: Date.now(),
+          exchangeStart: Date.now(),
+          exchangeEnd: Date.now(),
           exchangeResultCode: 1000,
           exchangeResultMessage: 'SUCCESS'
         }
@@ -131,7 +134,8 @@ describe('ReportsRouter', function() {
           farmerId: storj.utils.rmd160('farmer'),
           clientId: storj.utils.rmd160('client'),
           dataHash: storj.utils.rmd160('data'),
-          exchangeTime: Date.now(),
+          exchangeStart: Date.now(),
+          exchangeEnd: Date.now(),
           exchangeResultCode: 1000,
           exchangeResultMessage: 'SUCCESS'
         }
@@ -165,7 +169,8 @@ describe('ReportsRouter', function() {
           farmerId: storj.utils.rmd160('farmer'),
           clientId: storj.utils.rmd160('client'),
           dataHash: storj.utils.rmd160('data'),
-          exchangeTime: Date.now(),
+          exchangeStart: Date.now(),
+          exchangeEnd: Date.now(),
           exchangeResultCode: 1000,
           exchangeResultMessage: 'SUCCESS'
         }
