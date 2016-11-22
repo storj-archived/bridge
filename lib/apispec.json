@@ -1301,6 +1301,10 @@
                 "operation": {
                   "type": "string",
                   "description": "PUSH or PULL operation"
+                },
+                "file": {
+                  "type": "string",
+                  "description": "Optional file ID for retrieving size and mimetype"
                 }
               }
             }
@@ -1331,6 +1335,14 @@
                 "encryptionKey": {
                   "type": "string",
                   "description": "Bucket encryption key if the bucket is public"
+                },
+                "size": {
+                  "type": "string",
+                  "description": "Size of file if file ID is sent as argument"
+                },
+                "mimetype": {
+                  "type": "string",
+                  "description": "Mimetype of file if file ID is sent as argument"
                 }
               }
             }
