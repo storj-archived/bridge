@@ -1,0 +1,28 @@
+version: '2'
+services:
+  mongo:
+    image: mongo
+    ports:
+      - '27017:27017'
+  rabbitmq:
+    image: rabbitmq
+  bridge:
+    image: storjlabs/bridge
+    build:
+      context: ../../bridge
+      dockerfile: ./dockerfiles/bridge-development.dockerfile
+    ports:
+      - '6382:6382'
+    command: /usr/bin/env npm run start-dev
+    environment:
+      NODE_ENV: 'develop'
+      MONGO_URL:  'mongodb://mongo:27017/__storj-bridge-development'
+    volumes:
+      - ../../bridge/bin:/storj-base/bridge/bin
+      - ../../bridge/lib:/storj-base/bridge/lib
+      - ../../bridge/index.js:/storj-base/bridge/index.js
+      - ../../bridge/package.json:/storj-base/bridge/package.json
+      - ../../bridge/.nvmrc:/storj-base/bridge/.nvmrc
+    links:
+      - mongo
+      - rabbitmq
