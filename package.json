@@ -68,12 +68,12 @@
     "ms": "^0.7.1",
     "nodemailer": "^2.0.0",
     "readable-stream": "^2.0.5",
-    "storj-complex": "bookchin/storj-complex#upgrade/storj-lib-6",
-    "storj-lib": "bookchin/storj-core",
-    "storj-mongodb-adapter": "bookchin/storj-mongodb-adapter#upgrade/storj-lib-6",
+    "storj-complex": "^3.0.0",
+    "storj-lib": "^6.0.0",
+    "storj-mongodb-adapter": "^5.0.0",
     "storj-service-error-types": "^1.0.0",
     "storj-service-mailer": "^1.0.0",
-    "storj-service-storage-models": "bookchin/storj-service-storage-models#upgrade/storj-lib-6",
+    "storj-service-storage-models": "^6.0.0",
     "storj-service-middleware": "^1.2.0",
     "through": "^2.3.8"
   }
