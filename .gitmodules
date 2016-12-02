@@ -1,0 +1,13 @@
+[submodule "core"]
+	path = core
+	url = git@github.com:Storj/core.git
+[submodule "service-middleware"]
+	path = service-middleware
+	url = git@github.com:Storj/service-middleware.git
+[submodule "service-storage-models"]
+	path = service-storage-models
+	url = git@github.com:Storj/service-storage-models.git
+	branch = billing-models
+[submodule "mongodb-adapter"]
+	path = mongodb-adapter
+	url = git@github.com:Storj/mongodb-adapter.git
