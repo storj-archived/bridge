@@ -1839,7 +1839,7 @@ describe('BucketsRouter', function() {
         _getMirrorsForPointers.restore();
         _getMirroringTokens.restore();
         _createMirrorsFromTokenMap.restore();
-        expect(response._getData()).to.equal(mirrors);
+        expect(response._getData()).to.have.lengthOf(0);
         done();
       });
       bucketsRouter.replicateFile(request, response);
