@@ -1,5 +1,6 @@
 'use strict';
 
+const constants = require('../../../lib/constants');
 const httpMocks = require('node-mocks-http');
 const sinon = require('sinon');
 const storj = require('storj-lib');
@@ -198,13 +199,726 @@ describe('ReportsRouter', function() {
 
   describe('#_handleExchangeReport', function() {
 
-    // TODO
+    let _triggerMirrorEstablish;
+
+    before(() => {
+      _triggerMirrorEstablish = sinon.stub(
+        reportsRouter,
+        '_triggerMirrorEstablish'
+      ).callsArg(2);
+    });
+    after(() => _triggerMirrorEstablish.restore());
+
+    it('should callback error if not valid report type', function(done) {
+      reportsRouter._handleExchangeReport({
+        shardHash: 'hash',
+        exchangeResultMessage: 'NOT_VALID'
+      }, (err) => {
+        expect(err.message).to.equal('Invalid report result - cannot handle');
+        done();
+      });
+    });
+
+    it('should trigger a mirror on SHARD_UPLOADED', function(done) {
+      reportsRouter._handleExchangeReport({
+        shardHash: 'hash',
+        exchangeResultMessage: 'SHARD_UPLOADED'
+      }, done);
+    });
+
+    it('should trigger a mirror on MIRROR_SUCCESS', function(done) {
+      reportsRouter._handleExchangeReport({
+        shardHash: 'hash',
+        exchangeResultMessage: 'MIRROR_SUCCESS'
+      }, done);
+    });
+
+    it('should trigger a mirror on DOWNLOAD_ERROR', function(done) {
+      reportsRouter._handleExchangeReport({
+        shardHash: 'hash',
+        exchangeResultMessage: 'DOWNLOAD_ERROR'
+      }, done);
+    });
 
   });
 
   describe('#_triggerMirrorEstablish', function() {
 
-    // TODO
+    const n = constants.M_REPLICATE;
+    const hash = storj.utils.rmd160('');
+
+    it('should successfully replicate the shard', function(done) {
+      var _mirrorFind = sinon.stub(
+        reportsRouter.storage.models.Mirror,
+        'find'
+      ).returns({
+        populate: () => {
+          return {
+            exec: sinon.stub().callsArgWith(0, null, [
+              new reportsRouter.storage.models.Mirror({
+                shardHash: 'shardhash',
+                contact: new reportsRouter.storage.models.Contact({
+                  _id: storj.utils.rmd160('node1'),
+                  address: '0.0.0.0',
+                  port: 1234,
+                  protocol: '1.0.0',
+                  lastSeen: Date.now(),
+                  userAgent: 'test'
+                }),
+                contract: {
+                  data_hash: storj.utils.rmd160('shardhash')
+                },
+                isEstablished: true
+              }),
+              new reportsRouter.storage.models.Mirror({
+                shardHash: 'shardhash',
+                contact: new reportsRouter.storage.models.Contact({
+                  _id: storj.utils.rmd160('node2'),
+                  address: '0.0.0.0',
+                  port: 1234,
+                  protocol: '1.0.0',
+                  lastSeen: Date.now(),
+                  userAgent: 'test'
+                }),
+                contract: {
+                  data_hash: storj.utils.rmd160('shardhash')
+                },
+                isEstablished: false
+              })
+            ])
+          }
+        }
+      });
+      var item = storj.StorageItem({
+        hash: storj.utils.rmd160('shardhash'),
+        contracts: {
+          node3: {
+            data_hash: storj.utils.rmd160('shardhash')
+          }
+        }
+      });
+      var _contractsLoad = sinon.stub(
+        reportsRouter.contracts,
+        'load'
+      ).callsArgWith(1, null, item);
+      var _getContactById = sinon.stub(
+        reportsRouter,
+        'getContactById'
+      ).callsArgWith(1, null, new reportsRouter.storage.models.Contact({
+        _id: storj.utils.rmd160('node2'),
+        address: '0.0.0.0',
+        port: 1234,
+        protocol: '1.0.0',
+        lastSeen: Date.now(),
+        userAgent: 'test'
+      }));
+      var _getRetrievalPointer = sinon.stub(
+        reportsRouter.network,
+        'getRetrievalPointer'
+      ).callsArgWith(2, null, { /* pointer */ });
+      var _getMirrorNodes = sinon.stub(
+        reportsRouter.network,
+        'getMirrorNodes'
+      ).callsArgWith(2, null);
+      var _contractsSave = sinon.stub(
+        reportsRouter.contracts,
+        'save'
+      ).callsArgWith(1, null);
+      reportsRouter._triggerMirrorEstablish(n, hash, function(err) {
+        _mirrorFind.restore();
+        _contractsLoad.restore();
+        _getContactById.restore();
+        _getRetrievalPointer.restore();
+        _getMirrorNodes.restore();
+        _contractsSave.restore();
+        expect(err).to.equal(null);
+        done();
+      });
+    });
+
+    it('should error if net mirroring fails', function(done) {
+      var _mirrorFind = sinon.stub(
+        reportsRouter.storage.models.Mirror,
+        'find'
+      ).returns({
+        populate: () => {
+          return {
+            exec: sinon.stub().callsArgWith(0, null, [
+              new reportsRouter.storage.models.Mirror({
+                shardHash: 'shardhash',
+                contact: new reportsRouter.storage.models.Contact({
+                  _id: storj.utils.rmd160('node1'),
+                  address: '0.0.0.0',
+                  port: 1234,
+                  protocol: '1.0.0',
+                  lastSeen: Date.now(),
+                  userAgent: 'test'
+                }),
+                contract: {
+                  data_hash: storj.utils.rmd160('shardhash')
+                },
+                isEstablished: true
+              }),
+              new reportsRouter.storage.models.Mirror({
+                shardHash: 'shardhash',
+                contact: new reportsRouter.storage.models.Contact({
+                  _id: storj.utils.rmd160('node2'),
+                  address: '0.0.0.0',
+                  port: 1234,
+                  protocol: '1.0.0',
+                  lastSeen: Date.now(),
+                  userAgent: 'test'
+                }),
+                contract: {
+                  data_hash: storj.utils.rmd160('shardhash')
+                },
+                isEstablished: false
+              })
+            ])
+          }
+        }
+      });
+      var item = storj.StorageItem({
+        hash: storj.utils.rmd160('shardhash'),
+        contracts: {
+          node3: {
+            data_hash: storj.utils.rmd160('shardhash')
+          }
+        }
+      });
+      var _contractsLoad = sinon.stub(
+        reportsRouter.contracts,
+        'load'
+      ).callsArgWith(1, null, item);
+      var _getContactById = sinon.stub(
+        reportsRouter,
+        'getContactById'
+      ).callsArgWith(1, null, new reportsRouter.storage.models.Contact({
+        _id: storj.utils.rmd160('node2'),
+        address: '0.0.0.0',
+        port: 1234,
+        protocol: '1.0.0',
+        lastSeen: Date.now(),
+        userAgent: 'test'
+      }));
+      var _getRetrievalPointer = sinon.stub(
+        reportsRouter.network,
+        'getRetrievalPointer'
+      ).callsArgWith(2, null, { /* pointer */ });
+      var _getMirrorNodes = sinon.stub(
+        reportsRouter.network,
+        'getMirrorNodes'
+      ).callsArgWith(2, new Error('Failed to mirror data'));
+      var _contractsSave = sinon.stub(
+        reportsRouter.contracts,
+        'save'
+      ).callsArgWith(1, null);
+      reportsRouter._triggerMirrorEstablish(n, hash, function(err) {
+        _mirrorFind.restore();
+        _contractsLoad.restore();
+        _getContactById.restore();
+        _getRetrievalPointer.restore();
+        _getMirrorNodes.restore();
+        _contractsSave.restore();
+        expect(err.message).to.equal('Failed to mirror data');
+        done();
+      });
+    });
+
+    it('should error if no pointer can be retrieved', function(done) {
+      var _mirrorFind = sinon.stub(
+        reportsRouter.storage.models.Mirror,
+        'find'
+      ).returns({
+        populate: () => {
+          return {
+            exec: sinon.stub().callsArgWith(0, null, [
+              new reportsRouter.storage.models.Mirror({
+                shardHash: 'shardhash',
+                contact: new reportsRouter.storage.models.Contact({
+                  _id: storj.utils.rmd160('node1'),
+                  address: '0.0.0.0',
+                  port: 1234,
+                  protocol: '1.0.0',
+                  lastSeen: Date.now(),
+                  userAgent: 'test'
+                }),
+                contract: {
+                  data_hash: storj.utils.rmd160('shardhash')
+                },
+                isEstablished: true
+              }),
+              new reportsRouter.storage.models.Mirror({
+                shardHash: 'shardhash',
+                contact: new reportsRouter.storage.models.Contact({
+                  _id: storj.utils.rmd160('node2'),
+                  address: '0.0.0.0',
+                  port: 1234,
+                  protocol: '1.0.0',
+                  lastSeen: Date.now(),
+                  userAgent: 'test'
+                }),
+                contract: {
+                  data_hash: storj.utils.rmd160('shardhash')
+                },
+                isEstablished: false
+              })
+            ])
+          }
+        }
+      });
+      var item = storj.StorageItem({
+        hash: storj.utils.rmd160('shardhash'),
+        contracts: {
+          node3: {
+            data_hash: storj.utils.rmd160('shardhash')
+          }
+        }
+      });
+      var _contractsLoad = sinon.stub(
+        reportsRouter.contracts,
+        'load'
+      ).callsArgWith(1, null, item);
+      var _getContactById = sinon.stub(
+        reportsRouter,
+        'getContactById'
+      ).callsArgWith(1, null, new reportsRouter.storage.models.Contact({
+        _id: storj.utils.rmd160('node2'),
+        address: '0.0.0.0',
+        port: 1234,
+        protocol: '1.0.0',
+        lastSeen: Date.now(),
+        userAgent: 'test'
+      }));
+      var _getRetrievalPointer = sinon.stub(
+        reportsRouter.network,
+        'getRetrievalPointer'
+      ).callsArgWith(2, new Error('Failed to retrieve pointer'));
+      var _getMirrorNodes = sinon.stub(
+        reportsRouter.network,
+        'getMirrorNodes'
+      ).callsArgWith(2, null);
+      var _contractsSave = sinon.stub(
+        reportsRouter.contracts,
+        'save'
+      ).callsArgWith(1, null);
+      reportsRouter._triggerMirrorEstablish(n, hash, function(err) {
+        _mirrorFind.restore();
+        _contractsLoad.restore();
+        _getContactById.restore();
+        _getRetrievalPointer.restore();
+        _getMirrorNodes.restore();
+        _contractsSave.restore();
+        expect(err.message).to.equal('Failed to get pointer');
+        done();
+      });
+    });
+
+    it('should error if no pointer can be retrieved', function(done) {
+      var _mirrorFind = sinon.stub(
+        reportsRouter.storage.models.Mirror,
+        'find'
+      ).returns({
+        populate: () => {
+          return {
+            exec: sinon.stub().callsArgWith(0, null, [
+              new reportsRouter.storage.models.Mirror({
+                shardHash: 'shardhash',
+                contact: new reportsRouter.storage.models.Contact({
+                  _id: storj.utils.rmd160('node1'),
+                  address: '0.0.0.0',
+                  port: 1234,
+                  protocol: '1.0.0',
+                  lastSeen: Date.now(),
+                  userAgent: 'test'
+                }),
+                contract: {
+                  data_hash: storj.utils.rmd160('shardhash')
+                },
+                isEstablished: true
+              }),
+              new reportsRouter.storage.models.Mirror({
+                shardHash: 'shardhash',
+                contact: new reportsRouter.storage.models.Contact({
+                  _id: storj.utils.rmd160('node2'),
+                  address: '0.0.0.0',
+                  port: 1234,
+                  protocol: '1.0.0',
+                  lastSeen: Date.now(),
+                  userAgent: 'test'
+                }),
+                contract: {
+                  data_hash: storj.utils.rmd160('shardhash')
+                },
+                isEstablished: false
+              })
+            ])
+          }
+        }
+      });
+      var item = storj.StorageItem({
+        hash: storj.utils.rmd160('shardhash'),
+        contracts: {
+          node3: {
+            data_hash: storj.utils.rmd160('shardhash')
+          }
+        }
+      });
+      var _contractsLoad = sinon.stub(
+        reportsRouter.contracts,
+        'load'
+      ).callsArgWith(1, null, item);
+      var _getContactById = sinon.stub(
+        reportsRouter,
+        'getContactById'
+      ).callsArgWith(1, new Error('Contact not found'));
+      var _getRetrievalPointer = sinon.stub(
+        reportsRouter.network,
+        'getRetrievalPointer'
+      ).callsArgWith(2, null, { /* pointer */ });
+      var _getMirrorNodes = sinon.stub(
+        reportsRouter.network,
+        'getMirrorNodes'
+      ).callsArgWith(2, null);
+      var _contractsSave = sinon.stub(
+        reportsRouter.contracts,
+        'save'
+      ).callsArgWith(1, null);
+      reportsRouter._triggerMirrorEstablish(n, hash, function(err) {
+        _mirrorFind.restore();
+        _contractsLoad.restore();
+        _getContactById.restore();
+        _getRetrievalPointer.restore();
+        _getMirrorNodes.restore();
+        _contractsSave.restore();
+        expect(err.message).to.equal('Failed to get pointer');
+        done();
+      });
+    });
+    it('should error if the contract cannot load', function(done) {
+      var _mirrorFind = sinon.stub(
+        reportsRouter.storage.models.Mirror,
+        'find'
+      ).returns({
+        populate: () => {
+          return {
+            exec: sinon.stub().callsArgWith(0, null, [
+              new reportsRouter.storage.models.Mirror({
+                shardHash: 'shardhash',
+                contact: new reportsRouter.storage.models.Contact({
+                  _id: storj.utils.rmd160('node1'),
+                  address: '0.0.0.0',
+                  port: 1234,
+                  protocol: '1.0.0',
+                  lastSeen: Date.now(),
+                  userAgent: 'test'
+                }),
+                contract: {
+                  data_hash: storj.utils.rmd160('shardhash')
+                },
+                isEstablished: true
+              }),
+              new reportsRouter.storage.models.Mirror({
+                shardHash: 'shardhash',
+                contact: new reportsRouter.storage.models.Contact({
+                  _id: storj.utils.rmd160('node2'),
+                  address: '0.0.0.0',
+                  port: 1234,
+                  protocol: '1.0.0',
+                  lastSeen: Date.now(),
+                  userAgent: 'test'
+                }),
+                contract: {
+                  data_hash: storj.utils.rmd160('shardhash')
+                },
+                isEstablished: false
+              })
+            ])
+          }
+        }
+      });
+      var item = storj.StorageItem({
+        hash: storj.utils.rmd160('shardhash'),
+        contracts: {
+          node3: {
+            data_hash: storj.utils.rmd160('shardhash')
+          }
+        }
+      });
+      var _contractsLoad = sinon.stub(
+        reportsRouter.contracts,
+        'load'
+      ).callsArgWith(1, new Error('Failed to load contract'));
+      var _getContactById = sinon.stub(
+        reportsRouter,
+        'getContactById'
+      ).callsArgWith(1, null, new reportsRouter.storage.models.Contact({
+        _id: storj.utils.rmd160('node2'),
+        address: '0.0.0.0',
+        port: 1234,
+        protocol: '1.0.0',
+        lastSeen: Date.now(),
+        userAgent: 'test'
+      }));
+      var _getRetrievalPointer = sinon.stub(
+        reportsRouter.network,
+        'getRetrievalPointer'
+      ).callsArgWith(2, null, { /* pointer */ });
+      var _getMirrorNodes = sinon.stub(
+        reportsRouter.network,
+        'getMirrorNodes'
+      ).callsArgWith(2, null);
+      var _contractsSave = sinon.stub(
+        reportsRouter.contracts,
+        'save'
+      ).callsArgWith(1, null);
+      reportsRouter._triggerMirrorEstablish(n, hash, function(err) {
+        _mirrorFind.restore();
+        _contractsLoad.restore();
+        _getContactById.restore();
+        _getRetrievalPointer.restore();
+        _getMirrorNodes.restore();
+        _contractsSave.restore();
+        expect(err.message).to.equal('Failed to load contract');
+        done();
+      });
+    });
+
+    it('should error if the mirror limit is reached', function(done) {
+      var _mirrorFind = sinon.stub(
+        reportsRouter.storage.models.Mirror,
+        'find'
+      ).returns({
+        populate: () => {
+          return {
+            exec: sinon.stub().callsArgWith(0, null, [
+              new reportsRouter.storage.models.Mirror({
+                shardHash: 'shardhash',
+                contact: new reportsRouter.storage.models.Contact({
+                  _id: storj.utils.rmd160('node1'),
+                  address: '0.0.0.0',
+                  port: 1234,
+                  protocol: '1.0.0',
+                  lastSeen: Date.now(),
+                  userAgent: 'test'
+                }),
+                contract: {
+                  data_hash: storj.utils.rmd160('shardhash')
+                },
+                isEstablished: true
+              }),
+              new reportsRouter.storage.models.Mirror({
+                shardHash: 'shardhash',
+                contact: new reportsRouter.storage.models.Contact({
+                  _id: storj.utils.rmd160('node2'),
+                  address: '0.0.0.0',
+                  port: 1234,
+                  protocol: '1.0.0',
+                  lastSeen: Date.now(),
+                  userAgent: 'test'
+                }),
+                contract: {
+                  data_hash: storj.utils.rmd160('shardhash')
+                },
+                isEstablished: false
+              })
+            ])
+          }
+        }
+      });
+      var item = storj.StorageItem({
+        hash: storj.utils.rmd160('shardhash'),
+        contracts: {
+          node3: {
+            data_hash: storj.utils.rmd160('shardhash')
+          }
+        }
+      });
+      var _contractsLoad = sinon.stub(
+        reportsRouter.contracts,
+        'load'
+      ).callsArgWith(1, null, item);
+      var _getContactById = sinon.stub(
+        reportsRouter,
+        'getContactById'
+      ).callsArgWith(1, null, new reportsRouter.storage.models.Contact({
+        _id: storj.utils.rmd160('node2'),
+        address: '0.0.0.0',
+        port: 1234,
+        protocol: '1.0.0',
+        lastSeen: Date.now(),
+        userAgent: 'test'
+      }));
+      var _getRetrievalPointer = sinon.stub(
+        reportsRouter.network,
+        'getRetrievalPointer'
+      ).callsArgWith(2, null, { /* pointer */ });
+      var _getMirrorNodes = sinon.stub(
+        reportsRouter.network,
+        'getMirrorNodes'
+      ).callsArgWith(2, null);
+      var _contractsSave = sinon.stub(
+        reportsRouter.contracts,
+        'save'
+      ).callsArgWith(1, null);
+      reportsRouter._triggerMirrorEstablish(0, hash, function(err) {
+        _mirrorFind.restore();
+        _contractsLoad.restore();
+        _getContactById.restore();
+        _getRetrievalPointer.restore();
+        _getMirrorNodes.restore();
+        _contractsSave.restore();
+        expect(err.message).to.equal('Auto mirroring limit is reached');
+        done();
+      });
+    });
+
+    it('should error if no mirrors are available', function(done) {
+      var _mirrorFind = sinon.stub(
+        reportsRouter.storage.models.Mirror,
+        'find'
+      ).returns({
+        populate: () => {
+          return {
+            exec: sinon.stub().callsArgWith(0, null, [])
+          }
+        }
+      });
+      var item = storj.StorageItem({
+        hash: storj.utils.rmd160('shardhash'),
+        contracts: {
+          node3: {
+            data_hash: storj.utils.rmd160('shardhash')
+          }
+        }
+      });
+      var _contractsLoad = sinon.stub(
+        reportsRouter.contracts,
+        'load'
+      ).callsArgWith(1, null, item);
+      var _getContactById = sinon.stub(
+        reportsRouter,
+        'getContactById'
+      ).callsArgWith(1, null, new reportsRouter.storage.models.Contact({
+        _id: storj.utils.rmd160('node2'),
+        address: '0.0.0.0',
+        port: 1234,
+        protocol: '1.0.0',
+        lastSeen: Date.now(),
+        userAgent: 'test'
+      }));
+      var _getRetrievalPointer = sinon.stub(
+        reportsRouter.network,
+        'getRetrievalPointer'
+      ).callsArgWith(2, null, { /* pointer */ });
+      var _getMirrorNodes = sinon.stub(
+        reportsRouter.network,
+        'getMirrorNodes'
+      ).callsArgWith(2, null);
+      var _contractsSave = sinon.stub(
+        reportsRouter.contracts,
+        'save'
+      ).callsArgWith(1, null);
+      reportsRouter._triggerMirrorEstablish(n, hash, function(err) {
+        _mirrorFind.restore();
+        _contractsLoad.restore();
+        _getContactById.restore();
+        _getRetrievalPointer.restore();
+        _getMirrorNodes.restore();
+        _contractsSave.restore();
+        expect(err.message).to.equal('No available mirrors');
+        done();
+      });
+    });
+
+    it.skip('should successfully replicate the shard', function(done) {
+      var _mirrorFind = sinon.stub(
+        reportsRouter.storage.models.Mirror,
+        'find'
+      ).returns({
+        populate: () => {
+          return {
+            exec: sinon.stub().callsArgWith(0, null, [
+              new reportsRouter.storage.models.Mirror({
+                shardHash: 'shardhash',
+                contact: new reportsRouter.storage.models.Contact({
+                  _id: storj.utils.rmd160('node1'),
+                  address: '0.0.0.0',
+                  port: 1234,
+                  protocol: '1.0.0',
+                  lastSeen: Date.now(),
+                  userAgent: 'test'
+                }),
+                contract: {
+                  data_hash: storj.utils.rmd160('shardhash')
+                },
+                isEstablished: true
+              }),
+              new reportsRouter.storage.models.Mirror({
+                shardHash: 'shardhash',
+                contact: new reportsRouter.storage.models.Contact({
+                  _id: storj.utils.rmd160('node2'),
+                  address: '0.0.0.0',
+                  port: 1234,
+                  protocol: '1.0.0',
+                  lastSeen: Date.now(),
+                  userAgent: 'test'
+                }),
+                contract: {
+                  data_hash: storj.utils.rmd160('shardhash')
+                },
+                isEstablished: false
+              })
+            ])
+          }
+        }
+      });
+      var item = storj.StorageItem({
+        hash: storj.utils.rmd160('shardhash'),
+        contracts: {
+          node3: {
+            data_hash: storj.utils.rmd160('shardhash')
+          }
+        }
+      });
+      var _contractsLoad = sinon.stub(
+        reportsRouter.contracts,
+        'load'
+      ).callsArgWith(1, null, item);
+      var _getContactById = sinon.stub(
+        reportsRouter,
+        'getContactById'
+      ).callsArgWith(1, null, new reportsRouter.storage.models.Contact({
+        _id: storj.utils.rmd160('node2'),
+        address: '0.0.0.0',
+        port: 1234,
+        protocol: '1.0.0',
+        lastSeen: Date.now(),
+        userAgent: 'test'
+      }));
+      var _getRetrievalPointer = sinon.stub(
+        reportsRouter.network,
+        'getRetrievalPointer'
+      ).callsArgWith(2, null, { /* pointer */ });
+      var _getMirrorNodes = sinon.stub(
+        reportsRouter.network,
+        'getMirrorNodes'
+      ).callsArgWith(2, null);
+      var _contractsSave = sinon.stub(
+        reportsRouter.contracts,
+        'save'
+      ).callsArgWith(1, null);
+      reportsRouter._triggerMirrorEstablish(n, hash, function(err) {
+        _mirrorFind.restore();
+        _contractsLoad.restore();
+        _getContactById.restore();
+        _getRetrievalPointer.restore();
+        _getMirrorNodes.restore();
+        _contractsSave.restore();
+        expect(err).to.equal(null);
+        done();
+      });
+    });
 
   });
 
