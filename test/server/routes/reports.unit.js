@@ -196,4 +196,16 @@ describe('ReportsRouter', function() {
 
   });
 
+  describe('#_handleExchangeReport', function() {
+
+    // TODO
+
+  });
+
+  describe('#_triggerMirrorEstablish', function() {
+
+    // TODO
+
+  });
+
 });
