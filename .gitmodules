@@ -1,5 +1,4 @@
 [submodule "core"]
-  branch = v5.1.2
 	path = core
 	url = git@github.com:Storj/core.git
 [submodule "service-middleware"]
