@@ -214,7 +214,9 @@ describe('ReportsRouter', function() {
         shardHash: 'hash',
         exchangeResultMessage: 'NOT_VALID'
       }, (err) => {
-        expect(err.message).to.equal('Invalid report result - cannot handle');
+        expect(err.message).to.equal(
+          'Exchange result type will not trigger action'
+        );
         done();
       });
     });
