@@ -1791,7 +1791,7 @@ describe('BucketsRouter', function() {
     });
 
     it('should send back mirror contacts for shards', function(done) {
-      var mirrors = [];
+      var mirrors = [{}, {}, {}];
       var request = httpMocks.createRequest({
         method: 'POST',
         url: '/buckets/:bucket_id/mirrors',
@@ -1823,11 +1823,15 @@ describe('BucketsRouter', function() {
       var _getMirrorsForPointers = sinon.stub(
         bucketsRouter,
         'getMirrorsForPointers'
-      ).callsArgWith(1, null, []);
+      ).callsArgWith(1, null, [
+        [{ toObject: () => {} }],
+        [{ toObject: () => {} }],
+        [{ toObject: () => {} }]
+      ]);
       var _getMirroringTokens = sinon.stub(
         bucketsRouter,
         'getMirroringTokens'
-      ).callsArgWith(1, null, []);
+      ).callsArgWith(1, null, [[{}], [{}], [{}]]);
       var _createMirrorsFromTokenMap = sinon.stub(
         bucketsRouter,
         'createMirrorsFromTokenMap'
@@ -1839,7 +1843,7 @@ describe('BucketsRouter', function() {
         _getMirrorsForPointers.restore();
         _getMirroringTokens.restore();
         _createMirrorsFromTokenMap.restore();
-        expect(response._getData()).to.equal(mirrors);
+        expect(response._getData()).to.have.lengthOf(3);
         done();
       });
       bucketsRouter.replicateFile(request, response);
@@ -2452,6 +2456,362 @@ describe('BucketsRouter', function() {
         done();
       });
       bucketsRouter.getFile(request, response);
+    });
+
+  });
+
+  describe('#listMirrorsForFile', function() {
+
+    it('should return the mirrors for the file', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/buckets/:bucket_id/files/:file_id/mirrors',
+        params: {
+          id: 'bucketid',
+          file: 'fileid'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _getBucketById = sinon.stub(
+        bucketsRouter,
+        '_getBucketById'
+      ).callsArgWith(2, null, {
+        id: 'bucketid'
+      });
+      var _bucketEntryFindOne = sinon.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'findOne'
+      ).returns({
+        populate: () => {
+          return {
+            exec: sinon.stub().callsArgWith(0, null, {
+              frame: { shards: [] }
+            })
+          };
+        }
+      });
+      var _pointerFind = sinon.stub(
+        bucketsRouter.storage.models.Pointer,
+        'find'
+      ).callsArgWith(1, null, [
+        { hash: 'hash1' },
+        { hash: 'hash2' }
+      ]);
+      var _mirrorFind = sinon.stub(
+        bucketsRouter.storage.models.Mirror,
+        'find'
+      ).returns({
+        populate: () => {
+          return {
+            exec: sinon.stub().callsArgWith(0, null, [
+              {
+                toObject: (() => 'MIRROR'),
+                isEstablished: true
+              }, {
+                toObject: (() => 'MIRROR'),
+                isEstablished: false
+              }, {
+                toObject: (() => 'MIRROR'),
+                isEstablished: false
+              }, {
+                toObject: (() => 'MIRROR'),
+                isEstablished: false
+              }
+            ])
+          };
+        }
+      });
+      response.on('end', () => {
+        _getBucketById.restore();
+        _bucketEntryFindOne.restore();
+        _pointerFind.restore();
+        _mirrorFind.restore();
+        let data = response._getData();
+        expect(data).to.have.lengthOf(2);
+        expect(data[0].established).to.have.lengthOf(1);
+        expect(data[0].available).to.have.lengthOf(3);
+        expect(data[1].established).to.have.lengthOf(1);
+        expect(data[1].available).to.have.lengthOf(3);
+        done();
+      });
+      bucketsRouter.listMirrorsForFile(request, response);
+    });
+
+    it('should error if it fails to find mirror', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/buckets/:bucket_id/files/:file_id/mirrors',
+        params: {
+          id: 'bucketid',
+          file: 'fileid'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _getBucketById = sinon.stub(
+        bucketsRouter,
+        '_getBucketById'
+      ).callsArgWith(2, null, {
+        id: 'bucketid'
+      });
+      var _bucketEntryFindOne = sinon.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'findOne'
+      ).returns({
+        populate: () => {
+          return {
+            exec: sinon.stub().callsArgWith(0, null, {
+              frame: { shards: [] }
+            })
+          };
+        }
+      });
+      var _pointerFind = sinon.stub(
+        bucketsRouter.storage.models.Pointer,
+        'find'
+      ).callsArgWith(1, null, [
+        { hash: 'hash1' },
+        { hash: 'hash2' }
+      ]);
+      var _mirrorFind = sinon.stub(
+        bucketsRouter.storage.models.Mirror,
+        'find'
+      ).returns({
+        populate: () => {
+          return {
+            exec: sinon.stub().callsArgWith(
+              0, new Error('Failed to find mirror')
+            )
+          };
+        }
+      });
+      bucketsRouter.listMirrorsForFile(request, response, (err) => {
+        _getBucketById.restore();
+        _bucketEntryFindOne.restore();
+        _pointerFind.restore();
+        _mirrorFind.restore();
+        expect(err.message).to.equal('Failed to find mirror');
+        done();
+      });
+    });
+
+    it('should error if it fails to find pointers', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/buckets/:bucket_id/files/:file_id/mirrors',
+        params: {
+          id: 'bucketid',
+          file: 'fileid'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _getBucketById = sinon.stub(
+        bucketsRouter,
+        '_getBucketById'
+      ).callsArgWith(2, null, {
+        id: 'bucketid'
+      });
+      var _bucketEntryFindOne = sinon.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'findOne'
+      ).returns({
+        populate: () => {
+          return {
+            exec: sinon.stub().callsArgWith(0, null, {
+              frame: { shards: [] }
+            })
+          };
+        }
+      });
+      var _pointerFind = sinon.stub(
+        bucketsRouter.storage.models.Pointer,
+        'find'
+      ).callsArgWith(1, new Error('Failed to find pointers'));
+      var _mirrorFind = sinon.stub(
+        bucketsRouter.storage.models.Mirror,
+        'find'
+      ).returns({
+        populate: () => {
+          return {
+            exec: sinon.stub().callsArgWith(0, null, [
+              {
+                toObject: (() => 'MIRROR'),
+                isEstablished: true
+              }, {
+                toObject: (() => 'MIRROR'),
+                isEstablished: false
+              }, {
+                toObject: (() => 'MIRROR'),
+                isEstablished: false
+              }, {
+                toObject: (() => 'MIRROR'),
+                isEstablished: false
+              }
+            ])
+          };
+        }
+      });
+      bucketsRouter.listMirrorsForFile(request, response, (err) => {
+        _getBucketById.restore();
+        _bucketEntryFindOne.restore();
+        _pointerFind.restore();
+        _mirrorFind.restore();
+        expect(err.message).to.equal('Failed to find pointers');
+        done();
+      });
+    });
+
+    it('should error if it fails to lookup bucket entry', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/buckets/:bucket_id/files/:file_id/mirrors',
+        params: {
+          id: 'bucketid',
+          file: 'fileid'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _getBucketById = sinon.stub(
+        bucketsRouter,
+        '_getBucketById'
+      ).callsArgWith(2, null, {
+        id: 'bucketid'
+      });
+      var _bucketEntryFindOne = sinon.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'findOne'
+      ).returns({
+        populate: () => {
+          return {
+            exec: sinon.stub().callsArgWith(0, new Error('Query failed'))
+          };
+        }
+      });
+      var _pointerFind = sinon.stub(
+        bucketsRouter.storage.models.Pointer,
+        'find'
+      ).callsArgWith(1, null, [
+        { hash: 'hash1' },
+        { hash: 'hash2' }
+      ]);
+      var _mirrorFind = sinon.stub(
+        bucketsRouter.storage.models.Mirror,
+        'find'
+      ).returns({
+        populate: () => {
+          return {
+            exec: sinon.stub().callsArgWith(0, null, [
+              {
+                toObject: (() => 'MIRROR'),
+                isEstablished: true
+              }, {
+                toObject: (() => 'MIRROR'),
+                isEstablished: false
+              }, {
+                toObject: (() => 'MIRROR'),
+                isEstablished: false
+              }, {
+                toObject: (() => 'MIRROR'),
+                isEstablished: false
+              }
+            ])
+          };
+        }
+      });
+      bucketsRouter.listMirrorsForFile(request, response, (err) => {
+        _getBucketById.restore();
+        _bucketEntryFindOne.restore();
+        _pointerFind.restore();
+        _mirrorFind.restore();
+        expect(err.message).to.equal('Query failed');
+        done();
+      });
+    });
+
+    it('should error if it fails to find bucket entry', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/buckets/:bucket_id/files/:file_id/mirrors',
+        params: {
+          id: 'bucketid',
+          file: 'fileid'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _getBucketById = sinon.stub(
+        bucketsRouter,
+        '_getBucketById'
+      ).callsArgWith(2, null, {
+        id: 'bucketid'
+      });
+      var _bucketEntryFindOne = sinon.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'findOne'
+      ).returns({
+        populate: () => {
+          return {
+            exec: sinon.stub().callsArgWith(0, null, null)
+          };
+        }
+      });
+      var _pointerFind = sinon.stub(
+        bucketsRouter.storage.models.Pointer,
+        'find'
+      ).callsArgWith(1, null, [
+        { hash: 'hash1' },
+        { hash: 'hash2' }
+      ]);
+      var _mirrorFind = sinon.stub(
+        bucketsRouter.storage.models.Mirror,
+        'find'
+      ).returns({
+        populate: () => {
+          return {
+            exec: sinon.stub().callsArgWith(0, null, [
+              {
+                toObject: (() => 'MIRROR'),
+                isEstablished: true
+              }, {
+                toObject: (() => 'MIRROR'),
+                isEstablished: false
+              }, {
+                toObject: (() => 'MIRROR'),
+                isEstablished: false
+              }, {
+                toObject: (() => 'MIRROR'),
+                isEstablished: false
+              }
+            ])
+          };
+        }
+      });
+      bucketsRouter.listMirrorsForFile(request, response, (err) => {
+        _getBucketById.restore();
+        _bucketEntryFindOne.restore();
+        _pointerFind.restore();
+        _mirrorFind.restore();
+        expect(err.message).to.equal('File not found');
+        done();
+      });
     });
 
   });
