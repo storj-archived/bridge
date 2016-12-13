@@ -1865,6 +1865,59 @@ describe('BucketsRouter', function() {
       });
     });
 
+    it('should callback after timeout and not double', function(done) {
+      var _load = sinon.stub(
+        bucketsRouter.contracts,
+        'load'
+      ).callsArgWith(1, null, new storj.StorageItem({}));
+      var clock = sinon.useFakeTimers();
+      var _contactFind = sinon.stub(
+        bucketsRouter.storage.models.Contact,
+        'find'
+      ).callsArgWith(1, null, [
+        new bucketsRouter.storage.models.Contact({
+          _id: storj.utils.rmd160('nodeid'),
+          address: '0.0.0.0',
+          port: 1234
+        })
+      ]);
+      var _requestRetrievalPointer = sinon.stub(
+        bucketsRouter,
+        '_requestRetrievalPointer',
+        function(item, meta, cb) {
+          setTimeout(cb, 12000);
+        }
+      );
+      bucketsRouter._getRetrievalToken({}, {}, function(err) {
+        _contactFind.restore();
+        _load.restore();
+        setImmediate(() => {
+          clock.restore();
+          _requestRetrievalPointer.restore();
+          expect(err.message).to.equal('Failed to get retrieval token');
+          done();
+        });
+      });
+      clock.tick(12000);
+    });
+
+    it('should callback error if query fails', function(done) {
+      var _load = sinon.stub(
+        bucketsRouter.contracts,
+        'load'
+      ).callsArgWith(1, null, new storj.StorageItem({}));
+      var _contactFind = sinon.stub(
+        bucketsRouter.storage.models.Contact,
+        'find'
+      ).callsArgWith(1, new Error('Query failed'));
+      bucketsRouter._getRetrievalToken({}, {}, function(err) {
+        _contactFind.restore();
+        _load.restore();
+        expect(err.message).to.equal('Query failed');
+        done();
+      });
+    });
+
     it('should internal error if no token retrieved', function(done) {
       var _load = sinon.stub(
         bucketsRouter.contracts,
@@ -1877,17 +1930,40 @@ describe('BucketsRouter', function() {
           nodeid3: { data_hash: storj.utils.rmd160('') }
         }
       }));
+      var _contactFind = sinon.stub(
+        bucketsRouter.storage.models.Contact,
+        'find'
+      ).callsArgWith(1, null, [
+        new bucketsRouter.storage.models.Contact({
+          _id: storj.utils.rmd160('nodeid1'),
+          address: '0.0.0.0',
+          port: 1234,
+          lastSeen: 10
+        }),
+        new bucketsRouter.storage.models.Contact({
+          _id: storj.utils.rmd160('nodeid2'),
+          address: '0.0.0.0',
+          port: 1234,
+          lastSeen: 3
+        }),
+        new bucketsRouter.storage.models.Contact({
+          _id: storj.utils.rmd160('nodeid3'),
+          address: '0.0.0.0',
+          port: 1234,
+          lastSeen: 12
+        })
+      ]);
       var _requestRetrievalPointer = sinon.stub(
         bucketsRouter,
         '_requestRetrievalPointer',
-        function(meta, next) {
-          meta.farmers.shift();
+        function(item, options, next) {
           next();
         }
       );
       bucketsRouter._getRetrievalToken({}, {
         excludeFarmers: ['nodeid3']
       }, function(err) {
+        _contactFind.restore();
         _load.restore();
         _requestRetrievalPointer.restore();
         expect(err.message).to.equal('Failed to get retrieval token');
@@ -1907,22 +1983,49 @@ describe('BucketsRouter', function() {
           nodeid3: { data_hash: storj.utils.rmd160('') }
         }
       }));
-      var pointer = {};
       var _requestRetrievalPointer = sinon.stub(
         bucketsRouter,
         '_requestRetrievalPointer',
-        function(meta, next) {
-          meta.farmers.shift();
-          meta.token = 'token';
-          next(null, pointer);
+        function(item, options, next) {
+          options.pointer = {
+            token: options.contact.nodeID === storj.utils.rmd160('nodeid2') ?
+              'correct token' :
+              'incorrect token'
+          };
+          next(null, true);
         }
       );
+      var _contactFind = sinon.stub(
+        bucketsRouter.storage.models.Contact,
+        'find'
+      ).callsArgWith(1, null, [
+        new bucketsRouter.storage.models.Contact({
+          _id: storj.utils.rmd160('nodeid1'),
+          address: '0.0.0.0',
+          port: 1234,
+          lastSeen: Date.now() - 2000,
+          lastTimeout: Date.now() - 1000
+        }),
+        new bucketsRouter.storage.models.Contact({
+          _id: storj.utils.rmd160('nodeid2'),
+          address: '0.0.0.0',
+          port: 1234,
+          lastSeen: 12
+        }),
+        new bucketsRouter.storage.models.Contact({
+          _id: storj.utils.rmd160('nodeid3'),
+          address: '0.0.0.0',
+          port: 1234,
+          lastSeen: 3
+        })
+      ]);
       bucketsRouter._getRetrievalToken({}, {
         excludeFarmers: ['nodeid3']
       }, function(err, result) {
         _load.restore();
+        _contactFind.restore();
         _requestRetrievalPointer.restore();
-        expect(pointer).to.equal(result);
+        expect(result.token).to.equal('correct token');
         done();
       });
     });
@@ -1931,37 +2034,7 @@ describe('BucketsRouter', function() {
 
   describe('#_requestRetrievalPointer', function() {
 
-    it('should callback empty if query fails', function(done) {
-      var _contactFindOne = sinon.stub(
-        bucketsRouter.storage.models.Contact,
-        'findOne'
-      ).callsArgWith(1, new Error());
-      bucketsRouter._requestRetrievalPointer({
-        farmers: []
-      }, function(err, result) {
-        _contactFindOne.restore();
-        expect(err).to.equal(undefined);
-        expect(result).to.equal(undefined);
-        done();
-      });
-    });
-
-    it('should callback empty if no contact returned', function(done) {
-      var _contactFindOne = sinon.stub(
-        bucketsRouter.storage.models.Contact,
-        'findOne'
-      ).callsArgWith(1, null, null);
-      bucketsRouter._requestRetrievalPointer({
-        farmers: []
-      }, function(err, result) {
-        _contactFindOne.restore();
-        expect(err).to.equal(undefined);
-        expect(result).to.equal(undefined);
-        done();
-      });
-    });
-
-    it('should callback empty if cannot get pointer', function(done) {
+    it('should callback false if cannot get pointer', function(done) {
       var _contactFindOne = sinon.stub(
         bucketsRouter.storage.models.Contact,
         'findOne'
@@ -1978,17 +2051,21 @@ describe('BucketsRouter', function() {
       contracts[storj.utils.rmd160('nodeid')] = {
         data_hash: storj.utils.rmd160('')
       };
-      bucketsRouter._requestRetrievalPointer({
-        item: storj.StorageItem({
-          hash: storj.utils.rmd160(''),
-          contracts: contracts
+      bucketsRouter._requestRetrievalPointer(storj.StorageItem({
+        hash: storj.utils.rmd160(''),
+        contracts: contracts
+      }), {
+        contact: new storj.Contact({
+          nodeID: storj.utils.rmd160('nodeid'),
+          address: '0.0.0.0',
+          port: 1234
         }),
-        farmers: []
+        pointer: null
       }, function(err, result) {
         _contactFindOne.restore();
         _getRetrievalPointer.restore();
-        expect(err).to.equal(undefined);
-        expect(result).to.equal(undefined);
+        expect(err).to.equal(null);
+        expect(result).to.equal(false);
         done();
       });
     });
@@ -2010,12 +2087,16 @@ describe('BucketsRouter', function() {
       contracts[storj.utils.rmd160('nodeid')] = {
         data_hash: storj.utils.rmd160('')
       };
-      bucketsRouter._requestRetrievalPointer({
-        item: storj.StorageItem({
-          hash: storj.utils.rmd160(''),
-          contracts: contracts
+      bucketsRouter._requestRetrievalPointer(storj.StorageItem({
+        hash: storj.utils.rmd160(''),
+        contracts: contracts
+      }), {
+        contact: new storj.Contact({
+          nodeID: storj.utils.rmd160('nodeid'),
+          address: '0.0.0.0',
+          port: 1234
         }),
-        farmers: []
+        pointer: null
       }, function(err, result) {
         _contactFindOne.restore();
         _getRetrievalPointer.restore();
@@ -2052,10 +2133,15 @@ describe('BucketsRouter', function() {
         bucketsRouter.contracts,
         'save'
       ).callsArg(1);
-      bucketsRouter._requestRetrievalPointer({
-        item: item,
-        farmers: []
-      }, function(err, result) {
+      var meta = {
+        contact: new storj.Contact({
+          nodeID: storj.utils.rmd160('nodeid'),
+          address: '0.0.0.0',
+          port: 1234
+        }),
+        pointer: null
+      };
+      bucketsRouter._requestRetrievalPointer(item, meta, function(err) {
         _save.restore();
         _contactFindOne.restore();
         _getRetrievalPointer.restore();
@@ -2063,52 +2149,10 @@ describe('BucketsRouter', function() {
           item.meta[storj.utils.rmd160('nodeid')].downloadCount
         ).to.equal(1);
         expect(err).to.equal(null);
-        expect(result.token).to.equal('token');
-        expect(result.hash).to.equal(storj.utils.rmd160(''));
-        expect(result.farmer.nodeID).to.equal(storj.utils.rmd160('nodeid'));
-        expect(result.operation).to.equal('PULL');
-        done();
-      });
-    });
-
-    it('should internal error if cannot save contract', function(done) {
-      var _contactFindOne = sinon.stub(
-        bucketsRouter.storage.models.Contact,
-        'findOne'
-      ).callsArgWith(1, null, {
-        address: '0.0.0.0',
-        port: 1337,
-        nodeID: storj.utils.rmd160('nodeid')
-      });
-      var _getRetrievalPointer = sinon.stub(
-        bucketsRouter.network,
-        'getRetrievalPointer'
-      ).callsArgWith(2, null, {
-        token: 'token'
-      });
-      var contracts = {};
-      contracts[storj.utils.rmd160('nodeid')] = {
-        data_hash: storj.utils.rmd160('')
-      };
-      var item = storj.StorageItem({
-        hash: storj.utils.rmd160(''),
-        contracts: contracts
-      });
-      var _save = sinon.stub(
-        bucketsRouter.contracts,
-        'save'
-      ).callsArgWith(1, new Error('Failed to save'));
-      bucketsRouter._requestRetrievalPointer({
-        item: item,
-        farmers: []
-      }, function(err) {
-        _save.restore();
-        _contactFindOne.restore();
-        _getRetrievalPointer.restore();
-        expect(
-          item.meta[storj.utils.rmd160('nodeid')].downloadCount
-        ).to.equal(1);
-        expect(err.message).to.equal('Failed to save');
+        expect(meta.pointer.token).to.equal('token');
+        expect(meta.pointer.hash).to.equal(storj.utils.rmd160(''));
+        expect(meta.pointer.farmer.nodeID).to.equal(storj.utils.rmd160('nodeid'));
+        expect(meta.pointer.operation).to.equal('PULL');
         done();
       });
     });

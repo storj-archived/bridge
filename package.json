@@ -1,6 +1,6 @@
 {
   "name": "storj-bridge",
-  "version": "3.1.1",
+  "version": "3.1.2",
   "description": "Access the Storj network using a simple REST API.",
   "main": "index.js",
   "directories": {
@@ -53,7 +53,7 @@
     "sinon": "^1.17.2"
   },
   "dependencies": {
-    "async": "^1.5.2",
+    "async": "^2.1.4",
     "commander": "^2.9.0",
     "cors": "^2.7.1",
     "csv-write-stream": "^2.0.0",
@@ -71,10 +71,10 @@
     "storj-complex": "^3.0.0",
     "storj-lib": "^6.0.0",
     "storj-mongodb-adapter": "^5.0.0",
-    "storj-service-error-types": "^1.0.0",
+    "storj-service-error-types": "^1.0.1",
     "storj-service-mailer": "^1.0.0",
-    "storj-service-storage-models": "^6.0.0",
-    "storj-service-middleware": "^1.2.0",
+    "storj-service-middleware": "^1.2.1",
+    "storj-service-storage-models": "^6.0.1",
     "through": "^2.3.8"
   }
 }
