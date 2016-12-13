@@ -2001,7 +2001,8 @@ describe('BucketsRouter', function() {
           _id: storj.utils.rmd160('nodeid1'),
           address: '0.0.0.0',
           port: 1234,
-          lastSeen: 10
+          lastSeen: Date.now() - 2000,
+          lastTimeout: Date.now() - 1000
         }),
         new bucketsRouter.storage.models.Contact({
           _id: storj.utils.rmd160('nodeid2'),
