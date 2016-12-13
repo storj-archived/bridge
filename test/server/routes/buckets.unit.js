@@ -1988,7 +1988,9 @@ describe('BucketsRouter', function() {
         '_requestRetrievalPointer',
         function(item, options, next) {
           options.pointer = {
-            token: 'token'
+            token: options.contact.nodeID === storj.utils.rmd160('nodeid2') ?
+              'correct token' :
+              'incorrect token'
           };
           next(null, true);
         }
@@ -2008,13 +2010,13 @@ describe('BucketsRouter', function() {
           _id: storj.utils.rmd160('nodeid2'),
           address: '0.0.0.0',
           port: 1234,
-          lastSeen: 3
+          lastSeen: 12
         }),
         new bucketsRouter.storage.models.Contact({
           _id: storj.utils.rmd160('nodeid3'),
           address: '0.0.0.0',
           port: 1234,
-          lastSeen: 12
+          lastSeen: 3
         })
       ]);
       bucketsRouter._getRetrievalToken({}, {
@@ -2023,7 +2025,7 @@ describe('BucketsRouter', function() {
         _load.restore();
         _contactFind.restore();
         _requestRetrievalPointer.restore();
-        expect(result.token).to.equal('token');
+        expect(result.token).to.equal('correct token');
         done();
       });
     });
