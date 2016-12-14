@@ -16,6 +16,10 @@ describe('FramesRouter', function() {
     _id: 'gordon@storj.io',
     hashpass: storj.utils.sha256('password')
   });
+  someUser.isUploadRateLimited = sinon.stub().returns(false);
+  someUser.recordUploadBytes = sinon.stub().returns({
+    save: sinon.stub().callsArg(0)
+  });
 
   describe('#createFrame', function() {
 
