@@ -170,12 +170,15 @@ describe('FramesRouter', function() {
   });
 
   describe('#addShardToFrame', function() {
+    const sandbox = sinon.sandbox.create();
 
     var auditStream = new storj.AuditStream(3);
 
     before(function(done) {
       auditStream.on('finish', done).end('data');
     });
+
+    afterEach(() => sandbox.restore());
 
     it('should return internal error if frame query fails', function(done) {
       var request = httpMocks.createRequest({
@@ -666,6 +669,96 @@ describe('FramesRouter', function() {
         expect(result.operation).to.equal('PUSH');
         done();
       });
+      framesRouter.addShardToFrame(request, response);
+    });
+
+    it('should not double increment shard', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'PUT',
+        url: '/frames/frameid',
+        params: {
+          frame: 'frameid'
+        },
+        body: {
+          index: 0,
+          hash: storj.utils.rmd160('data'),
+          size: 1024 * 1024 * 8,
+          challenges: auditStream.getPrivateRecord().challenges,
+          tree: auditStream.getPublicRecord()
+        }
+      });
+      request.user = someUser;
+
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+
+      var frame = new framesRouter.storage.models.Frame({
+        user: someUser._id,
+      });
+
+      var _frameFindOne = sandbox.stub(
+        framesRouter.storage.models.Frame,
+        'findOne'
+      ).callsArgWith(1, null, frame);
+
+      sandbox.stub(
+        framesRouter.storage.models.Frame.prototype,
+        'save'
+      ).callsArgWith(0);
+
+      var frame1 = new framesRouter.storage.models.Frame({
+        user: someUser._id
+      });
+      frame1.shards[0] = {
+        index: 0
+      };
+      frame1.size = 1024 * 1024 * 8;
+      _frameFindOne.onCall(1).returns({
+        populate: function() {
+          return this;
+        },
+        exec: sandbox.stub().callsArgWith(
+          0,
+          null,
+          frame1
+        )
+      });
+
+      sandbox.stub(
+        framesRouter.storage.models.Pointer,
+        'create'
+      ).callsArgWith(1, null, new framesRouter.storage.models.Pointer({
+        index: 0,
+        hash: storj.utils.rmd160('data'),
+        size: 1024 * 1024 * 8,
+        challenges: auditStream.getPrivateRecord().challenges,
+        tree: auditStream.getPublicRecord()
+      }));
+
+      sandbox.stub(
+        framesRouter,
+        '_getContractForShard',
+        function(contract, audit, bl, callback) {
+          callback(null, storj.Contact({
+            address: '127.0.0.1',
+            port: 1337,
+            nodeID: storj.utils.rmd160('farmer')
+          }), contract);
+        }
+      );
+
+      sandbox.stub(
+        framesRouter.network,
+        'getConsignmentPointer'
+      ).callsArgWith(3, null, { token: 'token' });
+
+      response.on('end', function() {
+        expect(frame1.size).to.equal(1024 * 1024 * 8);
+        done();
+      });
+
       framesRouter.addShardToFrame(request, response);
     });
 
