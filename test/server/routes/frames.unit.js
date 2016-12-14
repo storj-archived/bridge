@@ -6,8 +6,14 @@ const storj = require('storj-lib');
 const expect = require('chai').expect;
 const EventEmitter = require('events').EventEmitter;
 const FramesRouter = require('../../../lib/server/routes/frames');
+const errors = require('storj-service-error-types');
+const log = require('../../../lib/logger');
 
 describe('FramesRouter', function() {
+
+  const sandbox = sinon.sandbox.create();
+
+  afterEach(() => sandbox.restore());
 
   var framesRouter = new FramesRouter(
     require('../../_fixtures/router-opts')
@@ -22,6 +28,37 @@ describe('FramesRouter', function() {
   });
 
   describe('#createFrame', function() {
+
+    it('should give error if transfer rate limit reached', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'POST',
+        url: '/frames'
+      });
+      var testUser = new framesRouter.storage.models.User({
+        _id: 'testuser@storj.io',
+        hashpass: storj.utils.sha256('password')
+      });
+      testUser.isUploadRateLimited = sandbox.stub().returns(true);
+      testUser.recordUploadBytes = sandbox.stub().returns({
+        save: sandbox.stub().callsArg(0)
+      });
+      request.user = testUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      sandbox.stub(
+        framesRouter.storage.models.Frame,
+        'create'
+      ).callsArgWith(1, new Error('Panic!'));
+      framesRouter.createFrame(request, response, function(err) {
+        expect(err).to.be.instanceOf(errors.TransferRateError);
+        expect(err.message).to.match(/Could not create frame, transfer/);
+        expect(testUser.recordUploadBytes.callCount).to.equal(0);
+        expect(testUser.isUploadRateLimited.callCount).to.equal(1);
+        done();
+      });
+    });
 
     it('should return internal error if create fails', function(done) {
       var request = httpMocks.createRequest({
@@ -183,6 +220,49 @@ describe('FramesRouter', function() {
     });
 
     afterEach(() => sandbox.restore());
+
+    it('should give error if transfer rate limit reached', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'PUT',
+        url: '/frames/frameid',
+        params: {
+          frame: 'frameid'
+        },
+        body: {
+          index: 0,
+          hash: storj.utils.rmd160('data'),
+          size: 1024 * 1024 * 8,
+          challenges: auditStream.getPrivateRecord().challenges,
+          tree: auditStream.getPublicRecord()
+        }
+      });
+      var testUser = new framesRouter.storage.models.User({
+        _id: 'testuser@storj.io',
+        hashpass: storj.utils.sha256('password')
+      });
+      testUser.recordUploadBytes = sandbox.stub().returns({
+        save: sandbox.stub().callsArg(0)
+      });
+      testUser.isUploadRateLimited = sandbox.stub().returns(true);
+      request.user = testUser;
+
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      sandbox.stub(
+        framesRouter.storage.models.Frame,
+        'findOne'
+      ).callsArgWith(1, new Error('Panic!'));
+      framesRouter.addShardToFrame(request, response, function(err) {
+        expect(err).to.be.instanceOf(errors.TransferRateError);
+        expect(err.message).to.match(/Could not add shard to frame, transfer/);
+        expect(testUser.recordUploadBytes.callCount).to.equal(0);
+        expect(testUser.isUploadRateLimited.callCount).to.equal(1);
+        done();
+      });
+
+    });
 
     it('should return internal error if frame query fails', function(done) {
       var request = httpMocks.createRequest({
@@ -604,7 +684,16 @@ describe('FramesRouter', function() {
           tree: auditStream.getPublicRecord()
         }
       });
-      request.user = someUser;
+      var testUser = new framesRouter.storage.models.User({
+        _id: 'testuser@storj.io',
+        hashpass: storj.utils.sha256('password')
+      });
+      const saveUploadBytes = sandbox.stub().callsArg(0);
+      testUser.isUploadRateLimited = sandbox.stub().returns(false);
+      testUser.recordUploadBytes = sandbox.stub().returns({
+        save: saveUploadBytes
+      });
+      request.user = testUser;
       var response = httpMocks.createResponse({
         req: request,
         eventEmitter: EventEmitter
@@ -671,6 +760,98 @@ describe('FramesRouter', function() {
         expect(result.hash).to.equal(storj.utils.rmd160('data'));
         expect(result.token).to.equal('token');
         expect(result.operation).to.equal('PUSH');
+        expect(saveUploadBytes.callCount).to.equal(1);
+        expect(testUser.recordUploadBytes.callCount).to.equal(1);
+        done();
+      });
+      framesRouter.addShardToFrame(request, response);
+    });
+
+    it('will log error if failure to save upload bytes', function(done) {
+      sandbox.stub(log, 'warn');
+      var request = httpMocks.createRequest({
+        method: 'PUT',
+        url: '/frames/frameid',
+        params: {
+          frame: 'frameid'
+        },
+        body: {
+          index: 0,
+          hash: storj.utils.rmd160('data'),
+          size: 1024 * 1024 * 8,
+          challenges: auditStream.getPrivateRecord().challenges,
+          tree: auditStream.getPublicRecord()
+        }
+      });
+      var testUser = new framesRouter.storage.models.User({
+        _id: 'testuser@storj.io',
+        hashpass: storj.utils.sha256('password')
+      });
+      const saveUploadBytes = sandbox.stub().callsArgWith(0, new Error('test'));
+      testUser.isUploadRateLimited = sandbox.stub().returns(false);
+      testUser.recordUploadBytes = sandbox.stub().returns({
+        save: saveUploadBytes
+      });
+      request.user = testUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _frameFindOne = sandbox.stub(
+        framesRouter.storage.models.Frame,
+        'findOne'
+      ).callsArgWith(1, null, new framesRouter.storage.models.Frame({
+        user: someUser._id
+      }));
+      sandbox.stub(
+        framesRouter.storage.models.Frame.prototype,
+        'save'
+      ).callsArgWith(0);
+      var frame1 = new framesRouter.storage.models.Frame({
+        user: someUser._id
+      });
+      frame1.shards[0] = {
+        index: 0
+      };
+      _frameFindOne.onCall(1).returns({
+        populate: function() {
+          return this;
+        },
+        exec: sandbox.stub().callsArgWith(
+          0,
+          null,
+          frame1
+        )
+      });
+      sandbox.stub(
+        framesRouter.storage.models.Pointer,
+        'create'
+      ).callsArgWith(1, null, new framesRouter.storage.models.Pointer({
+        index: 0,
+        hash: storj.utils.rmd160('data'),
+        size: 1024 * 1024 * 8,
+        challenges: auditStream.getPrivateRecord().challenges,
+        tree: auditStream.getPublicRecord()
+      }));
+      sandbox.stub(
+        framesRouter,
+        '_getContractForShard',
+        function(contract, audit, bl, callback) {
+          callback(null, storj.Contact({
+            address: '127.0.0.1',
+            port: 1337,
+            nodeID: storj.utils.rmd160('farmer')
+          }), contract);
+        }
+      );
+      sandbox.stub(
+        framesRouter.network,
+        'getConsignmentPointer'
+      ).callsArgWith(3, null, { token: 'token' });
+      response.on('end', function() {
+        expect(saveUploadBytes.callCount).to.equal(1);
+        expect(testUser.recordUploadBytes.callCount).to.equal(1);
+        expect(log.warn.callCount).to.equal(1);
         done();
       });
       framesRouter.addShardToFrame(request, response);

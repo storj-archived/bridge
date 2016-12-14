@@ -71,10 +71,10 @@
     "storj-complex": "^3.0.0",
     "storj-lib": "^6.0.0",
     "storj-mongodb-adapter": "^5.0.0",
-    "storj-service-error-types": "^1.0.1",
+    "storj-service-error-types": "braydonf/storj-service-error-types#d123239ef4829095af736c079c57696d58a5b81a",
     "storj-service-mailer": "^1.0.0",
     "storj-service-middleware": "^1.2.1",
-    "storj-service-storage-models": "^6.0.1",
+    "storj-service-storage-models": "bookchin/storj-service-storage-models#c0571748ba04b0af3b68ed8d761417c538070a00",
     "through": "^2.3.8"
   }
 }
