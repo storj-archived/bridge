@@ -688,21 +688,26 @@ describe('FramesRouter', function() {
         }
       });
       request.user = someUser;
+
       var response = httpMocks.createResponse({
         req: request,
         eventEmitter: EventEmitter
       });
+
       var frame = new framesRouter.storage.models.Frame({
         user: someUser._id,
       });
+
       var _frameFindOne = sandbox.stub(
         framesRouter.storage.models.Frame,
         'findOne'
       ).callsArgWith(1, null, frame);
-      var _frameSave = sandbox.stub(
+
+      sandbox.stub(
         framesRouter.storage.models.Frame.prototype,
         'save'
       ).callsArgWith(0);
+
       var frame1 = new framesRouter.storage.models.Frame({
         user: someUser._id
       });
@@ -720,7 +725,8 @@ describe('FramesRouter', function() {
           frame1
         )
       });
-      var _pointerCreate = sandbox.stub(
+
+      sandbox.stub(
         framesRouter.storage.models.Pointer,
         'create'
       ).callsArgWith(1, null, new framesRouter.storage.models.Pointer({
@@ -730,7 +736,8 @@ describe('FramesRouter', function() {
         challenges: auditStream.getPrivateRecord().challenges,
         tree: auditStream.getPublicRecord()
       }));
-      var _getContract = sandbox.stub(
+
+      sandbox.stub(
         framesRouter,
         '_getContractForShard',
         function(contract, audit, bl, callback) {
@@ -741,14 +748,17 @@ describe('FramesRouter', function() {
           }), contract);
         }
       );
-      var _getConsign = sandbox.stub(
+
+      sandbox.stub(
         framesRouter.network,
         'getConsignmentPointer'
       ).callsArgWith(3, null, { token: 'token' });
+
       response.on('end', function() {
         expect(frame1.size).to.equal(1024 * 1024 * 8);
         done();
       });
+
       framesRouter.addShardToFrame(request, response);
     });
 
