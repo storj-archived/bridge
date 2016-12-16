@@ -247,75 +247,25 @@ describe('ReportsRouter', function() {
   describe('@_sortByResponseTime', function() {
     it('will sort correctly with best response time at index 0', function() {
       var available = [
-        {
-          contact: {
-            responseTime: 10100
-          }
-        },
-        {
-          contact: {}
-        },
-        {
-          contact: {
-            responseTime: 100
-          }
-        },
-        {
-          contact: {}
-        },
-        {
-          contact: {
-            responseTime: 200
-          }
-        },
-        {
-          contact: {
-            responseTime: 4100
-          }
-        },
-        {
-          contact: {
-            responseTime: 2100
-          }
-        }
+        { contact: { responseTime: 10100 }},
+        { contact: {} },
+        { contact: { responseTime: 100 }},
+        { contact: {} },
+        { contact: { responseTime: 200 }},
+        { contact: { responseTime: 4100 }},
+        { contact: { responseTime: 2100 }}
       ];
       available.sort(ReportsRouter._sortByResponseTime);
       expect(available).to.eql([
-        {
-          contact: {
-            responseTime: 100
-          }
-        },
-        {
-          contact: {
-            responseTime: 200
-          }
-        },
-        {
-          contact: {
-            responseTime: 2100
-          }
-        },
-        {
-          contact: {
-            responseTime: 4100
-          }
-        },
-        {
-          contact: {
-            responseTime: 10100
-          }
-        },
-        {
-          contact: {}
-        },
-        {
-          contact: {}
-        }
+        { contact: { responseTime: 100 }},
+        { contact: { responseTime: 200 }},
+        { contact: { responseTime: 2100 }},
+        { contact: { responseTime: 4100 }},
+        { contact: { responseTime: 10100}},
+        { contact: {}},
+        { contact: {}}
       ]);
-
     });
-
   });
 
   describe('#_triggerMirrorEstablish', function() {
