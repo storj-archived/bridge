@@ -244,50 +244,128 @@ describe('ReportsRouter', function() {
 
   });
 
+  describe('@_sortByResponseTime', function() {
+    it('will sort correctly with best response time at index 0', function() {
+      var available = [
+        {
+          contact: {
+            responseTime: 10100
+          }
+        },
+        {
+          contact: {}
+        },
+        {
+          contact: {
+            responseTime: 100
+          }
+        },
+        {
+          contact: {}
+        },
+        {
+          contact: {
+            responseTime: 200
+          }
+        },
+        {
+          contact: {
+            responseTime: 4100
+          }
+        },
+        {
+          contact: {
+            responseTime: 2100
+          }
+        }
+      ];
+      available.sort(ReportsRouter._sortByResponseTime);
+      expect(available).to.eql([
+        {
+          contact: {
+            responseTime: 100
+          }
+        },
+        {
+          contact: {
+            responseTime: 200
+          }
+        },
+        {
+          contact: {
+            responseTime: 2100
+          }
+        },
+        {
+          contact: {
+            responseTime: 4100
+          }
+        },
+        {
+          contact: {
+            responseTime: 10100
+          }
+        },
+        {
+          contact: {}
+        },
+        {
+          contact: {}
+        }
+      ]);
+
+    });
+
+  });
+
   describe('#_triggerMirrorEstablish', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
 
     const n = constants.M_REPLICATE;
     const hash = storj.utils.rmd160('');
 
     it('should successfully replicate the shard', function(done) {
+      sandbox.spy(Array.prototype, 'sort');
+      const mirrors = [
+        new reportsRouter.storage.models.Mirror({
+          shardHash: 'shardhash',
+          contact: new reportsRouter.storage.models.Contact({
+            _id: storj.utils.rmd160('node1'),
+            address: '0.0.0.0',
+            port: 1234,
+            protocol: '1.0.0',
+            lastSeen: Date.now(),
+            userAgent: 'test'
+          }),
+          contract: {
+            data_hash: storj.utils.rmd160('shardhash')
+          },
+          isEstablished: true
+        }),
+        new reportsRouter.storage.models.Mirror({
+          shardHash: 'shardhash',
+          contact: new reportsRouter.storage.models.Contact({
+            _id: storj.utils.rmd160('node2'),
+            address: '0.0.0.0',
+            port: 1234,
+            protocol: '1.0.0',
+            lastSeen: Date.now(),
+            userAgent: 'test'
+          }),
+          contract: {
+            data_hash: storj.utils.rmd160('shardhash')
+          },
+          isEstablished: false
+        })
+      ];
       var _mirrorFind = sinon.stub(
         reportsRouter.storage.models.Mirror,
         'find'
       ).returns({
         populate: () => {
           return {
-            exec: sinon.stub().callsArgWith(0, null, [
-              new reportsRouter.storage.models.Mirror({
-                shardHash: 'shardhash',
-                contact: new reportsRouter.storage.models.Contact({
-                  _id: storj.utils.rmd160('node1'),
-                  address: '0.0.0.0',
-                  port: 1234,
-                  protocol: '1.0.0',
-                  lastSeen: Date.now(),
-                  userAgent: 'test'
-                }),
-                contract: {
-                  data_hash: storj.utils.rmd160('shardhash')
-                },
-                isEstablished: true
-              }),
-              new reportsRouter.storage.models.Mirror({
-                shardHash: 'shardhash',
-                contact: new reportsRouter.storage.models.Contact({
-                  _id: storj.utils.rmd160('node2'),
-                  address: '0.0.0.0',
-                  port: 1234,
-                  protocol: '1.0.0',
-                  lastSeen: Date.now(),
-                  userAgent: 'test'
-                }),
-                contract: {
-                  data_hash: storj.utils.rmd160('shardhash')
-                },
-                isEstablished: false
-              })
-            ])
+            exec: sinon.stub().callsArgWith(0, null, mirrors)
           };
         }
       });
@@ -334,6 +412,9 @@ describe('ReportsRouter', function() {
         _getMirrorNodes.restore();
         _contractsSave.restore();
         expect(err).to.equal(null);
+        expect(Array.prototype.sort.callCount).to.equal(1);
+        expect(Array.prototype.sort.args[0][0])
+          .to.equal(ReportsRouter._sortByResponseTime);
         done();
       });
     });
