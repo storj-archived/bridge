@@ -1,6 +1,6 @@
 {
   "name": "storj-bridge",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "description": "Access the Storj network using a simple REST API.",
   "main": "index.js",
   "directories": {
@@ -68,13 +68,13 @@
     "ms": "^0.7.1",
     "nodemailer": "^2.0.0",
     "readable-stream": "^2.0.5",
-    "storj-complex": "braydonf/storj-complex",
+    "storj-complex": "^3.1.0",
     "storj-lib": "^6.0.9",
     "storj-mongodb-adapter": "^5.0.0",
     "storj-service-error-types": "^1.0.2",
     "storj-service-mailer": "^1.0.0",
     "storj-service-middleware": "^1.2.1",
-    "storj-service-storage-models": "braydonf/storj-service-storage-models",
+    "storj-service-storage-models": "^6.1.1",
     "through": "^2.3.8"
   }
 }
