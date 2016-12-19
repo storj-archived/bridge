@@ -2107,7 +2107,7 @@ describe('BucketsRouter', function() {
         }
       });
       request.token = {
-        bucket: 'notthebucketid'
+        bucket: 'bucketid'
       };
       const testUser = new bucketsRouter.storage.models.User({
         _id: 'testuser@storj.io',
@@ -2118,11 +2118,24 @@ describe('BucketsRouter', function() {
         save: sandbox.stub().callsArgWith(0)
       });
 
-      request.user = testUser;
       const response = httpMocks.createResponse({
         req: request,
         eventEmitter: EventEmitter
       });
+
+      const bucket = {
+        user: testUser
+      };
+
+      sandbox.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).returns({
+        populate: sandbox.stub().returns({
+          exec: sandbox.stub().callsArgWith(0, null, bucket)
+        })
+      });
+
       bucketsRouter.getFile(request, response, function(err) {
         expect(err).to.be.instanceOf(errors.TransferRateError);
         expect(err.message)
@@ -2142,7 +2155,6 @@ describe('BucketsRouter', function() {
       request.token = {
         bucket: 'notthebucketid'
       };
-      request.user = someUser;
       var response = httpMocks.createResponse({
         req: request,
         eventEmitter: EventEmitter
@@ -2164,17 +2176,19 @@ describe('BucketsRouter', function() {
       request.token = {
         bucket: 'bucketid'
       };
-      request.user = someUser;
       var response = httpMocks.createResponse({
         req: request,
         eventEmitter: EventEmitter
       });
-      var _bucketFindOne = sandbox.stub(
+      sandbox.stub(
         bucketsRouter.storage.models.Bucket,
         'findOne'
-      ).callsArgWith(1, new Error('Query failed'));
+      ).returns({
+        populate: sandbox.stub().returns({
+          exec: sandbox.stub().callsArgWith(0, new Error('Query failed'))
+        })
+      });
       bucketsRouter.getFile(request, response, function(err) {
-        _bucketFindOne.restore();
         expect(err.message).to.equal('Query failed');
         done();
       });
@@ -2191,7 +2205,6 @@ describe('BucketsRouter', function() {
       request.token = {
         bucket: 'bucketid'
       };
-      request.user = someUser;
       var response = httpMocks.createResponse({
         req: request,
         eventEmitter: EventEmitter
@@ -2199,7 +2212,11 @@ describe('BucketsRouter', function() {
       var _bucketFindOne = sandbox.stub(
         bucketsRouter.storage.models.Bucket,
         'findOne'
-      ).callsArgWith(1, null, null);
+      ).returns({
+        populate: sandbox.stub().returns({
+          exec: sandbox.stub().callsArgWith(0, null, null)
+        })
+      });
       bucketsRouter.getFile(request, response, function(err) {
         _bucketFindOne.restore();
         expect(err.message).to.equal('Bucket not found');
@@ -2218,16 +2235,22 @@ describe('BucketsRouter', function() {
       request.token = {
         bucket: 'bucketid'
       };
-      request.user = someUser;
       var response = httpMocks.createResponse({
         req: request,
         eventEmitter: EventEmitter
       });
-      var _bucketFindOne = sandbox.stub(
+      sandbox.stub(
         bucketsRouter.storage.models.Bucket,
         'findOne'
-      ).callsArgWith(1, null, { _id: 'bucketid' });
-      var _bucketEntryFindOne = sandbox.stub(
+      ).returns({
+        populate: sandbox.stub().returns({
+          exec: sandbox.stub().callsArgWith(0, null, {
+            _id: 'bucketid',
+            user: someUser
+          })
+        })
+      });
+      sandbox.stub(
         bucketsRouter.storage.models.BucketEntry,
         'findOne'
       ).returns({
@@ -2237,8 +2260,6 @@ describe('BucketsRouter', function() {
         exec: sandbox.stub().callsArgWith(0, new Error('Query failed'))
       });
       bucketsRouter.getFile(request, response, function(err) {
-        _bucketFindOne.restore();
-        _bucketEntryFindOne.restore();
         expect(err.message).to.equal('Query failed');
         done();
       });
@@ -2255,7 +2276,6 @@ describe('BucketsRouter', function() {
       request.token = {
         bucket: 'bucketid'
       };
-      request.user = someUser;
       var response = httpMocks.createResponse({
         req: request,
         eventEmitter: EventEmitter
@@ -2263,7 +2283,14 @@ describe('BucketsRouter', function() {
       var _bucketFindOne = sandbox.stub(
         bucketsRouter.storage.models.Bucket,
         'findOne'
-      ).callsArgWith(1, null, { _id: 'bucketid' });
+      ).returns({
+        populate: sandbox.stub().returns({
+          exec: sandbox.stub().callsArgWith(0, null, {
+            _id: 'bucketid',
+            user: someUser
+          })
+        })
+      });
       var _bucketEntryFindOne = sandbox.stub(
         bucketsRouter.storage.models.BucketEntry,
         'findOne'
@@ -2293,21 +2320,27 @@ describe('BucketsRouter', function() {
       request.token = {
         bucket: 'bucketid'
       };
-      request.user = someUser;
       var response = httpMocks.createResponse({
         req: request,
         eventEmitter: EventEmitter
       });
-      var _bucketFindOne = sandbox.stub(
+      sandbox.stub(
         bucketsRouter.storage.models.Bucket,
         'findOne'
-      ).callsArgWith(1, null, { _id: 'bucketid' });
+      ).returns({
+        populate: sandbox.stub().returns({
+          exec: sandbox.stub().callsArgWith(0, null, {
+            _id: 'bucketid',
+            user: someUser
+          })
+        })
+      });
       var entry = {
         frame: {
           size: 1024 * 8
         }
       };
-      var _bucketEntryFindOne = sandbox.stub(
+      sandbox.stub(
         bucketsRouter.storage.models.BucketEntry,
         'findOne'
       ).returns({
@@ -2316,14 +2349,11 @@ describe('BucketsRouter', function() {
         },
         exec: sandbox.stub().callsArgWith(0, null, entry)
       });
-      var _getPointersFromEntry = sandbox.stub(
+      sandbox.stub(
         bucketsRouter,
         '_getPointersFromEntry'
       ).callsArgWith(2, new Error('Failed to get token'));
       bucketsRouter.getFile(request, response, function(err) {
-        _getPointersFromEntry.restore();
-        _bucketFindOne.restore();
-        _bucketEntryFindOne.restore();
         expect(err.message).to.equal('Failed to get token');
         done();
       });
@@ -2341,7 +2371,6 @@ describe('BucketsRouter', function() {
       request.token = {
         bucket: 'bucketid'
       };
-      request.user = someUser;
       var response = httpMocks.createResponse({
         req: request,
         eventEmitter: EventEmitter
@@ -2349,7 +2378,14 @@ describe('BucketsRouter', function() {
       sandbox.stub(
         bucketsRouter.storage.models.Bucket,
         'findOne'
-      ).callsArgWith(1, null, { _id: 'bucketid' });
+      ).returns({
+        populate: sandbox.stub().returns({
+          exec: sandbox.stub().callsArgWith(0, null, {
+            _id: 'bucketid',
+            user: someUser
+          })
+        })
+      });
       var entry = {
         frame: {
           size: NaN
@@ -2394,7 +2430,6 @@ describe('BucketsRouter', function() {
         save: save
       });
 
-      request.user = testUser;
       var response = httpMocks.createResponse({
         req: request,
         eventEmitter: EventEmitter
@@ -2402,7 +2437,14 @@ describe('BucketsRouter', function() {
       sandbox.stub(
         bucketsRouter.storage.models.Bucket,
         'findOne'
-      ).callsArgWith(1, null, { _id: 'bucketid' });
+      ).returns({
+        populate: sandbox.stub().returns({
+          exec: sandbox.stub().callsArgWith(0, null, {
+            _id: 'bucketid',
+            user: testUser
+          })
+        })
+      });
       var entry = {
         frame: {
           size: 1024 * 8
@@ -2457,7 +2499,6 @@ describe('BucketsRouter', function() {
         save: save
       });
 
-      request.user = testUser;
       var response = httpMocks.createResponse({
         req: request,
         eventEmitter: EventEmitter
@@ -2465,7 +2506,14 @@ describe('BucketsRouter', function() {
       sandbox.stub(
         bucketsRouter.storage.models.Bucket,
         'findOne'
-      ).callsArgWith(1, null, { _id: 'bucketid' });
+      ).returns({
+        populate: sandbox.stub().returns({
+          exec: sandbox.stub().callsArgWith(0, null, {
+            _id: 'bucketid',
+            user: testUser
+          })
+        })
+      });
       var entry = {
         frame: {
           size: 1024 * 8
