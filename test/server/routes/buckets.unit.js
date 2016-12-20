@@ -2155,7 +2155,7 @@ describe('BucketsRouter', function() {
     });
 
     it('should callback with results', function(done) {
-      var _pointerFind = sandbox.stub(
+      sandbox.stub(
         bucketsRouter.storage.models.Pointer,
         'find'
       ).returns({
@@ -2171,7 +2171,7 @@ describe('BucketsRouter', function() {
         exec: sandbox.stub().callsArgWith(0, null, [{size: 10}])
       });
       var token = {};
-      var _getRetrievalToken = sinon.stub(
+      sandbox.stub(
         bucketsRouter,
         '_getRetrievalToken'
       ).callsArgWith(2, null, token);
