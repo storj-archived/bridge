@@ -8,6 +8,7 @@ const EventEmitter = require('events').EventEmitter;
 const BucketsRouter = require('../../../lib/server/routes/buckets');
 const ReadableStream = require('stream').Readable;
 const errors = require('storj-service-error-types');
+const log = require('../../../lib/logger');
 
 /* jshint maxstatements:false */
 describe('BucketsRouter', function() {
@@ -1994,6 +1995,8 @@ describe('BucketsRouter', function() {
   });
 
   describe('#_getPointersFromEntry', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
 
     it('should internal error if query fails', function(done) {
       var _pointerFind = sinon.stub(
@@ -2020,6 +2023,55 @@ describe('BucketsRouter', function() {
       }, user, function(err) {
         _pointerFind.restore();
         expect(err.message).to.equal('Query failed');
+        done();
+      });
+    });
+
+    it('record bytes and log on error', function(done) {
+      sandbox.stub(log, 'warn');
+
+      const testUser = new bucketsRouter.storage.models.User({
+        _id: 'testuser@storj.io',
+        hashpass: storj.utils.sha256('password')
+      });
+      testUser.isDownloadRateLimited = sandbox.stub().returns(true);
+      testUser.recordDownloadBytes = sandbox.stub().returns();
+      testUser.save = sandbox.stub().callsArgWith(0, new Error('test'));
+
+      const pointers = [{ size: 1 }, { size: 10 }, { size: 5 }];
+
+      sandbox.stub(
+        bucketsRouter.storage.models.Pointer,
+        'find'
+      ).returns({
+        skip: function() {
+          return this;
+        },
+        limit: function() {
+          return this;
+        },
+        sort: function() {
+          return this;
+        },
+        exec: sinon.stub().callsArgWith(0, null, pointers)
+      });
+
+      sandbox.stub(
+        bucketsRouter,
+        '_getRetrievalToken'
+      ).callsArgWith(2, null, {});
+
+      bucketsRouter._getPointersFromEntry({
+        frame: { shards: [] }
+      }, {
+        skip: 6,
+        limit: 12
+      }, testUser, function(err) {
+        if (err) {
+          return done(err);
+        }
+        expect(log.warn.callCount).to.equal(1);
+        expect(testUser.recordDownloadBytes.args[0][0]).to.equal(16);
         done();
       });
     });
