@@ -1999,7 +1999,7 @@ describe('BucketsRouter', function() {
     afterEach(() => sandbox.restore());
 
     it('should internal error if query fails', function(done) {
-      var _pointerFind = sinon.stub(
+      var _pointerFind = sandbox.stub(
         bucketsRouter.storage.models.Pointer,
         'find'
       ).returns({
@@ -2012,7 +2012,7 @@ describe('BucketsRouter', function() {
         sort: function() {
           return this;
         },
-        exec: sinon.stub().callsArgWith(0, new Error('Query failed'))
+        exec: sandbox.stub().callsArgWith(0, new Error('Query failed'))
       });
       const user = someUser;
       bucketsRouter._getPointersFromEntry({
@@ -2053,7 +2053,7 @@ describe('BucketsRouter', function() {
         sort: function() {
           return this;
         },
-        exec: sinon.stub().callsArgWith(0, null, pointers)
+        exec: sandbox.stub().callsArgWith(0, null, pointers)
       });
 
       sandbox.stub(
@@ -2076,8 +2076,20 @@ describe('BucketsRouter', function() {
       });
     });
 
-    it('should internal error if any retreive token fails', function(done) {
-      var _pointerFind = sinon.stub(
+    it('will give error if bytes not finite', function(done) {
+      sandbox.stub(log, 'warn');
+
+      const testUser = new bucketsRouter.storage.models.User({
+        _id: 'testuser@storj.io',
+        hashpass: storj.utils.sha256('password')
+      });
+      testUser.isDownloadRateLimited = sandbox.stub().returns(true);
+      testUser.recordDownloadBytes = sandbox.stub().returns();
+      testUser.save = sandbox.stub().callsArgWith(0, new Error('test'));
+
+      const pointers = [{ size: NaN }, { size: NaN }, { size: NaN }];
+
+      sandbox.stub(
         bucketsRouter.storage.models.Pointer,
         'find'
       ).returns({
@@ -2090,9 +2102,42 @@ describe('BucketsRouter', function() {
         sort: function() {
           return this;
         },
-        exec: sinon.stub().callsArgWith(0, null, [{}])
+        exec: sandbox.stub().callsArgWith(0, null, pointers)
       });
-      var _getRetrievalToken = sinon.stub(
+
+      sandbox.stub(
+        bucketsRouter,
+        '_getRetrievalToken'
+      ).callsArgWith(2, null, {});
+
+      bucketsRouter._getPointersFromEntry({
+        frame: { shards: [] }
+      }, {
+        skip: 6,
+        limit: 12
+      }, testUser, function(err) {
+        expect(err.message).to.equal('Pointer size in not a finite number');
+        done();
+      });
+    });
+
+    it('should internal error if any retreive token fails', function(done) {
+      var _pointerFind = sandbox.stub(
+        bucketsRouter.storage.models.Pointer,
+        'find'
+      ).returns({
+        skip: function() {
+          return this;
+        },
+        limit: function() {
+          return this;
+        },
+        sort: function() {
+          return this;
+        },
+        exec: sandbox.stub().callsArgWith(0, null, [{size: 10}])
+      });
+      var _getRetrievalToken = sandbox.stub(
         bucketsRouter,
         '_getRetrievalToken'
       ).callsArgWith(2, new Error('Failed to get token'));
@@ -2110,7 +2155,7 @@ describe('BucketsRouter', function() {
     });
 
     it('should callback with results', function(done) {
-      var _pointerFind = sinon.stub(
+      var _pointerFind = sandbox.stub(
         bucketsRouter.storage.models.Pointer,
         'find'
       ).returns({
@@ -2123,7 +2168,7 @@ describe('BucketsRouter', function() {
         sort: function() {
           return this;
         },
-        exec: sinon.stub().callsArgWith(0, null, [{}])
+        exec: sandbox.stub().callsArgWith(0, null, [{size: 10}])
       });
       var token = {};
       var _getRetrievalToken = sinon.stub(
@@ -2136,8 +2181,9 @@ describe('BucketsRouter', function() {
         skip: 6,
         limit: 12
       }, someUser, function(err, results) {
-        _pointerFind.restore();
-        _getRetrievalToken.restore();
+        if (err) {
+          return done(err);
+        }
         expect(results[0]).to.equal(token);
         done();
       });
@@ -2481,55 +2527,6 @@ describe('BucketsRouter', function() {
       ).callsArgWith(3, new Error('Failed to get token'));
       bucketsRouter.getFile(request, response, function(err) {
         expect(err.message).to.equal('Failed to get token');
-        done();
-      });
-    });
-
-    it('should give error if frame size is not finite', function(done) {
-      var request = httpMocks.createRequest({
-        method: 'GET',
-        url: '/buckets/:bucket_id/files/:file_id',
-        params: {
-          id: 'bucketid'
-        },
-        query: {}
-      });
-      request.token = {
-        bucket: 'bucketid'
-      };
-      var response = httpMocks.createResponse({
-        req: request,
-        eventEmitter: EventEmitter
-      });
-      sandbox.stub(
-        bucketsRouter.storage.models.Bucket,
-        'findOne'
-      ).callsArgWith(1, null, {
-        _id: 'bucketid',
-      });
-
-      sandbox.stub(
-        bucketsRouter.storage.models.User,
-        'findOne'
-      ).callsArgWith(1, null, someUser);
-
-      var entry = {
-        frame: {
-          size: NaN
-        }
-      };
-      sandbox.stub(
-        bucketsRouter.storage.models.BucketEntry,
-        'findOne'
-      ).returns({
-        populate: function() {
-          return this;
-        },
-        exec: sandbox.stub().callsArgWith(0, null, entry)
-      });
-      bucketsRouter.getFile(request, response, function(err) {
-        expect(err).to.be.instanceOf(errors.InternalError);
-        expect(err.message).to.equal('Frame size in not a finite number');
         done();
       });
     });
