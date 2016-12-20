@@ -2246,6 +2246,73 @@ describe('BucketsRouter', function() {
       });
     });
 
+    it('should internal error if user query fails', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/buckets/:bucket_id/files/:file_id',
+        params: {
+          id: 'bucketid'
+        }
+      });
+      request.token = {
+        bucket: 'bucketid'
+      };
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+
+      sandbox.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, {user: 'userid'});
+
+      sandbox.stub(
+        bucketsRouter.storage.models.User,
+        'findOne'
+      ).callsArgWith(1, new Error('user test'));
+
+      bucketsRouter.getFile(request, response, function(err) {
+        expect(err).to.be.instanceOf(errors.InternalError);
+        expect(err.message).to.equal('user test');
+        done();
+      });
+    });
+
+
+    it('should 404 if user query is not found', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/buckets/:bucket_id/files/:file_id',
+        params: {
+          id: 'bucketid'
+        }
+      });
+      request.token = {
+        bucket: 'bucketid'
+      };
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+
+      sandbox.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, {user: 'userid'});
+
+      sandbox.stub(
+        bucketsRouter.storage.models.User,
+        'findOne'
+      ).callsArgWith(1, null, null);
+
+      bucketsRouter.getFile(request, response, function(err) {
+        expect(err).to.be.instanceOf(errors.NotFoundError);
+        expect(err.message).to.equal('User not found for bucket');
+        done();
+      });
+    });
+
     it('should not found error if bucket not found', function(done) {
       var request = httpMocks.createRequest({
         method: 'GET',
