@@ -64,7 +64,7 @@
             "in": "query",
             "required": false,
             "type": "string",
-            "description": "Paginagtion indicator, defaults to 1"
+            "description": "Pagination indicator, defaults to 1"
           },
           {
             "name": "address",
