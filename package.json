@@ -71,6 +71,7 @@
     "storj-complex": "^3.1.0",
     "storj-lib": "^6.0.9",
     "storj-mongodb-adapter": "^5.0.0",
+    "storj-service-auditor": "git://github.com/Storj/service-auditor.git",
     "storj-service-error-types": "^1.0.2",
     "storj-service-mailer": "^1.0.0",
     "storj-service-middleware": "^1.2.1",

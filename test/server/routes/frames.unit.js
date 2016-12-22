@@ -8,6 +8,8 @@ const EventEmitter = require('events').EventEmitter;
 const FramesRouter = require('../../../lib/server/routes/frames');
 const errors = require('storj-service-error-types');
 const log = require('../../../lib/logger');
+const auditor = require('../../../node_modules/storj-service-auditor/lib');
+const proxyquire = require('proxyquire');
 
 describe('FramesRouter', function() {
 
@@ -15,9 +17,24 @@ describe('FramesRouter', function() {
 
   afterEach(() => sandbox.restore());
 
+
+  var proxy = proxyquire('../../../lib/server/routes/frames', {
+    '../../../node_modules/storj-service-auditor/lib': {
+      interface: sinon.stub().returns({
+        add: sinon.stub().callsArg(1),
+        createAuditJobs: sinon.stub().returns({
+          pass: true
+        })
+      })
+    }
+  });
+
+  var framesRouter = new proxy(require('../../_fixtures/router-opts'));
+/*
   var framesRouter = new FramesRouter(
     require('../../_fixtures/router-opts')
   );
+*/
   var someUser = new framesRouter.storage.models.User({
     _id: 'gordon@storj.io',
     hashpass: storj.utils.sha256('password')
@@ -120,7 +137,8 @@ describe('FramesRouter', function() {
         'load'
       ).callsArgWith(1, new Error('Contract not found'));
       var contract = new storj.Contract({
-        data_hash: storj.utils.rmd160('data')
+        data_hash: storj.utils.rmd160('data'),
+        farmer_id: '0123456789012345678901234567890123456789'
       });
       var audits = new storj.AuditStream(3);
       framesRouter._getContractForShard(contract, audits, [], function(err) {
@@ -539,23 +557,27 @@ describe('FramesRouter', function() {
           tree: auditStream.getPublicRecord()
         }
       });
+
       request.user = someUser;
       var response = httpMocks.createResponse({
         req: request,
         eventEmitter: EventEmitter
       });
+
       var _frameFindOne = sinon.stub(
         framesRouter.storage.models.Frame,
         'findOne'
       ).callsArgWith(1, null, new framesRouter.storage.models.Frame({
         user: someUser._id
       }));
+
       _frameFindOne.onCall(1).returns({
         populate: function() {
           return this;
         },
         exec: sinon.stub().callsArgWith(0, new Error('Cannot reload frame'))
       });
+
       var _pointerCreate = sinon.stub(
         framesRouter.storage.models.Pointer,
         'create'
@@ -566,6 +588,7 @@ describe('FramesRouter', function() {
         challenges: auditStream.getPrivateRecord().challenges,
         tree: auditStream.getPublicRecord()
       }));
+
       var _getContract = sinon.stub(
         framesRouter,
         '_getContractForShard',
@@ -577,10 +600,12 @@ describe('FramesRouter', function() {
           }), contract);
         }
       );
+
       var _getConsign = sinon.stub(
         framesRouter.network,
         'getConsignmentPointer'
       ).callsArgWith(3, null, { token: 'token' });
+
       framesRouter.addShardToFrame(request, response, function(err) {
         _frameFindOne.restore();
         _pointerCreate.restore();
