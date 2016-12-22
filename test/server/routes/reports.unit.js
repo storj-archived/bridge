@@ -280,6 +280,14 @@ describe('ReportsRouter', function() {
       const mirrors = [
         new reportsRouter.storage.models.Mirror({
           shardHash: 'shardhash',
+          contact: null, // populated contact field not found
+          contract: {
+            data_hash: storj.utils.rmd160('shardhash')
+          },
+          isEstablished: true
+        }),
+        new reportsRouter.storage.models.Mirror({
+          shardHash: 'shardhash',
           contact: new reportsRouter.storage.models.Contact({
             _id: storj.utils.rmd160('node1'),
             address: '0.0.0.0',
@@ -309,7 +317,7 @@ describe('ReportsRouter', function() {
           isEstablished: false
         })
       ];
-      var _mirrorFind = sinon.stub(
+      sandbox.stub(
         reportsRouter.storage.models.Mirror,
         'find'
       ).returns({
@@ -327,11 +335,11 @@ describe('ReportsRouter', function() {
           }
         }
       });
-      var _contractsLoad = sinon.stub(
+      sandbox.stub(
         reportsRouter.contracts,
         'load'
       ).callsArgWith(1, null, item);
-      var _getContactById = sinon.stub(
+      sandbox.stub(
         reportsRouter,
         'getContactById'
       ).callsArgWith(1, null, new reportsRouter.storage.models.Contact({
@@ -342,25 +350,19 @@ describe('ReportsRouter', function() {
         lastSeen: Date.now(),
         userAgent: 'test'
       }));
-      var _getRetrievalPointer = sinon.stub(
+      sandbox.stub(
         reportsRouter.network,
         'getRetrievalPointer'
       ).callsArgWith(2, null, { /* pointer */ });
-      var _getMirrorNodes = sinon.stub(
+      sandbox.stub(
         reportsRouter.network,
         'getMirrorNodes'
       ).callsArgWith(2, null);
-      var _contractsSave = sinon.stub(
+      sandbox.stub(
         reportsRouter.contracts,
         'save'
       ).callsArgWith(1, null);
       reportsRouter._triggerMirrorEstablish(n, hash, function(err) {
-        _mirrorFind.restore();
-        _contractsLoad.restore();
-        _getContactById.restore();
-        _getRetrievalPointer.restore();
-        _getMirrorNodes.restore();
-        _contractsSave.restore();
         expect(err).to.equal(null);
         expect(Array.prototype.sort.callCount).to.equal(1);
         expect(Array.prototype.sort.args[0][0])
