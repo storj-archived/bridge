@@ -2121,6 +2121,37 @@ describe('BucketsRouter', function() {
       });
     });
 
+    it('will sum gte and lt correctly w/ strings', function(done) {
+      const pointers = [];
+
+      const find = sandbox.stub(
+        bucketsRouter.storage.models.Pointer,
+        'find'
+      ).returns({
+        sort: function() {
+          return this;
+        },
+        exec: sandbox.stub().callsArgWith(0, null, pointers)
+      });
+
+      sandbox.stub(
+        bucketsRouter,
+        '_getRetrievalToken'
+      ).callsArgWith(2, null, {});
+
+      bucketsRouter._getPointersFromEntry({
+        frame: { shards: [] }
+      }, {
+        skip: '4',
+        limit: '1'
+      }, someUser, function() {
+        expect(find.callCount).to.equal(1);
+        expect(find.args[0][0].index.$gte).to.equal(4);
+        expect(find.args[0][0].index.$lt).to.equal(5);
+        done();
+      });
+    });
+
     it('should internal error if any retreive token fails', function(done) {
       var _pointerFind = sandbox.stub(
         bucketsRouter.storage.models.Pointer,
