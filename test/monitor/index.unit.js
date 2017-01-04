@@ -68,9 +68,17 @@ describe('Monitor', function() {
   describe('_randomTime', function() {
 
     it('will select a random number between min and max', function() {
+      const monitor = new Monitor(config);
+      const time = monitor._randomTime(600000, 300000);
+      expect(time).to.be.above(299999); // 5min
+      expect(time).to.be.below(600001); // 10min
     });
 
     it('will throw with invalid options', function() {
+      const monitor = new Monitor(config);
+      expect(function() {
+        monitor._randomTime(300000, 600000);
+      }).to.throw('Assertion');
     });
 
   });
