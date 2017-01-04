@@ -86,6 +86,17 @@ describe('Monitor', function() {
   describe('#wait', function() {
 
     it('will set a timeout, and call run', function() {
+      const time = sandbox.useFakeTimers();
+
+      const monitor = new Monitor(config);
+      monitor.run = sandbox.stub();
+      monitor._randomTime = sandbox.stub().returns(1000);
+      monitor._timeout = setTimeout(() => {
+        throw new Error('This should not happen')
+      }, 5);
+      monitor.wait();
+      time.tick(1001);
+      expect(monitor.run.callCount).to.equal(1);
     });
 
   });
