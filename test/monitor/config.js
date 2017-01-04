@@ -1,7 +1,7 @@
 'use strict';
 
 const expect = require('chai').expect;
-const Monitor = require('../lib/monitor');
+const Monitor = require('../../lib/monitor/config');
 
 describe('Monitor Config', function() {
 
@@ -20,10 +20,10 @@ describe('Monitor Config', function() {
 
   describe('#getPaths', function() {
 
-    it('will throw if not an absolute config path', function(done) {
+    it('will throw if not an absolute config path', function() {
     });
 
-    it('will get the directory name from path', function(done) {
+    it('will get the directory name from path', function() {
     });
 
   });

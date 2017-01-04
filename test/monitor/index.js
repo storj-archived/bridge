@@ -1,23 +1,44 @@
 'use strict';
 
+const fs = require('fs');
+const sinon = require('sinon');
 const expect = require('chai').expect;
-const Monitor = require('../lib/monitor');
+const Monitor = require('../../lib/monitor');
+const MonitorConfig = require('../../lib/monitor/config');
 
 describe('Monitor', function() {
 
+  const sandbox = sinon.sandbox.create();
+  beforeEach(() => {
+    sandbox.stub(fs, 'existsSync').returns(true);
+    sandbox.stub(fs, 'writeFileSync');
+    sandbox.stub(fs, 'readFileSync').returns('{}');
+  });
+  afterEach(() => sandbox.restore());
+
+  const config = new MonitorConfig('/tmp/storj-monitor-test.json');
+
   describe('@constructor', function() {
 
-    it('will contruct with/without new', function() {
+    it('will contruct with new', function() {
+      const monitor = new Monitor(config);
+      expect(monitor._config).to.equal(config);
+      expect(monitor._timeout).to.equal(null);
+      expect(monitor._running).to.equal(false);
     });
 
-    it('will set the correct properties', function() {
+    it('will contruct without new', function() {
+      const monitor = Monitor(config);
+      expect(monitor._config).to.equal(config);
+      expect(monitor._timeout).to.equal(null);
+      expect(monitor._running).to.equal(false);
     });
 
   });
 
   describe('#start', function() {
 
-    it('will init storage, network, contracts, and schedule run', function(done) {
+    it('will init storage, network, contracts, and schedule run', function() {
     });
 
   });
@@ -30,7 +51,7 @@ describe('Monitor', function() {
     it('will record the last ping time', function() {
     });
 
-    it('will trigger replication if not seen for "n" amonut of time', function() {
+    it('will replication if not seen for "n" amonut of time', function() {
     });
 
   });
