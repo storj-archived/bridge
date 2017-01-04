@@ -3,6 +3,9 @@
 const fs = require('fs');
 const sinon = require('sinon');
 const expect = require('chai').expect;
+const Storage = require('storj-service-storage-models');
+const ComplexClient = require('storj-complex').createClient;
+const storj = require('storj-lib');
 const Monitor = require('../../lib/monitor');
 const MonitorConfig = require('../../lib/monitor/config');
 
@@ -38,7 +41,19 @@ describe('Monitor', function() {
 
   describe('#start', function() {
 
-    it('will init storage, network, contracts, and schedule run', function() {
+    it('will init storage, network, contracts, and schedule run', function(done) {
+      const monitor = new Monitor(config);
+      monitor.wait = sandbox.stub();
+      monitor.start(function(err) {
+        if (err) {
+          return done(err);
+        }
+        expect(monitor.storage).to.be.instanceOf(Storage);
+        expect(monitor.network).to.be.instanceOf(ComplexClient);
+        expect(monitor.contracts).to.be.instanceOf(storj.StorageManager);
+        expect(monitor.wait.callCount).to.equal(1);
+        done();
+      });
     });
 
   });
@@ -92,7 +107,7 @@ describe('Monitor', function() {
       monitor.run = sandbox.stub();
       monitor._randomTime = sandbox.stub().returns(1000);
       monitor._timeout = setTimeout(() => {
-        throw new Error('This should not happen')
+        throw new Error('This should not happen');
       }, 5);
       monitor.wait();
       time.tick(1001);
