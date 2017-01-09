@@ -10,6 +10,8 @@ const Monitor = require('../../lib/monitor');
 const MonitorConfig = require('../../lib/monitor/config');
 const log = require('../../lib/logger');
 
+/* jshint maxstatements: 100 */
+
 describe('Monitor', function() {
 
   const sandbox = sinon.sandbox.create();
@@ -165,10 +167,11 @@ describe('Monitor', function() {
         port: 1337
       }];
       const exec = sandbox.stub().callsArgWith(0, null, contacts);
+      const sort = sandbox.stub().returns({
+        exec: exec
+      });
       const limit = sandbox.stub().returns({
-        sort: sandbox.stub().returns({
-          exec: exec
-        })
+        sort: sort
       });
       const find = sandbox.stub().returns({
         limit: limit
@@ -182,6 +185,8 @@ describe('Monitor', function() {
       };
       monitor.wait = sandbox.stub();
       monitor.run();
+      expect(sort.callCount).to.equal(1);
+      expect(sort.args[0][0]).to.eql({lastSeen: 1});
       expect(monitor.wait.callCount).to.equal(1);
       expect(exec.callCount).to.equal(1);
       expect(limit.callCount).to.equal(1);
