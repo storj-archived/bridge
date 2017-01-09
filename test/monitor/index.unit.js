@@ -152,12 +152,15 @@ describe('Monitor', function() {
       monitor.network.ping.onThirdCall().callsArgWith(1, null);
 
       const contacts = [{
+        nodeID: '7b8b30132e930c7827ee47efebfb197d6a3246d4',
         address: '127.0.0.1',
         port: 1337
       }, {
+        nodeID: 'dd985ca22f19858257b3328a56f8f4aabee1d4a1',
         address: '127.0.0.1',
         port: 1337
       }, {
+        nodeID: '6ae62b18fc9d20139c933e66f3b2fd2f8d04c20d',
         address: '127.0.0.1',
         port: 1337
       }];
@@ -184,6 +187,10 @@ describe('Monitor', function() {
       expect(limit.callCount).to.equal(1);
       expect(limit.args[0][0]).to.equal(100);
       expect(log.error.callCount).to.equal(2);
+      expect(log.error.args[0][1])
+        .to.equal('7b8b30132e930c7827ee47efebfb197d6a3246d4');
+      expect(log.error.args[0][2])
+        .to.equal('Farmer offline');
       expect(log.info.callCount).to.equal(2);
       expect(monitor.network.ping.callCount).to.equal(3);
       expect(monitor.network.ping.args[0][0]).to.be.instanceOf(storj.Contact);
