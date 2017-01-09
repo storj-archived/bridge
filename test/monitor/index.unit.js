@@ -151,7 +151,16 @@ describe('Monitor', function() {
       };
       monitor.network.ping.onThirdCall().callsArgWith(1, null);
 
-      const contacts = [{}, {}, {}];
+      const contacts = [{
+        address: '127.0.0.1',
+        port: 1337
+      }, {
+        address: '127.0.0.1',
+        port: 1337
+      }, {
+        address: '127.0.0.1',
+        port: 1337
+      }];
       const exec = sandbox.stub().callsArgWith(0, null, contacts);
       const limit = sandbox.stub().returns({
         sort: sandbox.stub().returns({
@@ -176,6 +185,8 @@ describe('Monitor', function() {
       expect(limit.args[0][0]).to.equal(100);
       expect(log.error.callCount).to.equal(2);
       expect(log.info.callCount).to.equal(2);
+      expect(monitor.network.ping.callCount).to.equal(3);
+      expect(monitor.network.ping.args[0][0]).to.be.instanceOf(storj.Contact);
     });
 
   });
