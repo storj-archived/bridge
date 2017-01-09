@@ -8,6 +8,7 @@ const ComplexClient = require('storj-complex').createClient;
 const storj = require('storj-lib');
 const Monitor = require('../../lib/monitor');
 const MonitorConfig = require('../../lib/monitor/config');
+const log = require('../../lib/logger');
 
 describe('Monitor', function() {
 
@@ -60,24 +61,123 @@ describe('Monitor', function() {
 
   describe('#run', function() {
 
-    it('will query the "n" least seen contacts', function() {
+    it('will call wait if already running', function() {
+      const monitor = new Monitor(config);
+      monitor._running = true;
+      monitor.wait = sandbox.stub();
+      monitor.run();
+      expect(monitor.wait.callCount).to.equal(1);
     });
 
-    it('will record the last ping time', function() {
+
+    it('will log error when querying contacts', function() {
+      const monitor = new Monitor(config);
+
+      sandbox.stub(log, 'error');
+      sandbox.stub(log, 'info');
+
+
+      const exec = sandbox.stub().callsArgWith(0, new Error('Mongo error'));
+      const sort = sandbox.stub().returns({
+        exec: exec
+      });
+      const limit = sandbox.stub().returns({
+        sort: sort
+      });
+      const find = sandbox.stub().returns({
+        limit: limit
+      });
+
+      monitor.storage = {
+        models: {
+          Contact: {
+            find: find
+          }
+        }
+      };
+
+      monitor.wait = sandbox.stub();
+      monitor.run();
+      expect(monitor.wait.callCount).to.equal(1);
+      expect(monitor._running).to.equal(false);
+      expect(log.error.callCount).to.equal(1);
+      expect(log.info.callCount).to.equal(2);
+      expect();
     });
 
-    it('will replication if not seen for "n" amonut of time', function() {
+    it('will log error when missing contacts', function() {
+      const monitor = new Monitor(config);
+
+      sandbox.stub(log, 'error');
+      sandbox.stub(log, 'info');
+
+
+      const exec = sandbox.stub().callsArgWith(0, null, null);
+      const sort = sandbox.stub().returns({
+        exec: exec
+      });
+      const limit = sandbox.stub().returns({
+        sort: sort
+      });
+      const find = sandbox.stub().returns({
+        limit: limit
+      });
+
+      monitor.storage = {
+        models: {
+          Contact: {
+            find: find
+          }
+        }
+      };
+
+      monitor.wait = sandbox.stub();
+      monitor.run();
+      expect(monitor.wait.callCount).to.equal(1);
+      expect(monitor._running).to.equal(false);
+      expect(log.error.callCount).to.equal(1);
+      expect(log.info.callCount).to.equal(2);
+      expect();
     });
 
-  });
+    it('query "n" least seen contacts and log ping status', function() {
+      const monitor = new Monitor(config);
 
-  describe('#_replicate', function() {
+      sandbox.stub(log, 'error');
+      sandbox.stub(log, 'info');
 
-    it('will invalidate a contract and mirror', function() {
+      monitor.network = {
+        ping: sandbox.stub().callsArgWith(1, new Error('Farmer offline'))
+      };
+      monitor.network.ping.onThirdCall().callsArgWith(1, null);
+
+      const contacts = [{}, {}, {}];
+      const exec = sandbox.stub().callsArgWith(0, null, contacts);
+      const limit = sandbox.stub().returns({
+        sort: sandbox.stub().returns({
+          exec: exec
+        })
+      });
+      const find = sandbox.stub().returns({
+        limit: limit
+      });
+      monitor.storage = {
+        models: {
+          Contact: {
+            find: find
+          }
+        }
+      };
+      monitor.wait = sandbox.stub();
+      monitor.run();
+      expect(monitor.wait.callCount).to.equal(1);
+      expect(exec.callCount).to.equal(1);
+      expect(limit.callCount).to.equal(1);
+      expect(limit.args[0][0]).to.equal(100);
+      expect(log.error.callCount).to.equal(2);
+      expect(log.info.callCount).to.equal(2);
     });
 
-    it('will trigger a new mirror to be created', function() {
-    });
   });
 
   describe('_randomTime', function() {
