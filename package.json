@@ -8,7 +8,8 @@
     "test": "test"
   },
   "bin": {
-    "storj-bridge": "bin/storj-bridge.js"
+    "storj-bridge": "bin/storj-bridge.js",
+    "storj-monitor": "bin/storj-monitor.js"    
   },
   "scripts": {
     "testsuite": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=test _mocha --recursive test/**",
