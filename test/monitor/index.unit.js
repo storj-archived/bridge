@@ -201,6 +201,14 @@ describe('Monitor', function() {
       monitor.wait = sandbox.stub();
       monitor.run();
 
+      expect(find.callCount).to.equal(1);
+      expect(find.args[0][0]).to.eql({
+        $or: [
+          { timeoutRate: { $lt: 0.04 } },
+          { timeoutRate: { $exists: false } }
+        ]
+      });
+
       expect(sort.callCount).to.equal(1);
       expect(sort.args[0][0]).to.eql({lastSeen: 1});
       expect(monitor.wait.callCount).to.equal(1);
