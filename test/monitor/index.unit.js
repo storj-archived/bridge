@@ -104,7 +104,6 @@ describe('Monitor', function() {
       expect(monitor._running).to.equal(false);
       expect(log.error.callCount).to.equal(1);
       expect(log.info.callCount).to.equal(2);
-      expect();
     });
 
     it('will log error when missing contacts', function() {
@@ -139,7 +138,6 @@ describe('Monitor', function() {
       expect(monitor._running).to.equal(false);
       expect(log.error.callCount).to.equal(1);
       expect(log.info.callCount).to.equal(2);
-      expect();
     });
 
     it('query least seen contacts, log and record status', function() {
@@ -281,20 +279,6 @@ describe('Monitor', function() {
       monitor.wait();
       time.tick(1001);
       expect(monitor.run.callCount).to.equal(1);
-    });
-
-  });
-
-  describe('#_handleUncaughtException', function() {
-
-    it('will log stack trace of exception', function() {
-    });
-
-  });
-
-  describe('#_handleSIGINT', function() {
-
-    it('will wait to shutdown until nolonger actively running', function() {
     });
 
   });
