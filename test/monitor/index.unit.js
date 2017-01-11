@@ -142,30 +142,45 @@ describe('Monitor', function() {
       expect();
     });
 
-    it('query "n" least seen contacts and log ping status', function() {
+    it('query least seen contacts, log and record status', function() {
       const monitor = new Monitor(config);
 
       sandbox.stub(log, 'error');
       sandbox.stub(log, 'info');
+      sandbox.stub(log, 'warn');
 
       monitor.network = {
         ping: sandbox.stub().callsArgWith(1, new Error('Farmer offline'))
       };
       monitor.network.ping.onThirdCall().callsArgWith(1, null);
 
+      const save = sandbox.stub().callsArg(0);
+      save.onSecondCall().callsArgWith(0, new Error('Mongo error'));
+
+      const recordTimeoutFailure = sandbox.stub().returns({
+        save: save
+      });
+
       const contacts = [{
         nodeID: '7b8b30132e930c7827ee47efebfb197d6a3246d4',
         address: '127.0.0.1',
-        port: 1337
+        port: 1337,
+        recordTimeoutFailure: recordTimeoutFailure,
+        timeoutRate: 0.05
       }, {
         nodeID: 'dd985ca22f19858257b3328a56f8f4aabee1d4a1',
         address: '127.0.0.1',
-        port: 1337
+        port: 1337,
+        recordTimeoutFailure: recordTimeoutFailure,
+        timeoutRate: 0.02
       }, {
         nodeID: '6ae62b18fc9d20139c933e66f3b2fd2f8d04c20d',
         address: '127.0.0.1',
-        port: 1337
+        port: 1337,
+        recordTimeoutFailure: recordTimeoutFailure,
+        timeoutRate: 0.03
       }];
+
       const exec = sandbox.stub().callsArgWith(0, null, contacts);
       const sort = sandbox.stub().returns({
         exec: exec
@@ -185,18 +200,41 @@ describe('Monitor', function() {
       };
       monitor.wait = sandbox.stub();
       monitor.run();
+
       expect(sort.callCount).to.equal(1);
       expect(sort.args[0][0]).to.eql({lastSeen: 1});
       expect(monitor.wait.callCount).to.equal(1);
       expect(exec.callCount).to.equal(1);
       expect(limit.callCount).to.equal(1);
       expect(limit.args[0][0]).to.equal(100);
-      expect(log.error.callCount).to.equal(2);
+
+      expect(log.error.callCount).to.equal(3);
+
       expect(log.error.args[0][1])
         .to.equal('7b8b30132e930c7827ee47efebfb197d6a3246d4');
       expect(log.error.args[0][2])
         .to.equal('Farmer offline');
+
+      expect(log.error.args[1][1])
+        .to.equal('dd985ca22f19858257b3328a56f8f4aabee1d4a1');
+      expect(log.error.args[1][2])
+        .to.equal('Farmer offline');
+
+      expect(log.error.args[2][1])
+        .to.equal('dd985ca22f19858257b3328a56f8f4aabee1d4a1');
+      expect(log.error.args[2][2])
+        .to.equal('Mongo error');
+
+      expect(recordTimeoutFailure.callCount).to.equal(2);
+      expect(save.callCount).to.equal(2);
+
       expect(log.info.callCount).to.equal(2);
+      expect(log.warn.callCount).to.equal(1);
+      expect(log.warn.args[0][1])
+        .to.equal('7b8b30132e930c7827ee47efebfb197d6a3246d4');
+      expect(log.warn.args[0][2])
+        .to.equal(0.05);
+
       expect(monitor.network.ping.callCount).to.equal(3);
       expect(monitor.network.ping.args[0][0]).to.be.instanceOf(storj.Contact);
     });

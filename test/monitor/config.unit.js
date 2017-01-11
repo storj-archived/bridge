@@ -93,7 +93,8 @@ describe('Monitor Config', function() {
         maxInterval: '10m',
         minInterval: '5m',
         queryNumber: 100,
-        pingConcurrency: 10
+        pingConcurrency: 10,
+        timeoutRateThreshold: 0.04
       }
     };
 
