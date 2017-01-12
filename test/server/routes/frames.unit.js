@@ -622,14 +622,9 @@ describe('FramesRouter', function() {
       ).callsArgWith(3, null, { token: 'token' });
 
       var _auditAdd = sinon.stub(
-        framesRouter._auditor,
-        'add'
+        framesRouter.storage.models.FullAudits,
+        'schedule'
       ).callsArgWith(1, null);
-
-      var _auditCreateJob = sinon.stub(
-        framesRouter._auditor,
-        'createAuditJobs'
-      ).returns([{passed: true}]);
 
       framesRouter.addShardToFrame(request, response, function(err) {
         _frameFindOne.restore();
@@ -637,7 +632,6 @@ describe('FramesRouter', function() {
         _getContract.restore();
         _getConsign.restore();
         _auditAdd.restore();
-        _auditCreateJob.restore();
         expect(err.message).to.equal('Cannot reload frame');
         done();
       });
@@ -718,14 +712,9 @@ describe('FramesRouter', function() {
       ).callsArgWith(3, null, { token: 'token' });
 
       var _auditAdd = sinon.stub(
-        framesRouter._auditor,
-        'add'
+        framesRouter.storage.models.FullAudits,
+        'schedule'
       ).callsArgWith(1, null);
-
-      var _auditCreateJob = sinon.stub(
-        framesRouter._auditor,
-        'createAuditJobs'
-      ).returns([{passed: true}]);
 
       framesRouter.addShardToFrame(request, response, function(err) {
         _frameFindOne.restore();
@@ -734,7 +723,6 @@ describe('FramesRouter', function() {
         _getConsign.restore();
         _frameSave.restore();
         _auditAdd.restore();
-        _auditCreateJob.restore();
         expect(err.message).to.equal('Cannot save frame');
         done();
       });
@@ -833,14 +821,9 @@ describe('FramesRouter', function() {
       ).callsArgWith(3, null, { token: 'token' });
 
       var _auditAdd = sinon.stub(
-        framesRouter._auditor,
-        'add'
+        framesRouter.storage.models.FullAudits,
+        'schedule'
       ).callsArgWith(1, null);
-
-      var _auditCreateJob = sinon.stub(
-        framesRouter._auditor,
-        'createAuditJobs'
-      ).returns([{passed: true}]);
 
       response.on('end', function() {
         _frameFindOne.restore();
@@ -849,7 +832,6 @@ describe('FramesRouter', function() {
         _getConsign.restore();
         _frameSave.restore();
         _auditAdd.restore();
-        _auditCreateJob.restore();
         var result = response._getData();
         expect(result.farmer.nodeID).to.equal(storj.utils.rmd160('farmer'));
         expect(result.hash).to.equal(storj.utils.rmd160('data'));
@@ -1097,6 +1079,12 @@ describe('FramesRouter', function() {
         hashpass: storj.utils.sha256('password')
       });
 
+      const saveUploadBytes = sandbox.stub().callsArg(0);
+      testUser.isUploadRateLimited = sandbox.stub().returns(false);
+      testUser.recordUploadBytes = sandbox.stub().returns({
+        save: saveUploadBytes
+      });
+
       request.user = testUser;
       var response = httpMocks.createResponse({
         req: request,
@@ -1110,7 +1098,7 @@ describe('FramesRouter', function() {
         user: someUser._id
       }));
 
-      sandbox.stub(
+      var _frameSave = sandbox.stub(
         framesRouter.storage.models.Frame.prototype,
         'save'
       ).callsArgWith(0);
@@ -1134,7 +1122,7 @@ describe('FramesRouter', function() {
         )
       });
 
-      sandbox.stub(
+      var _pointerCreate = sandbox.stub(
         framesRouter.storage.models.Pointer,
         'create'
       ).callsArgWith(1, null, new framesRouter.storage.models.Pointer({
@@ -1145,10 +1133,14 @@ describe('FramesRouter', function() {
         tree: auditStream.getPublicRecord()
       }));
 
-      sandbox.stub(
+      var _contract;
+      var _audit;
+      var _getContract = sandbox.stub(
         framesRouter,
         '_getContractForShard',
         function(contract, audit, bl, callback) {
+          _contract = contract;
+          _audit = audit;
           callback(null, storj.Contact({
             address: '127.0.0.1',
             port: 1337,
@@ -1157,27 +1149,29 @@ describe('FramesRouter', function() {
         }
       );
 
-      sandbox.stub(
+      var _getConsign = sandbox.stub(
         framesRouter.network,
         'getConsignmentPointer'
       ).callsArgWith(3, null, { token: 'token' });
 
-      sandbox.stub(
-        framesRouter._auditor,
-        'add'
+      var _auditAdd = sandbox.stub(
+        framesRouter.storage.models.FullAudits,
+        'schedule'
       ).callsArgWith(1, null);
 
-      sandbox.stub(
-        framesRouter._auditor,
-        'createAuditJobs'
-      ).returns([{passed: true}]);
-
       response.on('end', function() {
-        expect(framesRouter._auditor.add.callCount).to.equal(1);
-        expect(framesRouter._auditor.createAuditJobs.callCount).to.equal(1);
+        var auditArgs = _auditAdd.args[0][0];
+        expect(auditArgs.start).to.equal(_contract.start);
+        expect(auditArgs.end).to.equal(_contract.end);
+        expect(auditArgs.farmer).to.equal(_contract.farmer);
+        expect(auditArgs.hash).to.equal(_contract.hash);
+        expect(auditArgs.root).to.equal(_audit.root);
+        expect(auditArgs.depth).to.equal(_audit.depth);
+        expect(auditArgs.challenges).to.equal(_audit.challenges);
+
+        sandbox.restore();
         done();
       });
-
       framesRouter.addShardToFrame(request, response);
     });
 
