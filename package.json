@@ -71,7 +71,7 @@
     "readable-stream": "^2.0.5",
     "storj-complex": "braydonf/storj-complex",
     "storj-lib": "^6.0.12",
-    "storj-mongodb-adapter": "braydonf/storj-mongodb-adapter",
+    "storj-mongodb-adapter": "^6.0.0",
     "storj-service-error-types": "^1.1.0",
     "storj-service-mailer": "^1.0.0",
     "storj-service-middleware": "^1.2.1",
