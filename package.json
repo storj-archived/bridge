@@ -69,7 +69,7 @@
     "ms": "^0.7.1",
     "nodemailer": "^2.0.0",
     "readable-stream": "^2.0.5",
-    "storj-complex": "braydonf/storj-complex",
+    "storj-complex": "^4.0.0",
     "storj-lib": "^6.0.12",
     "storj-mongodb-adapter": "^6.0.0",
     "storj-service-error-types": "^1.1.0",
