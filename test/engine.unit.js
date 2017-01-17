@@ -1,11 +1,13 @@
 'use strict';
 
 const sinon = require('sinon');
+const proxyquire = require('proxyquire');
 const expect = require('chai').expect;
 const Engine = require('..').Engine;
 const Config = require('..').Config;
 const Storage = require('storj-service-storage-models');
 const Mailer = require('storj-service-mailer');
+const middleware = require('storj-service-middleware');
 const Server = require('..').Server;
 
 describe('Engine', function() {
@@ -54,6 +56,34 @@ describe('Engine', function() {
           done();
         });
       });
+    });
+
+  });
+
+  describe('#_configureApp', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
+
+    it('it should use middleware error handler', function(done) {
+      const use = sandbox.stub();
+      const express = sandbox.stub().returns({
+        use: use,
+        get: sandbox.stub()
+      });
+      const TestEngine = proxyquire('../lib/engine', {
+        express: express
+      });
+      const errorhandler = function(err, req, res, next) {
+        next();
+      };
+      sandbox.stub(middleware, 'errorhandler').returns(errorhandler);
+      sandbox.stub(Server, 'Routes').returns([]);
+      var config = Config('__tmptest');
+      var engine = new TestEngine(config);
+      engine._configureApp();
+      expect(middleware.errorhandler.callCount).to.equal(1);
+      expect(use.args[2][0]).to.equal(errorhandler);
+      done();
     });
 
   });

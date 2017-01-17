@@ -8,7 +8,8 @@
     "test": "test"
   },
   "bin": {
-    "storj-bridge": "bin/storj-bridge.js"
+    "storj-bridge": "bin/storj-bridge.js",
+    "storj-monitor": "bin/storj-monitor.js"    
   },
   "scripts": {
     "testsuite": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=test _mocha --recursive test/**",
@@ -68,13 +69,13 @@
     "ms": "^0.7.1",
     "nodemailer": "^2.0.0",
     "readable-stream": "^2.0.5",
-    "storj-complex": "^3.1.0",
-    "storj-lib": "^6.0.9",
-    "storj-mongodb-adapter": "^5.0.0",
+    "storj-complex": "^4.0.0",
+    "storj-lib": "^6.0.12",
+    "storj-mongodb-adapter": "^6.0.0",
     "storj-service-error-types": "^1.1.0",
     "storj-service-mailer": "^1.0.0",
     "storj-service-middleware": "^1.2.1",
-    "storj-service-storage-models": "^6.2.0",
+    "storj-service-storage-models": "^7.0.0",
     "through": "^2.3.8"
   }
 }
