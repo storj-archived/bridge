@@ -108,8 +108,8 @@ describe('Monitor Config', function() {
       expect(writeFileSync.callCount).to.equal(1);
       expect(writeFileSync.args[0][0])
         .to.equal('/tmp/storj/storj-monitor-config-test.json');
-      expect(writeFileSync.args[0][1])
-        .to.equal(JSON.stringify(DEFAULTS, null, 2));
+      const conf = writeFileSync.args[0][1];
+      expect(conf).to.equal(JSON.stringify(DEFAULTS, null, 2));
     });
 
   });
