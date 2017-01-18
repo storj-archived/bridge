@@ -43,6 +43,8 @@ describe('Config', function() {
 
     it('should create a config instance with the defaults', function() {
       var config = new Config('__tmptest');
+      delete config._;
+      delete config.recursive;
       expect(JSON.stringify(config)).to.equal(JSON.stringify(Config.DEFAULTS));
     });
 
