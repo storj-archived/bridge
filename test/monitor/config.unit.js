@@ -89,7 +89,7 @@ describe('Monitor Config', function() {
       process.env.storjmonitor_storage__mongoOpts__connectTimeoutMS = '123456';
       process.env.storjmonitor_storage__mongoOpts__socketTimeoutMS = '123456';
       process.env.storjmonitor_storage__mongoOpts__ssl = 'true';
-      const config = new Config();
+      const config = new MonitorConfig();
       delete process.env.storjmonitor_storage__mongoOpts__connectTimeoutMS;
       delete process.env.storjmonitor_storage__mongoOpts__socketTimeoutMS;
       delete process.env.storjmonitor_storage__mongoOpts__ssl;
