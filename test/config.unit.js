@@ -62,7 +62,7 @@ describe('Config', function() {
       process.env.storjbridge_logger__level = 1;
       const config = new Config();
       delete process.env.storjbridge_logger__level;
-      expect(Number(config.logger.level)).to.equal(1);
+      expect(config.logger.level).to.equal(1);
     });
 
     it('will construct with json environment variables', function() {
