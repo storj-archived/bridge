@@ -65,6 +65,18 @@ describe('Config', function() {
       expect(Number(config.logger.level)).to.equal(1);
     });
 
+    it('will construct with json environment variables', function() {
+      const mongoOpts = {
+        connectTimeoutMS: 123456,
+        socketTimeoutMS: 123456,
+        ssl: true
+      };
+      process.env.storjbridge_storage__mongoOpts = JSON.stringify(mongoOpts);
+      const config = new Config();
+      delete process.env.storjbridge_storage__mongoOpts;
+      expect(config.storage.mongoOpts).to.eql(mongoOpts);
+    });
+
     it('will create from an object', function() {
       sandbox.stub(Config, 'getPaths');
       sandbox.stub(Config, 'setupDataDirectory');

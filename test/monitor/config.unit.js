@@ -65,7 +65,19 @@ describe('Monitor Config', function() {
       process.env.storjmonitor_logger__level = 1;
       const config = new MonitorConfig();
       delete process.env.storjmonitor_logger__level;
-      expect(Number(config.logger.level)).to.equal(1);
+      expect(config.logger.level).to.equal(1);
+    });
+
+    it('will construct with json environment variables', function() {
+      const mongoOpts = {
+        connectTimeoutMS: 123456,
+        socketTimeoutMS: 123456,
+        ssl: true
+      };
+      process.env.storjmonitor_storage__mongoOpts = JSON.stringify(mongoOpts);
+      const config = new MonitorConfig();
+      delete process.env.storjmonitor_storage__mongoOpts;
+      expect(config.storage.mongoOpts).to.eql(mongoOpts);
     });
 
   });
