@@ -53,6 +53,18 @@ describe('Config', function() {
       expect(fs.existsSync(path.join(CONFDIR, '__tmptest'))).to.equal(true);
     });
 
+    it('should create without args', function() {
+      const config = new Config();
+      expect(config);
+    });
+
+    it('will construct with environment variables', function() {
+      process.env.storjbridge_logger__level = 1;
+      const config = new Config();
+      delete process.env.storjbridge_logger__level;
+      expect(Number(config.logger.level)).to.equal(1);
+    });
+
     it('will create from an object', function() {
       sandbox.stub(Config, 'getPaths');
       sandbox.stub(Config, 'setupDataDirectory');

@@ -56,6 +56,18 @@ describe('Monitor Config', function() {
       expect(config.application.pingConcurrency).to.equal(100);
     });
 
+    it('will construct without args', function() {
+      const config = new MonitorConfig();
+      expect(config);
+    });
+
+    it('will construct with environment variables', function() {
+      process.env.storjmonitor_logger__level = 1;
+      const config = new MonitorConfig();
+      delete process.env.storjmonitor_logger__level;
+      expect(Number(config.logger.level)).to.equal(1);
+    });
+
   });
 
   describe('#getPaths', function() {
