@@ -77,6 +77,22 @@ describe('Config', function() {
       expect(config.storage.mongoOpts).to.eql(mongoOpts);
     });
 
+    it('json environment variables (boolean and numbers)', function() {
+      const mongoOpts = {
+        connectTimeoutMS: 123456,
+        socketTimeoutMS: 123456,
+        ssl: true
+      };
+      process.env.storjbridge_storage__mongoOpts__connectTimeoutMS = '123456';
+      process.env.storjbridge_storage__mongoOpts__socketTimeoutMS = '123456';
+      process.env.storjbridge_storage__mongoOpts__ssl = 'true';
+      const config = new Config();
+      delete process.env.storjbridge_storage__mongoOpts__connectTimeoutMS;
+      delete process.env.storjbridge_storage__mongoOpts__socketTimeoutMS;
+      delete process.env.storjbridge_storage__mongoOpts__ssl;
+      expect(config.storage.mongoOpts).to.eql(mongoOpts);
+    });
+
     it('will create from an object', function() {
       sandbox.stub(Config, 'getPaths');
       sandbox.stub(Config, 'setupDataDirectory');
