@@ -43,12 +43,54 @@ describe('Config', function() {
 
     it('should create a config instance with the defaults', function() {
       var config = new Config('__tmptest');
+      delete config._;
+      delete config.recursive;
       expect(JSON.stringify(config)).to.equal(JSON.stringify(Config.DEFAULTS));
     });
 
     it('should create the config file', function() {
       Config('__tmptest');
       expect(fs.existsSync(path.join(CONFDIR, '__tmptest'))).to.equal(true);
+    });
+
+    it('should create without args', function() {
+      const config = new Config();
+      expect(config);
+    });
+
+    it('will construct with environment variables', function() {
+      process.env.storjbridge_logger__level = 1;
+      const config = new Config();
+      delete process.env.storjbridge_logger__level;
+      expect(config.logger.level).to.equal(1);
+    });
+
+    it('will construct with json environment variables', function() {
+      const mongoOpts = {
+        connectTimeoutMS: 123456,
+        socketTimeoutMS: 123456,
+        ssl: true
+      };
+      process.env.storjbridge_storage__mongoOpts = JSON.stringify(mongoOpts);
+      const config = new Config();
+      delete process.env.storjbridge_storage__mongoOpts;
+      expect(config.storage.mongoOpts).to.eql(mongoOpts);
+    });
+
+    it('json environment variables (boolean and numbers)', function() {
+      const mongoOpts = {
+        connectTimeoutMS: 123456,
+        socketTimeoutMS: 123456,
+        ssl: true
+      };
+      process.env.storjbridge_storage__mongoOpts__connectTimeoutMS = '123456';
+      process.env.storjbridge_storage__mongoOpts__socketTimeoutMS = '123456';
+      process.env.storjbridge_storage__mongoOpts__ssl = 'true';
+      const config = new Config();
+      delete process.env.storjbridge_storage__mongoOpts__connectTimeoutMS;
+      delete process.env.storjbridge_storage__mongoOpts__socketTimeoutMS;
+      delete process.env.storjbridge_storage__mongoOpts__ssl;
+      expect(config.storage.mongoOpts).to.eql(mongoOpts);
     });
 
     it('will create from an object', function() {
