@@ -317,6 +317,7 @@ describe('ReportsRouter', function() {
           isEstablished: false
         })
       ];
+
       sandbox.stub(
         reportsRouter.storage.models.Mirror,
         'find'
@@ -327,18 +328,27 @@ describe('ReportsRouter', function() {
           };
         }
       });
+
       var item = storj.StorageItem({
         hash: storj.utils.rmd160('shardhash'),
         contracts: {
           node3: {
             data_hash: storj.utils.rmd160('shardhash')
           }
+        },
+        challenges: {
+          node3: [1,2,3,4]
+        },
+        trees: {
+          node3: ['1','2','3','4']
         }
       });
+
       sandbox.stub(
         reportsRouter.contracts,
         'load'
       ).callsArgWith(1, null, item);
+
       sandbox.stub(
         reportsRouter,
         'getContactById'
@@ -350,21 +360,30 @@ describe('ReportsRouter', function() {
         lastSeen: Date.now(),
         userAgent: 'test'
       }));
+
       sandbox.stub(
         reportsRouter.network,
         'getRetrievalPointer'
       ).callsArgWith(2, null, { /* pointer */ });
+
       sandbox.stub(
         reportsRouter.network,
         'getMirrorNodes'
       ).callsArgWith(2, null);
+
       sandbox.stub(
         reportsRouter.contracts,
         'save'
       ).callsArgWith(1, null);
+
+      sandbox.stub(
+        reportsRouter.storage.models.FullAudit,
+        'scheduleFullAudits'
+      ).callsArgWith(2, null);
+
       reportsRouter._triggerMirrorEstablish(n, hash, function(err) {
         expect(err).to.equal(null);
-        expect(Array.prototype.sort.callCount).to.equal(1);
+        expect(Array.prototype.sort.called).to.be.true;
         expect(Array.prototype.sort.args[0][0])
           .to.equal(ReportsRouter._sortByResponseTime);
         done();
