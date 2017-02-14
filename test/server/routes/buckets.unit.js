@@ -956,6 +956,8 @@ describe('BucketsRouter', function() {
   });
 
   describe('#createEntryFromFrame', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
 
     it('should internal error if bucket query fails', function(done) {
       var request = httpMocks.createRequest({
@@ -1224,6 +1226,52 @@ describe('BucketsRouter', function() {
         _bucketEntryCreate.restore();
         expect(response._getData().frame).to.equal('frameid');
         expect(response._getData().bucket).to.equal('bucketid');
+        done();
+      });
+      bucketsRouter.createEntryFromFrame(request, response);
+    });
+
+    it('should create entry with id', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'POST',
+        url: '/buckets/:bucket_id/files',
+        body: {
+          frame: 'frameid',
+          id: 'fileid'
+        },
+        params: {
+          id: 'bucketid'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      sandbox.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, { _id: 'bucketid' });
+      sandbox.stub(
+        bucketsRouter.storage.models.Frame,
+        'findOne'
+      ).callsArgWith(1, null, {
+        locked: false,
+        lock: sinon.stub().callsArg(0)
+      });
+      var entry = { frame: 'frameid', bucket: 'bucketid', id: 'fileid' };
+      var create = sandbox.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'create'
+      ).callsArgWith(1, null, {
+        toObject: sinon.stub().returns(entry)
+      });
+      response.on('end', function() {
+        expect(create.callCount).to.equal(1);
+        expect(create.args[0][0].id).to.equal('fileid');
+        expect(response._getData().frame).to.equal('frameid');
+        expect(response._getData().bucket).to.equal('bucketid');
+        expect(response._getData().id).to.equal('fileid');
         done();
       });
       bucketsRouter.createEntryFromFrame(request, response);
