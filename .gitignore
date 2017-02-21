@@ -36,6 +36,3 @@ playbook.retry
 
 # Vagrant dotfiles
 .vagrant
-
-# Build script logs
-build.log
