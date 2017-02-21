@@ -4,7 +4,6 @@ var proxyquire = require('proxyquire');
 var mongoose = require('mongoose');
 var sinon = require('sinon');
 
-require('mongoose-currency').loadType(mongoose);
 require('mongoose-types').loadTypes(mongoose);
 sinon.stub(mongoose, 'createConnection').returns(
   new mongoose.Connection(new mongoose.Mongoose())
