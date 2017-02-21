@@ -821,7 +821,7 @@
               "properties": {
                 "token": {
                   "type": "string",
-                  "description": "The datachannel token for authorizing transfer to the farmer",
+                  "description": "The token for authorizing transfer to the farmer",
                   "example": "032130ba09cbac408d48a60a190c65b592b59853"
                 },
                 "hash": {
@@ -834,10 +834,40 @@
                   "description": "The operation type (PUSH or PULL)",
                   "example": "PUSH"
                 },
-                "channel": {
-                  "type": "string",
-                  "description": "The farmer datachannel URI for storing the shard",
-                  "example": "ws://farmer.hostname:1337"
+                "farmer": {
+                  "type": "object",
+                  "properties": {
+                    "protocol": {
+                      "type": "string",
+                      "example": "1.1.0",
+                      "description": "Protocol version this farmer is running"
+                    },
+                    "nodeID": {
+                      "type": "string",
+                      "example": "32033d2dc11b877df4b1caefbffba06495ae6b18",
+                      "description": "ECDSA pubkeyhash identifier"
+                    },
+                    "lastSeen": {
+                      "type": "number",
+                      "example": "1487712850023",
+                      "description": "Timestamp when we last encountered this peer"
+                    },
+                    "address": {
+                      "type": "string",
+                      "example": "",
+                      "description": "IP address or hostname of the contact"
+                    },
+                    "userAgent": {
+                      "type": "string",
+                      "example": "6.1.5",
+                      "description": "Storj user agent string for farming client"
+                    },
+                    "port": {
+                      "type": "number",
+                      "example": "8448",
+                      "description": "Port number the farmer is listening on"
+                    }
+                  }
                 }
               }
             }
@@ -1490,10 +1520,40 @@
                     "example": "PULL",
                     "description": "The operation type (PUSH or PULL)"
                   },
-                  "channel": {
-                    "type": "string",
-                    "example": "ws://farmer.hostname:4000",
-                    "description": "The farmer's websocket URL for data channel"
+                  "farmer": {
+                    "type": "object",
+                    "properties": {
+                      "protocol": {
+                        "type": "string",
+                        "example": "1.1.0",
+                        "description": "Protocol version this farmer is running"
+                      },
+                      "nodeID": {
+                        "type": "string",
+                        "example": "32033d2dc11b877df4b1caefbffba06495ae6b18",
+                        "description": "ECDSA pubkeyhash identifier"
+                      },
+                      "lastSeen": {
+                        "type": "number",
+                        "example": "1487712850023",
+                        "description": "Timestamp when we last encountered this peer"
+                      },
+                      "address": {
+                        "type": "string",
+                        "example": "",
+                        "description": "IP address or hostname of the contact"
+                      },
+                      "userAgent": {
+                        "type": "string",
+                        "example": "6.1.5",
+                        "description": "Storj user agent string for farming client"
+                      },
+                      "port": {
+                        "type": "number",
+                        "example": "8448",
+                        "description": "Port number the farmer is listening on"
+                      }
+                    }
                   }
                 }
               }
