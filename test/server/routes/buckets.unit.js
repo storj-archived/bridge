@@ -3423,13 +3423,25 @@ describe('BucketsRouter', function() {
           filename: 'package.json',
           frame: 'frameid',
           size: 1024,
-          id: 'fileid'
+          id: 'fileid',
+          hmac: {
+            type: 'sha512',
+            value: 'f891be8e91491e4aeeb193e9e3afb49e83b6cc18df2be9732dd62545' +
+              'ec5d318076ef86adc5771dc4b7b1ce8802bb3b9dce9f7c5a438afd1b1f52f' +
+              'b5e37e3f5c8'
+          }
         })
       });
       response.on('end', function() {
         _getBucketUnregistered.restore();
         _bucketEntryFindOne.restore();
         expect(response._getData().filename).to.equal('package.json');
+        expect(response._getData().hmac).to.eql({
+          type: 'sha512',
+          value: 'f891be8e91491e4aeeb193e9e3afb49e83b6cc18df2be9732dd62545' +
+            'ec5d318076ef86adc5771dc4b7b1ce8802bb3b9dce9f7c5a438afd1b1f52f' +
+            'b5e37e3f5c8'
+        });
         done();
       });
       bucketsRouter.getFileInfo(request, response);
