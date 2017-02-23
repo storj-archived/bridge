@@ -21,9 +21,7 @@ describe('BucketsRouter', function() {
     hashpass: storj.utils.sha256('password')
   });
   someUser.isDownloadRateLimited = sinon.stub().returns(false);
-  someUser.recordDownloadBytes = sinon.stub().returns({
-    save: sinon.stub().callsArgWith(0)
-  });
+  someUser.recordDownloadBytes = sinon.stub().callsArg(1);
 
   describe('#getBuckets', function() {
 
@@ -2035,8 +2033,8 @@ describe('BucketsRouter', function() {
         hashpass: storj.utils.sha256('password')
       });
       testUser.isDownloadRateLimited = sandbox.stub().returns(true);
-      testUser.recordDownloadBytes = sandbox.stub().returns();
-      testUser.save = sandbox.stub().callsArgWith(0, new Error('test'));
+      testUser.recordDownloadBytes = sandbox.stub()
+        .callsArgWith(1, new Error('test'));
 
       const pointers = [{ size: 1 }, { size: 10 }, { size: 5 }];
 
@@ -2084,8 +2082,8 @@ describe('BucketsRouter', function() {
         hashpass: storj.utils.sha256('password')
       });
       testUser.isDownloadRateLimited = sandbox.stub().returns(true);
-      testUser.recordDownloadBytes = sandbox.stub().returns();
-      testUser.save = sandbox.stub().callsArgWith(0, new Error('test'));
+      testUser.recordDownloadBytes = sandbox.stub()
+        .callsArgWith(1, new Error('test'));
 
       const pointers = [{ size: NaN }, { size: NaN }, { size: NaN }];
 
@@ -2243,9 +2241,7 @@ describe('BucketsRouter', function() {
         hashpass: storj.utils.sha256('password')
       });
       testUser.isDownloadRateLimited = sinon.stub().returns(true);
-      testUser.recordDownloadBytes = sinon.stub().returns({
-        save: sandbox.stub().callsArgWith(0)
-      });
+      testUser.recordDownloadBytes = sinon.stub().callsArg(1);
 
       const response = httpMocks.createResponse({
         req: request,
@@ -2578,11 +2574,8 @@ describe('BucketsRouter', function() {
         _id: 'testuser@storj.io',
         hashpass: storj.utils.sha256('password')
       });
-      const save = sinon.stub().callsArgWith(0);
       testUser.isDownloadRateLimited = sinon.stub().returns(false);
-      testUser.recordDownloadBytes = sinon.stub().returns({
-        save: save
-      });
+      testUser.recordDownloadBytes = sinon.stub().callsArg(1);
 
       var response = httpMocks.createResponse({
         req: request,
