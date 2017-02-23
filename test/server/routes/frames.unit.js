@@ -23,9 +23,7 @@ describe('FramesRouter', function() {
     hashpass: storj.utils.sha256('password')
   });
   someUser.isUploadRateLimited = sinon.stub().returns(false);
-  someUser.recordUploadBytes = sinon.stub().returns({
-    save: sinon.stub().callsArg(0)
-  });
+  someUser.recordUploadBytes = sinon.stub().callsArg(1);
 
   describe('#createFrame', function() {
 
@@ -39,9 +37,7 @@ describe('FramesRouter', function() {
         hashpass: storj.utils.sha256('password')
       });
       testUser.isUploadRateLimited = sandbox.stub().returns(true);
-      testUser.recordUploadBytes = sandbox.stub().returns({
-        save: sandbox.stub().callsArg(0)
-      });
+      testUser.recordUploadBytes = sandbox.stub().callsArg(1);
       request.user = testUser;
       var response = httpMocks.createResponse({
         req: request,
@@ -240,9 +236,7 @@ describe('FramesRouter', function() {
         _id: 'testuser@storj.io',
         hashpass: storj.utils.sha256('password')
       });
-      testUser.recordUploadBytes = sandbox.stub().returns({
-        save: sandbox.stub().callsArg(0)
-      });
+      testUser.recordUploadBytes = sandbox.stub().callsArg(1);
       testUser.isUploadRateLimited = sandbox.stub().returns(true);
       request.user = testUser;
 
@@ -688,11 +682,8 @@ describe('FramesRouter', function() {
         _id: 'testuser@storj.io',
         hashpass: storj.utils.sha256('password')
       });
-      const saveUploadBytes = sandbox.stub().callsArg(0);
       testUser.isUploadRateLimited = sandbox.stub().returns(false);
-      testUser.recordUploadBytes = sandbox.stub().returns({
-        save: saveUploadBytes
-      });
+      testUser.recordUploadBytes = sandbox.stub().callsArg(1);
       request.user = testUser;
       var response = httpMocks.createResponse({
         req: request,
@@ -760,7 +751,6 @@ describe('FramesRouter', function() {
         expect(result.hash).to.equal(storj.utils.rmd160('data'));
         expect(result.token).to.equal('token');
         expect(result.operation).to.equal('PUSH');
-        expect(saveUploadBytes.callCount).to.equal(1);
         expect(testUser.recordUploadBytes.callCount).to.equal(1);
         done();
       });
@@ -787,11 +777,9 @@ describe('FramesRouter', function() {
         _id: 'testuser@storj.io',
         hashpass: storj.utils.sha256('password')
       });
-      const saveUploadBytes = sandbox.stub().callsArgWith(0, new Error('test'));
       testUser.isUploadRateLimited = sandbox.stub().returns(false);
-      testUser.recordUploadBytes = sandbox.stub().returns({
-        save: saveUploadBytes
-      });
+      testUser.recordUploadBytes = sandbox.stub()
+        .callsArgWith(1, new Error('test'));
       request.user = testUser;
       var response = httpMocks.createResponse({
         req: request,
@@ -849,7 +837,6 @@ describe('FramesRouter', function() {
         'getConsignmentPointer'
       ).callsArgWith(3, null, { token: 'token' });
       response.on('end', function() {
-        expect(saveUploadBytes.callCount).to.equal(1);
         expect(testUser.recordUploadBytes.callCount).to.equal(1);
         expect(log.warn.callCount).to.equal(1);
         done();
