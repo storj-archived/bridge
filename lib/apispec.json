@@ -854,7 +854,7 @@
                     },
                     "address": {
                       "type": "string",
-                      "example": "",
+                      "example": "abcd.storj.farm",
                       "description": "IP address or hostname of the contact"
                     },
                     "userAgent": {
@@ -1540,7 +1540,7 @@
                       },
                       "address": {
                         "type": "string",
-                        "example": "",
+                        "example": "abcd.storj.farm",
                         "description": "IP address or hostname of the contact"
                       },
                       "userAgent": {
