@@ -71,7 +71,7 @@
     "rc": "^1.1.6",
     "readable-stream": "^2.0.5",
     "storj-complex": "^5.0.0",
-    "storj-lib": "^6.0.12",
+    "storj-lib": "^6.2.0",
     "storj-mongodb-adapter": "^7.0.1",
     "storj-service-error-types": "^1.1.0",
     "storj-service-mailer": "^1.0.0",
