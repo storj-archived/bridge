@@ -1356,6 +1356,19 @@
                   "type": "string",
                   "description": "A file name to show in the bucket",
                   "example": "big_buck_bunny.mp4"
+                },
+                "hmac": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "example": "sha512"
+                    },
+                    "value": {
+                      "type": "string",
+                      "example": "76573119f4b4ca48272e7399529ddda6aade9be5cb5b4b5060a9972efd50da81c3465ba25791db48e835fda0f0c946362b1d2b9e1f6a878fd04f1ce49e353113"
+                    }
+                  }
                 }
               }
             }
@@ -1386,6 +1399,19 @@
                 "size": {
                   "type": "number",
                   "example": 5071076
+                },
+                "hmac": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "example": "sha512"
+                    },
+                    "value": {
+                      "type": "string",
+                      "example": "76573119f4b4ca48272e7399529ddda6aade9be5cb5b4b5060a9972efd50da81c3465ba25791db48e835fda0f0c946362b1d2b9e1f6a878fd04f1ce49e353113"
+                    }
+                  }
                 }
               }
             }
@@ -1436,6 +1462,19 @@
                   "size": {
                     "type": "number",
                     "example": 5071076
+                  },
+                  "hmac": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "example": "sha512"
+                      },
+                      "value": {
+                        "type": "string",
+                        "example": "76573119f4b4ca48272e7399529ddda6aade9be5cb5b4b5060a9972efd50da81c3465ba25791db48e835fda0f0c946362b1d2b9e1f6a878fd04f1ce49e353113"
+                      }
+                    }
                   }
                 }
               }
@@ -1646,6 +1685,19 @@
                 "size": {
                   "type": "number",
                   "example": 5071076
+                },
+                "hmac": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "example": "sha512"
+                    },
+                    "value": {
+                      "type": "string",
+                      "example": "76573119f4b4ca48272e7399529ddda6aade9be5cb5b4b5060a9972efd50da81c3465ba25791db48e835fda0f0c946362b1d2b9e1f6a878fd04f1ce49e353113"
+                    }
+                  }
                 }
               }
             }
