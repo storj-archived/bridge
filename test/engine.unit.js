@@ -143,8 +143,12 @@ describe('Engine', function() {
   });
 
   describe('#start', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
 
     it('should setup storage, mailer, server', function(done) {
+      const clock = sandbox.useFakeTimers();
+
       var config = Config('__tmptest');
       var engine = new Engine(config);
       engine._logHealthInfo = sinon.stub();
@@ -154,6 +158,8 @@ describe('Engine', function() {
         expect(engine.mailer).to.be.instanceOf(Mailer);
         expect(engine.server).to.be.instanceOf(Server);
         expect(engine._healthInterval);
+        clock.tick(Engine.HEALTH_INTERVAL + 10);
+        expect(engine._logHealthInfo.callCount).to.equal(1);
         engine.server.server.close(function() {
           done();
         });
