@@ -28,7 +28,25 @@ describe('Engine', function() {
   });
 
   describe('#_countPendingResponses', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
+
     it('will return pending count', function() {
+      var config = Config('__tmptest');
+      var engine = new Engine(config);
+
+      engine._pendingResponses = {
+        'one': {
+          finished: false
+        },
+        'two': {
+          finished: true
+        }
+      };
+
+      const count = engine._countPendingResponses();
+      expect(count).to.equal(1);
+      expect(Object.keys(engine._pendingResponses).length).to.equal(1);
     });
   });
 
@@ -36,13 +54,46 @@ describe('Engine', function() {
     const sandbox = sinon.sandbox.create();
     afterEach(() => sandbox.restore());
 
-    var config = Config('__tmptest');
-    var engine = new Engine(config);
-
     it('will handle error', function() {
+      var config = Config('__tmptest');
+      var engine = new Engine(config);
+
+      sandbox.stub(log, 'info');
+      engine.server = {
+        server: {
+          listening: true,
+          getConnections: sandbox.stub().callsArgWith(0, new Error('test'))
+        }
+      };
+      engine.storage = {
+        connection: {
+          readyState: 1
+        }
+      };
+      engine._countPendingResponses = sinon.stub().returns(10);
+      engine._logHealthInfo();
+      expect(log.info.callCount).to.equal(1);
+      expect(log.info.args[0][0]).to.equal('%j');
+
+      const report = log.info.args[0][1].bridge_health_report;
+      expect(report.error).to.equal('test');
+      expect(report.connections).to.equal(undefined);
+
+      expect(report.pid);
+      expect(report.cpuUsage);
+      expect(report.memory);
+      expect(report.heapStatistics);
+      expect(report.heapSpaceStatistics);
+      expect(report.uptime);
+      expect(report.listening).to.equal(true);
+      expect(report.pendingResponses).to.equal(10);
+      expect(report.databaseState).to.equal(1);
     });
 
     it('will log health information', function() {
+      var config = Config('__tmptest');
+      var engine = new Engine(config);
+
       sandbox.stub(log, 'info');
       engine.server = {
         server: {
