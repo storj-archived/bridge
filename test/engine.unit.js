@@ -81,6 +81,7 @@ describe('Engine', function() {
 
       expect(report.pid);
       expect(report.cpuUsage);
+      expect(report.cpuDiff);      
       expect(report.memory);
       expect(report.heapStatistics);
       expect(report.heapSpaceStatistics);
