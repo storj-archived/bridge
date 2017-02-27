@@ -8,6 +8,7 @@ const Config = require('..').Config;
 const Storage = require('storj-service-storage-models');
 const Mailer = require('storj-service-mailer');
 const middleware = require('storj-service-middleware');
+const log = require('../lib/logger');
 const Server = require('..').Server;
 
 describe('Engine', function() {
@@ -22,6 +23,105 @@ describe('Engine', function() {
       var config = Config('__tmptest');
       var engine = new Engine(config);
       expect(engine._config).to.equal(config);
+    });
+
+  });
+
+  describe('#_countPendingResponses', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
+
+    it('will return pending count', function() {
+      var config = Config('__tmptest');
+      var engine = new Engine(config);
+
+      engine._pendingResponses = {
+        'one': {
+          finished: false
+        },
+        'two': {
+          finished: true
+        }
+      };
+
+      const count = engine._countPendingResponses();
+      expect(count).to.equal(1);
+      expect(Object.keys(engine._pendingResponses).length).to.equal(1);
+    });
+  });
+
+  describe('#_logHealthInfo', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
+
+    it('will handle error', function() {
+      var config = Config('__tmptest');
+      var engine = new Engine(config);
+
+      sandbox.stub(log, 'info');
+      engine.server = {
+        server: {
+          listening: true,
+          getConnections: sandbox.stub().callsArgWith(0, new Error('test'))
+        }
+      };
+      engine.storage = {
+        connection: {
+          readyState: 1
+        }
+      };
+      engine._countPendingResponses = sinon.stub().returns(10);
+      engine._logHealthInfo();
+      expect(log.info.callCount).to.equal(1);
+      expect(log.info.args[0][0]).to.equal('%j');
+
+      const report = log.info.args[0][1].bridge_health_report;
+      expect(report.error).to.equal('test');
+      expect(report.connections).to.equal(undefined);
+
+      expect(report.pid);
+      expect(report.cpuUsage);
+      expect(report.memory);
+      expect(report.heapStatistics);
+      expect(report.heapSpaceStatistics);
+      expect(report.uptime);
+      expect(report.listening).to.equal(true);
+      expect(report.pendingResponses).to.equal(10);
+      expect(report.databaseState).to.equal(1);
+    });
+
+    it('will log health information', function() {
+      var config = Config('__tmptest');
+      var engine = new Engine(config);
+
+      sandbox.stub(log, 'info');
+      engine.server = {
+        server: {
+          listening: true,
+          getConnections: sandbox.stub().callsArgWith(0, null, 12)
+        }
+      };
+      engine.storage = {
+        connection: {
+          readyState: 1
+        }
+      };
+      engine._countPendingResponses = sinon.stub().returns(10);
+      engine._logHealthInfo();
+      expect(log.info.callCount).to.equal(1);
+      expect(log.info.args[0][0]).to.equal('%j');
+
+      const report = log.info.args[0][1].bridge_health_report;
+      expect(report.pid);
+      expect(report.cpuUsage);
+      expect(report.memory);
+      expect(report.heapStatistics);
+      expect(report.heapSpaceStatistics);
+      expect(report.uptime);
+      expect(report.listening).to.equal(true);
+      expect(report.connections).to.equal(12);
+      expect(report.pendingResponses).to.equal(10);
+      expect(report.databaseState).to.equal(1);
     });
 
   });
@@ -43,15 +143,23 @@ describe('Engine', function() {
   });
 
   describe('#start', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
 
     it('should setup storage, mailer, server', function(done) {
+      const clock = sandbox.useFakeTimers();
+
       var config = Config('__tmptest');
       var engine = new Engine(config);
+      engine._logHealthInfo = sinon.stub();
       engine.start(function(err) {
         expect(err).to.equal(undefined);
         expect(engine.storage).to.be.instanceOf(Storage);
         expect(engine.mailer).to.be.instanceOf(Mailer);
         expect(engine.server).to.be.instanceOf(Server);
+        expect(engine._healthInterval);
+        clock.tick(Engine.HEALTH_INTERVAL + 10);
+        expect(engine._logHealthInfo.callCount).to.equal(1);
         engine.server.server.close(function() {
           done();
         });
