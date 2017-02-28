@@ -36,12 +36,18 @@ describe('Engine', function() {
       var engine = new Engine(config);
 
       engine._pendingResponses = {
-        'one': {
-          finished: false
-        },
-        'two': {
-          finished: true
-        }
+        'one': [
+          { destroyed: false },
+          { finished: false }
+        ],
+        'two': [
+          { destroyed: true },
+          { finished: true }
+        ],
+        'three': [
+          { destroyed: true },
+          { finished: false }
+        ]
       };
 
       const count = engine._countPendingResponses();
@@ -81,6 +87,7 @@ describe('Engine', function() {
 
       expect(report.pid);
       expect(report.cpuUsage);
+      expect(report.cpuDiff);
       expect(report.memory);
       expect(report.heapStatistics);
       expect(report.heapSpaceStatistics);
@@ -216,9 +223,11 @@ describe('Engine', function() {
     it('should store reference to response', function(done) {
       var engine = new Engine(Config('__tmptest'));
       var resp = {};
-      engine._trackResponseStatus({}, resp, function() {
+      var sock = {};
+      engine._trackResponseStatus({ socket: sock }, resp, function() {
         var key = Object.keys(engine._pendingResponses)[0];
-        expect(engine._pendingResponses[key]).to.equal(resp);
+        expect(engine._pendingResponses[key][0]).to.equal(sock);
+        expect(engine._pendingResponses[key][1]).to.equal(resp);
         done();
       });
     });
@@ -230,8 +239,9 @@ describe('Engine', function() {
     it('should delete responses that are finished', function(done) {
       var engine = new Engine(Config('__tmptest'));
       engine._pendingResponses = {
-        one: { finished: false },
-        two: { finished: true }
+        one: [{ destroyed: false }, { finished: false }],
+        two: [{ destroyed: true }, { finished: true }],
+        three: [{ destroyed: true }, { finished: false }]
       };
       var clock = sinon.useFakeTimers();
       engine._keepPendingResponsesClean();
