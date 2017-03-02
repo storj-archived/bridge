@@ -197,7 +197,7 @@ describe('Engine', function() {
       var engine = new TestEngine(config);
       engine._configureApp();
       expect(middleware.errorhandler.callCount).to.equal(1);
-      expect(use.args[2][0]).to.equal(errorhandler);
+      expect(use.args[3][0]).to.equal(errorhandler);
       done();
     });
 
