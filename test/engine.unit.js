@@ -153,7 +153,7 @@ describe('Engine', function() {
     const sandbox = sinon.sandbox.create();
     afterEach(() => sandbox.restore());
 
-    it('should setup storage, mailer, server', function(done) {
+    it('should setup storage, mailer, server, and redis', function(done) {
       const clock = sandbox.useFakeTimers();
 
       var config = Config('__tmptest');
@@ -164,6 +164,12 @@ describe('Engine', function() {
         expect(engine.storage).to.be.instanceOf(Storage);
         expect(engine.mailer).to.be.instanceOf(Mailer);
         expect(engine.server).to.be.instanceOf(Server);
+        expect(engine.client).to.be.ok;
+        expect(engine.client).to.be.an('object');
+        expect(engine.client.connection_options.host).to.be.a('string');
+        expect(engine.client.connection_options.port).to.be.a('number');
+        expect(engine.client.auth_pass).to.not.equal(undefined);
+        expect(engine.client).to.be.ok;
         expect(engine._healthInterval);
         clock.tick(Engine.HEALTH_INTERVAL + 10);
         expect(engine._logHealthInfo.callCount).to.equal(1);
