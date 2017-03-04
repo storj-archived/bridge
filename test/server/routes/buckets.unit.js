@@ -21,9 +21,7 @@ describe('BucketsRouter', function() {
     hashpass: storj.utils.sha256('password')
   });
   someUser.isDownloadRateLimited = sinon.stub().returns(false);
-  someUser.recordDownloadBytes = sinon.stub().returns({
-    save: sinon.stub().callsArgWith(0)
-  });
+  someUser.recordDownloadBytes = sinon.stub().callsArg(1);
 
   describe('#getBuckets', function() {
 
@@ -956,6 +954,8 @@ describe('BucketsRouter', function() {
   });
 
   describe('#createEntryFromFrame', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
 
     it('should internal error if bucket query fails', function(done) {
       var request = httpMocks.createRequest({
@@ -1189,7 +1189,15 @@ describe('BucketsRouter', function() {
         method: 'POST',
         url: '/buckets/:bucket_id/files',
         body: {
-          frame: 'frameid'
+          frame: 'frameid',
+          mimetype: 'application/octet-stream',
+          filename: 'somefilename',
+          hmac: {
+            value: 'f891be8e91491e4aeeb193e9e3afb49e83b6cc18df2be9732dd62545' +
+              'ec5d318076ef86adc5771dc4b7b1ce8802bb3b9dce9f7c5a438afd1b1f52f' +
+              'b5e37e3f5c8',
+            type: 'sha512'
+          }
         },
         params: {
           id: 'bucketid'
@@ -1200,29 +1208,46 @@ describe('BucketsRouter', function() {
         req: request,
         eventEmitter: EventEmitter
       });
-      var _bucketFindOne = sinon.stub(
+      sandbox.stub(
         bucketsRouter.storage.models.Bucket,
         'findOne'
       ).callsArgWith(1, null, { _id: 'bucketid' });
-      var _frameFindOne = sinon.stub(
+      sandbox.stub(
         bucketsRouter.storage.models.Frame,
         'findOne'
       ).callsArgWith(1, null, {
+        _id: 'frameid',
         locked: false,
-        lock: sinon.stub().callsArg(0)
+        lock: sandbox.stub().callsArg(0)
       });
-      var entry = { frame: 'frameid', bucket: 'bucketid' };
-      var _bucketEntryCreate = sinon.stub(
+      const hmac = {
+        value: 'f891be8e91491e4aeeb193e9e3afb49e83b6cc18df2be9732dd62545' +
+          'ec5d318076ef86adc5771dc4b7b1ce8802bb3b9dce9f7c5a438afd1b1f52f' +
+          'b5e37e3f5c8',
+        type: 'sha512'
+      };
+      var entry = { frame: 'frameid', bucket: 'bucketid', hmac: hmac};
+      var _bucketEntryCreate = sandbox.stub(
         bucketsRouter.storage.models.BucketEntry,
         'create'
       ).callsArgWith(1, null, {
-        toObject: sinon.stub().returns(entry)
+        toObject: sandbox.stub().returns(entry)
       });
       response.on('end', function() {
-        _bucketFindOne.restore();
-        _frameFindOne.restore();
-        _bucketEntryCreate.restore();
         expect(response._getData().frame).to.equal('frameid');
+        expect(_bucketEntryCreate.args[0][0]).to.eql({
+          bucket: 'bucketid',
+          frame: 'frameid',
+          hmac: {
+            type: 'sha512',
+            value: 'f891be8e91491e4aeeb193e9e3afb49e83b6cc18df2be9732dd62545' +
+              'ec5d318076ef86adc5771dc4b7b1ce8802bb3b9dce9f7c5a438afd1b1f52f' +
+              'b5e37e3f5c8'
+          },
+          mimetype: 'application/octet-stream',
+          name: 'somefilename'
+        });
+        expect(response._getData().hmac).to.eql(hmac);
         expect(response._getData().bucket).to.equal('bucketid');
         done();
       });
@@ -2035,8 +2060,8 @@ describe('BucketsRouter', function() {
         hashpass: storj.utils.sha256('password')
       });
       testUser.isDownloadRateLimited = sandbox.stub().returns(true);
-      testUser.recordDownloadBytes = sandbox.stub().returns();
-      testUser.save = sandbox.stub().callsArgWith(0, new Error('test'));
+      testUser.recordDownloadBytes = sandbox.stub()
+        .callsArgWith(1, new Error('test'));
 
       const pointers = [{ size: 1 }, { size: 10 }, { size: 5 }];
 
@@ -2084,8 +2109,8 @@ describe('BucketsRouter', function() {
         hashpass: storj.utils.sha256('password')
       });
       testUser.isDownloadRateLimited = sandbox.stub().returns(true);
-      testUser.recordDownloadBytes = sandbox.stub().returns();
-      testUser.save = sandbox.stub().callsArgWith(0, new Error('test'));
+      testUser.recordDownloadBytes = sandbox.stub()
+        .callsArgWith(1, new Error('test'));
 
       const pointers = [{ size: NaN }, { size: NaN }, { size: NaN }];
 
@@ -2243,9 +2268,7 @@ describe('BucketsRouter', function() {
         hashpass: storj.utils.sha256('password')
       });
       testUser.isDownloadRateLimited = sinon.stub().returns(true);
-      testUser.recordDownloadBytes = sinon.stub().returns({
-        save: sandbox.stub().callsArgWith(0)
-      });
+      testUser.recordDownloadBytes = sinon.stub().callsArg(1);
 
       const response = httpMocks.createResponse({
         req: request,
@@ -2578,11 +2601,8 @@ describe('BucketsRouter', function() {
         _id: 'testuser@storj.io',
         hashpass: storj.utils.sha256('password')
       });
-      const save = sinon.stub().callsArgWith(0);
       testUser.isDownloadRateLimited = sinon.stub().returns(false);
-      testUser.recordDownloadBytes = sinon.stub().returns({
-        save: save
-      });
+      testUser.recordDownloadBytes = sinon.stub().callsArg(1);
 
       var response = httpMocks.createResponse({
         req: request,
@@ -3396,13 +3416,25 @@ describe('BucketsRouter', function() {
           filename: 'package.json',
           frame: 'frameid',
           size: 1024,
-          id: 'fileid'
+          id: 'fileid',
+          hmac: {
+            type: 'sha512',
+            value: 'f891be8e91491e4aeeb193e9e3afb49e83b6cc18df2be9732dd62545' +
+              'ec5d318076ef86adc5771dc4b7b1ce8802bb3b9dce9f7c5a438afd1b1f52f' +
+              'b5e37e3f5c8'
+          }
         })
       });
       response.on('end', function() {
         _getBucketUnregistered.restore();
         _bucketEntryFindOne.restore();
         expect(response._getData().filename).to.equal('package.json');
+        expect(response._getData().hmac).to.eql({
+          type: 'sha512',
+          value: 'f891be8e91491e4aeeb193e9e3afb49e83b6cc18df2be9732dd62545' +
+            'ec5d318076ef86adc5771dc4b7b1ce8802bb3b9dce9f7c5a438afd1b1f52f' +
+            'b5e37e3f5c8'
+        });
         done();
       });
       bucketsRouter.getFileInfo(request, response);
