@@ -89,6 +89,10 @@ function handleCursorData(shard) {
       let canBeRenewed = results.filter((result) => !!result);
 
       async.parallelLimit(canBeRenewed, 6, ([contact, contract], done) => {
+
+        // TODO: Check to make sure there are no associated
+        // TODO: bucket entry > frame > pointer before renewal!
+
         counter.processed++;
         network.renewContract(contact, contract, (err) => {
           if (err) {
