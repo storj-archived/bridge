@@ -40,7 +40,7 @@ describe('BucketsRouter', function() {
     it('will callback WITH error for invalid file id', function(done) {
       const req = {
         params: {
-          id: 'notafileid'
+          file: 'notafileid'
         }
       };
       const res = {};
