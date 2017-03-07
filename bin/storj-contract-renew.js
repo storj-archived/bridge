@@ -21,10 +21,13 @@ const config = new Config(process.env.NODE_ENV || 'develop', program.config,
 const { mongoUrl, mongoOpts } = config.storage;
 const storage = new Storage(mongoUrl, mongoOpts, { logger });
 const network = new ComplexClient(config.complex);
-const itemStream = storage.models.Shard.find({}).cursor();
+const cursor = storage.models.Shard.find({}).cursor();
 const counter = { processed: 0, renewed: 0, errored: 0 };
 
-const cursor
+const NOW = Date.now();
+const HOURS_24 = ms('24h');
+
+cursor
   .on('error', handleCursorError)
   .on('data', handleCursorData)
   .on('close', handleCursorClose);
@@ -77,33 +80,80 @@ function handleCursorData(shard) {
     return [nodeId, contract];
   });
 
-  async.map(renewalContracts, ([nodeId, contract], next) => {
-    storage.models.Contact.findOne({ _id: nodeId }, (err, contact) => {
-      if (err || !contact) {
-        counter.errored++;
-        return next(null, null);
-      }
+  async.map(renewalContracts, lookupFarmer, maybeRenewContracts);
+}
 
-      next(null , [storj.Contact(contact.toObject()), contract]);
-    }, (err, results) => {
-      let canBeRenewed = results.filter((result) => !!result);
+function lookupFarmer([nodeId, contract], next) {
+  storage.models.Contact.findOne({ _id: nodeId }, (err, contact) => {
+    if (err || !contact) {
+      counter.errored++;
+      return next(null, null);
+    }
 
-      async.parallelLimit(canBeRenewed, 6, ([contact, contract], done) => {
+    next(null , [storj.Contact(contact.toObject()), contract]);
+  });
+}
 
-        // TODO: Check to make sure there are no associated
-        // TODO: bucket entry > frame > pointer before renewal!
+function maybeRenewContracts(err, results) {
+  let canBeRenewed = results.filter((result) => !!result);
 
-        counter.processed++;
-        network.renewContract(contact, contract, (err) => {
-          if (err) {
-            counter.errored++;
-          } else {
-            counter.renewed++;
-          }
+  async.parallelLimit(canBeRenewed, 6, checkIfNeedsRenew,
+                      () => cursor.resume());
+}
 
-          done();
-        });
-      }, () => cursor.resume());
-    });
-  })
+function finishProcessingContract(done) {
+  counter.processed++;
+  done();
+}
+
+function checkIfNeedsRenew([contact, contract], done) {
+  let shardHash = contract.get('data_hash');
+
+  async.waterfall(
+    [
+      (next) => getPointerObjects(shardHash, next),
+      (pointers, next) => getAssociatedFrames(pointers, next),
+      (frames, next) => getParentBucketEntries(frames, next),
+      (entries, next) => renewContract([contact, contract], entries, next)
+    ],
+    () => finishProcessingContract(done)
+  );
+}
+
+function getPointerObjects(shardHash, next) {
+  storage.models.Pointer.find({ hash: shardHash }, (err, pointers) => {
+    next(err || pointers.length === 0, pointers);
+  });
+}
+
+function getAssociatedFrames(pointers, next) {
+  storage.models.Frame.find({
+    $in: {
+      pointers: pointers.map((pointer) => pointer._id)
+    }
+  }, (err, frames) => {
+    next(err || frames.length === 0, frames);
+  });
+}
+
+function getParentBucketEntries(frames, next) {
+  storage.models.BucketEntry.find({
+    $in: {
+      frame: frames.map((frame) => frame._id)
+    }
+  }, (err, entries) => {
+    next(err || entries === 0, entries);
+  });
+}
+
+function renewContract([contact, contract], entries, next) {
+  network.renewContract(contract, contact, (err) => {
+    if (err) {
+      counter.errored++;
+    } else {
+      counter.renewed++;
+    }
+
+    next();
+  });
 }
