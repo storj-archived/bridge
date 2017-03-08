@@ -23,6 +23,45 @@ describe('BucketsRouter', function() {
   someUser.isDownloadRateLimited = sinon.stub().returns(false);
   someUser.recordDownloadBytes = sinon.stub().callsArg(1);
 
+  describe('#_validate', function() {
+    it('will callback WITH error for invalid bucket id', function(done) {
+      const req = {
+        params: {
+          id: 'notabucketid'
+        }
+      };
+      const res = {};
+      bucketsRouter._validate(req, res, (err) => {
+        expect(err).to.be.instanceOf(errors.BadRequestError);
+        done();
+      });
+    });
+
+    it('will callback WITH error for invalid file id', function(done) {
+      const req = {
+        params: {
+          file: 'notafileid'
+        }
+      };
+      const res = {};
+      bucketsRouter._validate(req, res, (err) => {
+        expect(err).to.be.instanceOf(errors.BadRequestError);
+        done();
+      });
+    });
+
+    it('will callback WITHOUT error for valid ids', function(done) {
+      const req = {
+        params: {
+          id: 'bde693c900221a472b84d639',
+          file: '9ec45d1e495aabd4933045bc'
+        }
+      };
+      const res = {};
+      bucketsRouter._validate(req, res, done);
+    });
+  });
+
   describe('#getBuckets', function() {
 
     it('should internal error if query fails', function(done) {
