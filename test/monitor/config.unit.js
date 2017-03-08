@@ -56,6 +56,46 @@ describe('Monitor Config', function() {
       expect(config.application.pingConcurrency).to.equal(100);
     });
 
+    it('will construct without args', function() {
+      const config = new MonitorConfig();
+      expect(config);
+    });
+
+    it('will construct with environment variables', function() {
+      process.env.storjmonitor_logger__level = 1;
+      const config = new MonitorConfig();
+      delete process.env.storjmonitor_logger__level;
+      expect(config.logger.level).to.equal(1);
+    });
+
+    it('will construct with json environment variables', function() {
+      const mongoOpts = {
+        connectTimeoutMS: 123456,
+        socketTimeoutMS: 123456,
+        ssl: true
+      };
+      process.env.storjmonitor_storage__mongoOpts = JSON.stringify(mongoOpts);
+      const config = new MonitorConfig();
+      delete process.env.storjmonitor_storage__mongoOpts;
+      expect(config.storage.mongoOpts).to.eql(mongoOpts);
+    });
+
+    it('json environment variables (boolean and numbers)', function() {
+      const mongoOpts = {
+        connectTimeoutMS: 123456,
+        socketTimeoutMS: 123456,
+        ssl: true
+      };
+      process.env.storjmonitor_storage__mongoOpts__connectTimeoutMS = '123456';
+      process.env.storjmonitor_storage__mongoOpts__socketTimeoutMS = '123456';
+      process.env.storjmonitor_storage__mongoOpts__ssl = 'true';
+      const config = new MonitorConfig();
+      delete process.env.storjmonitor_storage__mongoOpts__connectTimeoutMS;
+      delete process.env.storjmonitor_storage__mongoOpts__socketTimeoutMS;
+      delete process.env.storjmonitor_storage__mongoOpts__ssl;
+      expect(config.storage.mongoOpts).to.eql(mongoOpts);
+    });
+
   });
 
   describe('#getPaths', function() {
@@ -108,8 +148,8 @@ describe('Monitor Config', function() {
       expect(writeFileSync.callCount).to.equal(1);
       expect(writeFileSync.args[0][0])
         .to.equal('/tmp/storj/storj-monitor-config-test.json');
-      expect(writeFileSync.args[0][1])
-        .to.equal(JSON.stringify(DEFAULTS, null, 2));
+      const conf = writeFileSync.args[0][1];
+      expect(conf).to.equal(JSON.stringify(DEFAULTS, null, 2));
     });
 
   });

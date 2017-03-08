@@ -821,7 +821,7 @@
               "properties": {
                 "token": {
                   "type": "string",
-                  "description": "The datachannel token for authorizing transfer to the farmer",
+                  "description": "The token for authorizing transfer to the farmer",
                   "example": "032130ba09cbac408d48a60a190c65b592b59853"
                 },
                 "hash": {
@@ -834,10 +834,40 @@
                   "description": "The operation type (PUSH or PULL)",
                   "example": "PUSH"
                 },
-                "channel": {
-                  "type": "string",
-                  "description": "The farmer datachannel URI for storing the shard",
-                  "example": "ws://farmer.hostname:1337"
+                "farmer": {
+                  "type": "object",
+                  "properties": {
+                    "protocol": {
+                      "type": "string",
+                      "example": "1.1.0",
+                      "description": "Protocol version this farmer is running"
+                    },
+                    "nodeID": {
+                      "type": "string",
+                      "example": "32033d2dc11b877df4b1caefbffba06495ae6b18",
+                      "description": "ECDSA pubkeyhash identifier"
+                    },
+                    "lastSeen": {
+                      "type": "number",
+                      "example": "1487712850023",
+                      "description": "Timestamp when we last encountered this peer"
+                    },
+                    "address": {
+                      "type": "string",
+                      "example": "abcd.storj.farm",
+                      "description": "IP address or hostname of the contact"
+                    },
+                    "userAgent": {
+                      "type": "string",
+                      "example": "6.1.5",
+                      "description": "Storj user agent string for farming client"
+                    },
+                    "port": {
+                      "type": "number",
+                      "example": "8448",
+                      "description": "Port number the farmer is listening on"
+                    }
+                  }
                 }
               }
             }
@@ -1326,6 +1356,19 @@
                   "type": "string",
                   "description": "A file name to show in the bucket",
                   "example": "big_buck_bunny.mp4"
+                },
+                "hmac": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "example": "sha512"
+                    },
+                    "value": {
+                      "type": "string",
+                      "example": "76573119f4b4ca48272e7399529ddda6aade9be5cb5b4b5060a9972efd50da81c3465ba25791db48e835fda0f0c946362b1d2b9e1f6a878fd04f1ce49e353113"
+                    }
+                  }
                 }
               }
             }
@@ -1356,6 +1399,19 @@
                 "size": {
                   "type": "number",
                   "example": 5071076
+                },
+                "hmac": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "example": "sha512"
+                    },
+                    "value": {
+                      "type": "string",
+                      "example": "76573119f4b4ca48272e7399529ddda6aade9be5cb5b4b5060a9972efd50da81c3465ba25791db48e835fda0f0c946362b1d2b9e1f6a878fd04f1ce49e353113"
+                    }
+                  }
                 }
               }
             }
@@ -1387,9 +1443,9 @@
               "items": {
                 "type": "object",
                 "properties": {
-                  "hash": {
+                  "id": {
                     "type": "string",
-                    "example": "9c1185a5c5e9fc54612808977ee8f548b2258d31"
+                    "example": "1a3acc12816f09498f52b78f"
                   },
                   "bucket": {
                     "type": "string",
@@ -1406,6 +1462,23 @@
                   "size": {
                     "type": "number",
                     "example": 5071076
+                  },
+                  "frame": {
+                    "type": "string",
+                    "example": "58b5ee30d3366b79b9286eee"
+                  },
+                  "hmac": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "example": "sha512"
+                      },
+                      "value": {
+                        "type": "string",
+                        "example": "76573119f4b4ca48272e7399529ddda6aade9be5cb5b4b5060a9972efd50da81c3465ba25791db48e835fda0f0c946362b1d2b9e1f6a878fd04f1ce49e353113"
+                      }
+                    }
                   }
                 }
               }
@@ -1490,10 +1563,40 @@
                     "example": "PULL",
                     "description": "The operation type (PUSH or PULL)"
                   },
-                  "channel": {
-                    "type": "string",
-                    "example": "ws://farmer.hostname:4000",
-                    "description": "The farmer's websocket URL for data channel"
+                  "farmer": {
+                    "type": "object",
+                    "properties": {
+                      "protocol": {
+                        "type": "string",
+                        "example": "1.1.0",
+                        "description": "Protocol version this farmer is running"
+                      },
+                      "nodeID": {
+                        "type": "string",
+                        "example": "32033d2dc11b877df4b1caefbffba06495ae6b18",
+                        "description": "ECDSA pubkeyhash identifier"
+                      },
+                      "lastSeen": {
+                        "type": "number",
+                        "example": "1487712850023",
+                        "description": "Timestamp when we last encountered this peer"
+                      },
+                      "address": {
+                        "type": "string",
+                        "example": "abcd.storj.farm",
+                        "description": "IP address or hostname of the contact"
+                      },
+                      "userAgent": {
+                        "type": "string",
+                        "example": "6.1.5",
+                        "description": "Storj user agent string for farming client"
+                      },
+                      "port": {
+                        "type": "number",
+                        "example": "8448",
+                        "description": "Port number the farmer is listening on"
+                      }
+                    }
                   }
                 }
               }
@@ -1586,6 +1689,19 @@
                 "size": {
                   "type": "number",
                   "example": 5071076
+                },
+                "hmac": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "example": "sha512"
+                    },
+                    "value": {
+                      "type": "string",
+                      "example": "76573119f4b4ca48272e7399529ddda6aade9be5cb5b4b5060a9972efd50da81c3465ba25791db48e835fda0f0c946362b1d2b9e1f6a878fd04f1ce49e353113"
+                    }
+                  }
                 }
               }
             }
