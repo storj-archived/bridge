@@ -197,6 +197,7 @@ describe('Monitor', function() {
         }
       };
       monitor.wait = sandbox.stub();
+      monitor._replicateFarmer = sinon.stub();
       monitor.run();
 
       expect(find.callCount).to.equal(1);
@@ -240,6 +241,9 @@ describe('Monitor', function() {
         .to.equal('7b8b30132e930c7827ee47efebfb197d6a3246d4');
       expect(log.warn.args[0][2])
         .to.equal(0.05);
+      expect(monitor._replicateFarmer.callCount).to.equal(1);
+      expect(monitor._replicateFarmer.args[0][0])
+        .to.be.instanceOf(storj.Contact);
 
       expect(monitor.network.ping.callCount).to.equal(3);
       expect(monitor.network.ping.args[0][0]).to.be.instanceOf(storj.Contact);
