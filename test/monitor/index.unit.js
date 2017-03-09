@@ -3,6 +3,7 @@
 const fs = require('fs');
 const sinon = require('sinon');
 const expect = require('chai').expect;
+const EventEmitter = require('events').EventEmitter;
 const Storage = require('storj-service-storage-models');
 const ComplexClient = require('storj-complex').createClient;
 const storj = require('storj-lib');
@@ -59,6 +60,86 @@ describe('Monitor', function() {
       });
     });
 
+  });
+
+  describe('#_replicateFarmer', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
+
+    it('it will log on error', function(done) {
+      sandbox.stub(log, 'info');
+      sandbox.stub(log, 'error');
+      const monitor = new Monitor(config);
+      const cursor = new EventEmitter();
+      const nodeID = '353ba728e2d74826c2fcbf5ada2fe1c402e3eda1';
+      monitor.storage = {
+        models: {
+          Shard: {
+            find: sinon.stub().returns(cursor)
+          }
+        }
+      };
+      const contact = {
+        nodeID: nodeID
+      };
+      monitor._replicateFarmer(contact);
+      cursor.on('error', () => {
+        expect(log.info.callCount).to.equal(1);
+        expect(log.error.callCount).to.equal(1);
+        expect(log.error.args[0][1]).to.equal(nodeID);
+        expect(log.error.args[0][2]).to.equal('test');
+        done();
+      });
+      cursor.emit('error', new Error('test'));
+    });
+
+    it('will call replicateShard for each data item', function(done) {
+      sandbox.stub(log, 'info');
+      const monitor = new Monitor(config);
+      const cursor = new EventEmitter();
+      monitor.storage = {
+        models: {
+          Shard: {
+            find: sinon.stub().returns(cursor)
+          }
+        }
+      };
+      const data = {};
+      const contact = {
+        nodeID: '353ba728e2d74826c2fcbf5ada2fe1c402e3eda1'
+      };
+      monitor._replicateShard = sinon.stub();
+      monitor._replicateFarmer(contact);
+      cursor.on('data', () => {
+        expect(log.info.callCount).to.equal(2);
+        expect(monitor._replicateShard.callCount).to.equal(1);
+        expect(monitor._replicateShard.args[0][0]).to.equal(data);
+        done();
+      });
+      cursor.emit('data', data);
+    });
+
+    it('it will log on close', function(done) {
+      sandbox.stub(log, 'info');
+      const monitor = new Monitor(config);
+      const cursor = new EventEmitter();
+      monitor.storage = {
+        models: {
+          Shard: {
+            find: sinon.stub().returns(cursor)
+          }
+        }
+      };
+      const contact = {
+        nodeID: '353ba728e2d74826c2fcbf5ada2fe1c402e3eda1'
+      };
+      monitor._replicateFarmer(contact);
+      cursor.on('close', () => {
+        expect(log.info.callCount).to.equal(2);
+        done();
+      });
+      cursor.emit('close');
+    });
   });
 
   describe('#run', function() {
