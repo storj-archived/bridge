@@ -62,6 +62,150 @@ describe('Monitor', function() {
 
   });
 
+  describe('#_fetchDestinations', function() {
+    it('it will filter and sort mirrors', function(done) {
+      const monitor = new Monitor(config);
+      const results = [
+        {},
+        {
+          contact: {},
+          isEstablished: false
+        },
+        {
+          contact: {},
+          isEstablished: true
+        }
+      ];
+      const exec = sandbox.stub().callsArgWith(0, null, results);
+      const sort = sandbox.stub().returns({exec: exec});
+      const populate = sandbox.stub().returns({sort: sort});
+      const find = sandbox.stub().returns({populate: populate});
+      monitor.storage = {
+        models: {
+          Mirror: {
+            find: find
+          }
+        }
+      };
+      const shard = {
+        hash: '1aa3af35db376b56545d16155f1ceb49b3a4a7c3'
+      };
+      monitor._fetchDestinations(shard, (err, mirrors) => {
+        if (err) {
+          return done(err);
+        }
+        expect(sort.callCount).to.equal(1);
+        expect(sort.args[0][0].timeoutRate).to.equal(-1);
+        expect(populate.callCount).to.equal(1);
+        expect(find.callCount).to.equal(1);
+        expect(find.args[0][0].shardHash).to.equal(shard.hash);
+        expect(exec.callCount).to.equal(1);
+        expect(mirrors.length).to.equal(1);
+        expect(mirrors[0].isEstablished).to.equal(false);
+        done();
+      });
+    });
+    it('it will give error on query failure', function(done) {
+      const monitor = new Monitor(config);
+      const exec = sandbox.stub().callsArgWith(0, new Error('test'));
+      const sort = sandbox.stub().returns({exec: exec});
+      const populate = sandbox.stub().returns({sort: sort});
+      const find = sandbox.stub().returns({populate: populate});
+      monitor.storage = {
+        models: {
+          Mirror: {
+            find: find
+          }
+        }
+      };
+      const shard = {
+        hash: '1aa3af35db376b56545d16155f1ceb49b3a4a7c3'
+      };
+      monitor._fetchDestinations(shard, (err) => {
+        expect(err).to.be.instanceOf(Error);
+        done();
+      });
+    });
+  });
+
+  describe('#_fetchSources', function() {
+    it('it will query and sort contacts', function(done) {
+      sandbox.stub(log, 'error');
+      const monitor = new Monitor(config);
+      const results = [{
+        toObject: sandbox.stub().returns({
+          address: '127.0.0.2',
+          port: 10002
+        })
+      }, {
+        toObject: sandbox.stub().returns({
+          address: '127.0.0.1',
+          port: 10001
+        })
+      }];
+      const exec = sandbox.stub().callsArgWith(0, null, results);
+      const sort = sandbox.stub().returns({exec: exec});
+      const find = sandbox.stub().returns({sort: sort});
+      monitor.storage = {
+        models: {
+          Contact: {
+            find: find
+          }
+        }
+      };
+      const shard = {
+        contracts: [{
+          farmer_id: 'farmer1'
+        },{
+          farmer_id: 'farmer2'
+        }]
+      };
+
+      monitor._fetchSources(shard, (err, contacts) => {
+        if (err) {
+          return done(err);
+        }
+        expect(find.callCount).to.equal(1);
+        expect(find.args[0][0]._id.$in).to.eql(['farmer1', 'farmer2']);
+        expect(sort.callCount).to.equal(1);
+        expect(sort.args[0][0].lastSeen).to.equal(1);
+        expect(exec.callCount).to.equal(1);
+        expect(contacts.length).to.equal(2);
+        expect(contacts[0]).to.be.instanceOf(storj.Contact);
+        expect(contacts[1]).to.be.instanceOf(storj.Contact);
+        expect(contacts[0].address).to.equal('127.0.0.2');
+        expect(contacts[0].port).to.equal(10002);
+        done();
+      });
+    });
+    it('it will query and sort contacts', function(done) {
+      sandbox.stub(log, 'error');
+      const monitor = new Monitor(config);
+      const exec = sandbox.stub().callsArgWith(0, new Error('test'));
+      const sort = sandbox.stub().returns({exec: exec});
+      const find = sandbox.stub().returns({sort: sort});
+      monitor.storage = {
+        models: {
+          Contact: {
+            find: find
+          }
+        }
+      };
+      const shard = {
+        contracts: [{
+          farmer_id: 'farmer1'
+        },{
+          farmer_id: 'farmer2'
+        }]
+      };
+
+      monitor._fetchSources(shard, (err) => {
+        expect(err).to.be.instanceOf(Error);
+        done();
+      });
+    });
+  });
+
   describe('#_saveShard', function() {
     it('it will add contract, save shard and update mirror', function() {
       sandbox.stub(log, 'error');
