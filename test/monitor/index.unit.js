@@ -62,6 +62,42 @@ describe('Monitor', function() {
 
   });
 
+  describe('#_replicateShard', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
+
+    it('it will fetch sources and destinations', function() {
+      const monitor = new Monitor(config);
+      monitor._transferShard = sinon.stub();
+      const destinations = [];
+      const sources = [];
+      monitor._fetchDestinations = sinon.stub()
+        .callsArgWith(1, null, destinations);
+      monitor._fetchSources = sinon.stub().callsArgWith(1, null, sources);
+      const shard = {};
+      monitor._replicateShard(shard);
+      expect(monitor._transferShard.callCount).to.equal(1);
+      expect(monitor._transferShard.args[0][0]).to.equal(shard);
+      expect(monitor._transferShard.args[0][1]).to.eql({
+        sources: [],
+        destinations: []
+      });
+    });
+
+    it('it will handle error from queries', function() {
+      sandbox.stub(log, 'error');
+      const monitor = new Monitor(config);
+      monitor._transferShard = sinon.stub();
+      const destinations = [];
+      monitor._fetchDestinations = sinon.stub()
+        .callsArgWith(1, null, destinations);
+      monitor._fetchSources = sinon.stub().callsArgWith(1, new Error('test'));
+      const shard = {};
+      monitor._replicateShard(shard);
+      expect(log.error.callCount).to.equal(1);
+    });
+  });
+
   describe('#_replicateFarmer', function() {
     const sandbox = sinon.sandbox.create();
     afterEach(() => sandbox.restore());
