@@ -62,6 +62,79 @@ describe('Monitor', function() {
 
   });
 
+  describe('#_saveShard', function() {
+    it('it will add contract, save shard and update mirror', function() {
+      sandbox.stub(log, 'error');
+      const monitor = new Monitor(config);
+      monitor.contracts = {
+        save: sandbox.stub().callsArgWith(1, null)
+      };
+      const shard = {
+        addContract: sandbox.stub()
+      };
+      const destination = {
+        save: sandbox.stub().callsArgWith(0, null),
+        contact: {
+          address: '127.0.0.1',
+          port: 10000
+        },
+        contract: {}
+      };
+      monitor._saveShard(shard, destination);
+      expect(shard.addContract.callCount).to.equal(1);
+      expect(shard.addContract.args[0][0]).to.be.instanceOf(storj.Contact);
+      expect(shard.addContract.args[0][1]).to.be.instanceOf(storj.Contract);
+      expect(monitor.contracts.save.callCount).to.equal(1);
+      expect(destination.save.callCount).to.equal(1);
+      expect(log.error.callCount).to.equal(0);
+      expect(destination.isEstablished).to.equal(true);
+    });
+    it('it will log error saving contract', function() {
+      sandbox.stub(log, 'error');
+      const monitor = new Monitor(config);
+      monitor.contracts = {
+        save: sandbox.stub().callsArgWith(1, new Error('test'))
+      };
+      const shard = {
+        addContract: sandbox.stub()
+      };
+      const destination = {
+        save: sandbox.stub().callsArgWith(0, null),
+        contact: {
+          address: '127.0.0.1',
+          port: 10000
+        },
+        contract: {}
+      };
+      monitor._saveShard(shard, destination);
+      expect(monitor.contracts.save.callCount).to.equal(1);
+      expect(log.error.callCount).to.equal(1);
+      expect(destination.save.callCount).to.equal(0);
+    });
+    it('it will log error saving mirror', function() {
+      sandbox.stub(log, 'error');
+      const monitor = new Monitor(config);
+      monitor.contracts = {
+        save: sandbox.stub().callsArgWith(1, null)
+      };
+      const shard = {
+        addContract: sandbox.stub()
+      };
+      const destination = {
+        save: sandbox.stub().callsArgWith(0, new Error('test')),
+        contact: {
+          address: '127.0.0.1',
+          port: 10000
+        },
+        contract: {}
+      };
+      monitor._saveShard(shard, destination);
+      expect(monitor.contracts.save.callCount).to.equal(1);
+      expect(destination.save.callCount).to.equal(1);
+      expect(log.error.callCount).to.equal(1);
+    });
+  });
+
   describe('#_transferShard', function() {
     const sandbox = sinon.sandbox.create();
     afterEach(() => sandbox.restore());
