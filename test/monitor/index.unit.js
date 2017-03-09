@@ -62,6 +62,122 @@ describe('Monitor', function() {
 
   });
 
+  describe('#_transferShard', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
+
+    it('will handle error pointer, shift source, and try again', function() {
+      sandbox.stub(log, 'error');
+      sandbox.stub(log, 'warn');
+      const monitor = new Monitor(config);
+      monitor._saveShard = sinon.stub();
+      monitor.network = {
+        getRetrievalPointer: sinon.stub().callsArgWith(2, new Error('test'))
+      };
+      const shard = {};
+      const contact = storj.Contact({
+        address: '127.0.0.1',
+        port: 100000
+      });
+      const mirror = {
+        contract: {}
+      };
+      const state = {
+        sources: [contact],
+        destinations: [mirror]
+      };
+      sandbox.spy(monitor, '_transferShard');
+      monitor._transferShard(shard, state);
+      expect(monitor.network.getRetrievalPointer.callCount)
+        .to.equal(1);
+      expect(monitor.network.getRetrievalPointer.args[0][0])
+        .to.equal(contact);
+      expect(monitor.network.getRetrievalPointer.args[0][1])
+        .to.equal(mirror.contract);
+      expect(log.error.callCount).to.equal(1);
+      expect(log.warn.callCount).to.equal(1);
+      expect(monitor._transferShard.callCount).to.equal(2);
+      expect(monitor._saveShard.callCount).to.equal(0);
+    });
+
+    it('will handle mirror error, shift dest., and try again', function() {
+      sandbox.stub(log, 'error');
+      sandbox.stub(log, 'warn');
+      const monitor = new Monitor(config);
+      monitor._saveShard = sinon.stub();
+      const pointer = {};
+      monitor.network = {
+        getRetrievalPointer: sinon.stub().callsArgWith(2, null, pointer),
+        getMirrorNodes: sinon.stub().callsArgWith(2, new Error('timeout'))
+      };
+      const shard = {};
+      const contact = storj.Contact({
+        address: '127.0.0.1',
+        port: 100000
+      });
+      const mirror = {
+        contract: {},
+        contact: {
+          address: '128.0.0.1',
+          port: 100000
+        }
+      };
+      const state = {
+        sources: [contact],
+        destinations: [mirror]
+      };
+      sandbox.spy(monitor, '_transferShard');
+      monitor._transferShard(shard, state);
+      expect(monitor.network.getMirrorNodes.callCount)
+        .to.equal(1);
+      expect(monitor.network.getMirrorNodes.args[0][0][0])
+        .to.equal(pointer);
+      expect(monitor.network.getMirrorNodes.args[0][1][0])
+        .to.be.instanceOf(storj.Contact);
+      expect(log.error.callCount).to.equal(1);
+      expect(log.warn.callCount).to.equal(1);
+      expect(monitor._transferShard.callCount).to.equal(2);
+      expect(monitor._saveShard.callCount).to.equal(0);
+    });
+
+    it('will save shard updated with new contract', function() {
+      sandbox.stub(log, 'error');
+      sandbox.stub(log, 'warn');
+      const monitor = new Monitor(config);
+      monitor._saveShard = sinon.stub();
+      const pointer = {};
+      monitor.network = {
+        getRetrievalPointer: sinon.stub().callsArgWith(2, null, pointer),
+        getMirrorNodes: sinon.stub().callsArgWith(2, null, {})
+      };
+      const shard = {};
+      const contact = storj.Contact({
+        address: '127.0.0.1',
+        port: 100000
+      });
+      const mirror = {
+        contract: {},
+        contact: {
+          address: '128.0.0.1',
+          port: 100000
+        }
+      };
+      const state = {
+        sources: [contact],
+        destinations: [mirror]
+      };
+      sandbox.spy(monitor, '_transferShard');
+      monitor._transferShard(shard, state);
+      expect(log.error.callCount).to.equal(0);
+      expect(log.warn.callCount).to.equal(0);
+      expect(monitor._transferShard.callCount).to.equal(1);
+      expect(monitor._saveShard.callCount).to.equal(1);
+      expect(monitor._saveShard.args[0][0]).to.equal(shard);
+      expect(monitor._saveShard.args[0][1]).to.equal(state.destinations[0]);
+    });
+
+  });
+
   describe('#_replicateShard', function() {
     const sandbox = sinon.sandbox.create();
     afterEach(() => sandbox.restore());
