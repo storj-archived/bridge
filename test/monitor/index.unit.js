@@ -256,7 +256,11 @@ describe('Monitor', function() {
           }
         }
       };
-      const data = {};
+      const data = {
+        toObject: sandbox.stub().returns({
+          hash: '03780c65a61ebe7334e9ff2a9267a9d725fc2d4b'
+        })
+      };
       const contact = {
         nodeID: '353ba728e2d74826c2fcbf5ada2fe1c402e3eda1'
       };
@@ -265,7 +269,11 @@ describe('Monitor', function() {
       cursor.on('data', () => {
         expect(log.info.callCount).to.equal(2);
         expect(monitor._replicateShard.callCount).to.equal(1);
-        expect(monitor._replicateShard.args[0][0]).to.equal(data);
+        expect(monitor._replicateShard.args[0][0])
+          .to.be.instanceOf(storj.StorageItem);
+        expect(monitor._replicateShard.args[0][0].hash)
+          .to.equal('03780c65a61ebe7334e9ff2a9267a9d725fc2d4b');
+        expect(data.toObject.callCount).to.equal(1);
         done();
       });
       cursor.emit('data', data);
