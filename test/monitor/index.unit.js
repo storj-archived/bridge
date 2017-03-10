@@ -154,11 +154,14 @@ describe('Monitor', function() {
         }
       };
       const shard = {
-        contracts: [{
-          farmer_id: 'farmer1'
-        },{
-          farmer_id: 'farmer2'
-        }]
+        contracts: {
+          'farmer1': {
+            farmer_id: 'farmer1'
+          },
+          'farmer2': {
+            farmer_id: 'farmer2'
+          }
+        }
       };
 
       monitor._fetchSources(shard, (err, contacts) => {
@@ -192,11 +195,14 @@ describe('Monitor', function() {
         }
       };
       const shard = {
-        contracts: [{
-          farmer_id: 'farmer1'
-        },{
-          farmer_id: 'farmer2'
-        }]
+        contracts: {
+          'farmer1': {
+            farmer_id: 'farmer1'
+          },
+          'farmer2': {
+            farmer_id: 'farmer2'
+          }
+        }
       };
 
       monitor._fetchSources(shard, (err) => {
