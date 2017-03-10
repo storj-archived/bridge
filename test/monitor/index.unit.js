@@ -328,6 +328,34 @@ describe('Monitor', function() {
     const sandbox = sinon.sandbox.create();
     afterEach(() => sandbox.restore());
 
+    it('will handle an invalid contract', function() {
+      sandbox.stub(log, 'error');
+      sandbox.stub(log, 'warn');
+      sandbox.stub(storj, 'Contract').throws(new Error('Invalid contract'));
+      const monitor = new Monitor(config);
+      monitor._saveShard = sinon.stub();
+      monitor.network = {
+        getRetrievalPointer: sinon.stub().callsArg(2)
+      };
+      const shard = {};
+      const contact = storj.Contact({
+        address: '127.0.0.1',
+        port: 100000
+      });
+      const mirror = {
+        contract: {}
+      };
+      const state = {
+        sources: [contact],
+        destinations: [mirror]
+      };
+      sandbox.spy(monitor, '_transferShard');
+      monitor._transferShard(shard, state);
+      expect(log.warn.callCount).to.equal(1);
+      expect(log.error.callCount).to.equal(1);
+      expect(monitor._transferShard.callCount).to.equal(2);
+    });
+
     it('will handle error pointer, shift source, and try again', function() {
       sandbox.stub(log, 'error');
       sandbox.stub(log, 'warn');
@@ -355,7 +383,7 @@ describe('Monitor', function() {
       expect(monitor.network.getRetrievalPointer.args[0][0])
         .to.equal(contact);
       expect(monitor.network.getRetrievalPointer.args[0][1])
-        .to.equal(mirror.contract);
+        .to.be.instanceOf(storj.Contract);
       expect(log.error.callCount).to.equal(1);
       expect(log.warn.callCount).to.equal(1);
       expect(monitor._transferShard.callCount).to.equal(2);
