@@ -77,8 +77,7 @@ describe('Monitor', function() {
         }
       ];
       const exec = sandbox.stub().callsArgWith(0, null, results);
-      const sort = sandbox.stub().returns({exec: exec});
-      const populate = sandbox.stub().returns({sort: sort});
+      const populate = sandbox.stub().returns({exec: exec});
       const find = sandbox.stub().returns({populate: populate});
       monitor.storage = {
         models: {
@@ -94,8 +93,6 @@ describe('Monitor', function() {
         if (err) {
           return done(err);
         }
-        expect(sort.callCount).to.equal(1);
-        expect(sort.args[0][0].timeoutRate).to.equal(-1);
         expect(populate.callCount).to.equal(1);
         expect(find.callCount).to.equal(1);
         expect(find.args[0][0].shardHash).to.equal(shard.hash);
@@ -108,8 +105,7 @@ describe('Monitor', function() {
     it('it will give error on query failure', function(done) {
       const monitor = new Monitor(config);
       const exec = sandbox.stub().callsArgWith(0, new Error('test'));
-      const sort = sandbox.stub().returns({exec: exec});
-      const populate = sandbox.stub().returns({sort: sort});
+      const populate = sandbox.stub().returns({exec: exec});
       const find = sandbox.stub().returns({populate: populate});
       monitor.storage = {
         models: {
@@ -171,7 +167,7 @@ describe('Monitor', function() {
         expect(find.callCount).to.equal(1);
         expect(find.args[0][0]._id.$in).to.eql(['farmer1', 'farmer2']);
         expect(sort.callCount).to.equal(1);
-        expect(sort.args[0][0].lastSeen).to.equal(1);
+        expect(sort.args[0][0].lastSeen).to.equal(-1);
         expect(exec.callCount).to.equal(1);
         expect(contacts.length).to.equal(2);
         expect(contacts[0]).to.be.instanceOf(storj.Contact);
