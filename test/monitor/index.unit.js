@@ -444,7 +444,9 @@ describe('Monitor', function() {
       monitor.storage = {
         models: {
           Shard: {
-            find: sinon.stub().returns(cursor)
+            find: sandbox.stub().returns({
+              cursor: sandbox.stub().returns(cursor)
+            })
           }
         }
       };
@@ -469,7 +471,9 @@ describe('Monitor', function() {
       monitor.storage = {
         models: {
           Shard: {
-            find: sinon.stub().returns(cursor)
+            find: sandbox.stub().returns({
+              cursor: sandbox.stub().returns(cursor)
+            })
           }
         }
       };
@@ -503,7 +507,9 @@ describe('Monitor', function() {
       monitor.storage = {
         models: {
           Shard: {
-            find: sinon.stub().returns(cursor)
+            find: sandbox.stub().returns({
+              cursor: sandbox.stub().returns(cursor)
+            })
           }
         }
       };
