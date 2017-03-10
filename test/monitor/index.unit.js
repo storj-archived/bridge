@@ -62,13 +62,52 @@ describe('Monitor', function() {
 
   });
 
+  describe('@sortByTimeoutRate', function() {
+    it('will sort with the best timeout rate (0) at top', function() {
+      const mirrors = [{
+        contact: { timeoutRate: 0.99 }
+      }, {
+        contact: { timeoutRate: 0.03 }
+      }, {
+        contact: { timeoutRate: 0.98 }
+      }, {
+        contact: { timeoutRate: 1 }
+      }, {
+        contact: { timeoutRate: 0 }
+      }];
+
+      mirrors.sort(Monitor.sortByTimeoutRate);
+
+      expect(mirrors).to.eql([{
+        contact: { timeoutRate: 0 }
+      }, {
+        contact: { timeoutRate: 0.03 }
+      }, {
+        contact: { timeoutRate: 0.98 }
+      }, {
+        contact: { timeoutRate: 0.99 }
+      }, {
+        contact: { timeoutRate: 1 }
+      }]);
+    });
+  });
+
   describe('#_fetchDestinations', function() {
     it('it will filter and sort mirrors', function(done) {
+      sandbox.spy(Monitor, 'sortByTimeoutRate');
       const monitor = new Monitor(config);
       const results = [
         {},
         {
-          contact: {},
+          contact: {
+            timeoutRate: 0.001
+          },
+          isEstablished: false
+        },
+        {
+          contact: {
+            timeoutRate: 0.01
+          },
           isEstablished: false
         },
         {
@@ -97,8 +136,10 @@ describe('Monitor', function() {
         expect(find.callCount).to.equal(1);
         expect(find.args[0][0].shardHash).to.equal(shard.hash);
         expect(exec.callCount).to.equal(1);
-        expect(mirrors.length).to.equal(1);
+        expect(mirrors.length).to.equal(2);
         expect(mirrors[0].isEstablished).to.equal(false);
+        expect(mirrors[0].contact.timeoutRate).to.equal(0.001);
+        expect(Monitor.sortByTimeoutRate.callCount).to.equal(1);
         done();
       });
     });
