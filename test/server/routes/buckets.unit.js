@@ -2760,7 +2760,7 @@ describe('BucketsRouter', function() {
         bucketsRouter.storage.models,
         'StorageEvent',
         StorageEvent
-        );
+      );
 
       response.on('end', function() {
         expect(bucketsRouter._getPointersFromEntry.args[0][2])
@@ -3304,10 +3304,23 @@ describe('BucketsRouter', function() {
       var _bucketEntryFindOne = sinon.stub(
         bucketsRouter.storage.models.BucketEntry,
         'findOne'
-      ).callsArgWith(1, new Error('Failed to lookup bucket entry'));
+      ).returns({
+        populate: function() {
+          return this;
+        },
+        exec: sinon.stub().callsArgWith(0, new Error('Failed to lookup bucket entry'))
+      });
+      function StorageEvent() {};
+      StorageEvent.prototype.save = sinon.stub().callsArgWith(0, null);
+      var _storageEvent = sinon.stub(
+        bucketsRouter.storage.models,
+        'StorageEvent',
+        StorageEvent
+        );
       bucketsRouter.removeFile(request, response, function(err) {
         _bucketFindOne.restore();
         _bucketEntryFindOne.restore();
+        _storageEvent.restore();
         expect(err.message).to.equal('Failed to lookup bucket entry');
         done();
       });
@@ -3334,10 +3347,23 @@ describe('BucketsRouter', function() {
       var _bucketEntryFindOne = sinon.stub(
         bucketsRouter.storage.models.BucketEntry,
         'findOne'
-      ).callsArgWith(1, null, null);
+      ).returns({
+        populate: function() {
+          return this;
+        },
+        exec: sinon.stub().callsArgWith(0, null, null)
+      });
+      function StorageEvent() {};
+      StorageEvent.prototype.save = sinon.stub().callsArgWith(0, null);
+      var _storageEvent = sinon.stub(
+        bucketsRouter.storage.models,
+        'StorageEvent',
+        StorageEvent
+        );
       bucketsRouter.removeFile(request, response, function(err) {
         _bucketFindOne.restore();
         _bucketEntryFindOne.restore();
+        _storageEvent.restore();
         expect(err.message).to.equal('File not found');
         done();
       });
@@ -3364,12 +3390,24 @@ describe('BucketsRouter', function() {
       var _bucketEntryFindOne = sinon.stub(
         bucketsRouter.storage.models.BucketEntry,
         'findOne'
-      ).callsArgWith(1, null, {
-        remove: sinon.stub().callsArgWith(0, new Error('Failed to delete'))
+      ).returns({
+        populate: sinon.stub().returns({
+           exec: sinon.stub().callsArgWith(0, null, {
+            remove: sinon.stub().callsArgWith(0, new Error('Failed to delete'))
+          })
+        })
       });
+      function StorageEvent() {};
+      StorageEvent.prototype.save = sinon.stub().callsArgWith(0, null);
+      var _storageEvent = sinon.stub(
+        bucketsRouter.storage.models,
+        'StorageEvent',
+        StorageEvent
+        );
       bucketsRouter.removeFile(request, response, function(err) {
         _bucketFindOne.restore();
         _bucketEntryFindOne.restore();
+        _storageEvent.restore();
         expect(err.message).to.equal('Failed to delete');
         done();
       });
@@ -3396,12 +3434,27 @@ describe('BucketsRouter', function() {
       var _bucketEntryFindOne = sinon.stub(
         bucketsRouter.storage.models.BucketEntry,
         'findOne'
-      ).callsArgWith(1, null, {
-        remove: sinon.stub().callsArg(0)
+      ).returns({
+        populate: sinon.stub().returns({
+          exec: sinon.stub().callsArgWith(0, null, {
+            frame: {
+              size: 1000
+            },
+            remove: sinon.stub().callsArg(0)
+          })
+        })
       });
+      function StorageEvent() {};
+      StorageEvent.prototype.save = sinon.stub().callsArgWith(0, null);
+      var _storageEvent = sinon.stub(
+        bucketsRouter.storage.models,
+        'StorageEvent',
+        StorageEvent
+        );
       response.on('end', function() {
         _bucketFindOne.restore();
         _bucketEntryFindOne.restore();
+        _storageEvent.restore();
         expect(response.statusCode).to.equal(204);
         done();
       });
