@@ -2754,6 +2754,14 @@ describe('BucketsRouter', function() {
         bucketsRouter,
         '_getPointersFromEntry'
       ).callsArgWith(3, null, pointers);
+      function StorageEvent() {}; 
+      StorageEvent.prototype.save = sinon.stub().callsArgWith(0, null);
+      sandbox.stub(
+        bucketsRouter.storage.models,
+        'StorageEvent',
+        StorageEvent
+        );
+
       response.on('end', function() {
         expect(bucketsRouter._getPointersFromEntry.args[0][2])
           .to.equal(testUser);
