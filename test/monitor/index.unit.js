@@ -69,6 +69,10 @@ describe('Monitor', function() {
       }, {
         contact: { timeoutRate: 0.03 }
       }, {
+        contact: { }
+      }, {
+        contact: { timeoutRate: 0.98 }
+      }, {
         contact: { timeoutRate: 0.98 }
       }, {
         contact: { timeoutRate: 1 }
@@ -85,9 +89,13 @@ describe('Monitor', function() {
       }, {
         contact: { timeoutRate: 0.98 }
       }, {
+        contact: { timeoutRate: 0.98 }
+      }, {
         contact: { timeoutRate: 0.99 }
       }, {
         contact: { timeoutRate: 1 }
+      }, {
+        contact: { }
       }]);
     });
   });
