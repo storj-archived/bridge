@@ -187,6 +187,8 @@ describe('Monitor', function() {
           address: '127.0.0.1',
           port: 10001
         })
+      }, {
+        toObject: sandbox.stub().returns({}) // invalid contact
       }];
       const exec = sandbox.stub().callsArgWith(0, null, results);
       const sort = sandbox.stub().returns({exec: exec});
