@@ -200,12 +200,8 @@ describe('Monitor', function() {
       };
       const shard = {
         contracts: {
-          'farmer1': {
-            farmer_id: 'farmer1'
-          },
-          'farmer2': {
-            farmer_id: 'farmer2'
-          }
+          'farmer1': {},
+          'farmer2': {}
         }
       };
 
@@ -241,12 +237,8 @@ describe('Monitor', function() {
       };
       const shard = {
         contracts: {
-          'farmer1': {
-            farmer_id: 'farmer1'
-          },
-          'farmer2': {
-            farmer_id: 'farmer2'
-          }
+          'farmer1': {},
+          'farmer2': {}
         }
       };
 
