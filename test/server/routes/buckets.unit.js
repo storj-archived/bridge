@@ -2773,6 +2773,77 @@ describe('BucketsRouter', function() {
       bucketsRouter.getFile(request, response);
     });
 
+    it('should throw error if storage event save fails', function(done) {
+      sandbox.stub(log, 'warn');
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/buckets/:bucket_id/files/:file_id',
+        params: {
+          id: 'bucketid'
+        },
+        query: {}
+      });
+      request.token = {
+        bucket: 'bucketid'
+      };
+      const testUser = new bucketsRouter.storage.models.User({
+        _id: 'testuser@storj.io',
+        hashpass: storj.utils.sha256('password')
+      });
+      testUser.isDownloadRateLimited = sinon.stub().returns(false);
+      testUser.recordDownloadBytes = sinon.stub().callsArg(1);
+
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+
+      sandbox.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, {
+        _id: 'bucketid',
+      });
+
+      sandbox.stub(
+        bucketsRouter.storage.models.User,
+        'findOne'
+      ).callsArgWith(1, null, testUser);
+
+      var entry = {
+        frame: {
+          size: 1024 * 8
+        }
+      };
+      sandbox.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'findOne'
+      ).returns({
+        populate: function() {
+          return this;
+        },
+        exec: sandbox.stub().callsArgWith(0, null, entry)
+      });
+      var pointers = [{ pointer: 'one' }, { pointer: 'two' }];
+      sandbox.stub(
+        bucketsRouter,
+        '_getPointersFromEntry'
+      ).callsArgWith(3, null, pointers);
+      function StorageEvent() {}
+      StorageEvent.prototype.save = sinon.stub().callsArgWith(0, new Error('test'));
+      sandbox.stub(
+        bucketsRouter.storage.models,
+        'StorageEvent',
+        StorageEvent
+      );
+
+      response.on('end', function() {
+        expect(log.warn.callCount).to.equal(1);
+        done();
+      });
+      bucketsRouter.getFile(request, response);
+    });
+
   });
 
   describe('#listMirrorsForFile', function() {
@@ -3232,6 +3303,8 @@ describe('BucketsRouter', function() {
   });
 
   describe('#removeFile', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
 
     it('should internal error if bucket query fails', function(done) {
       var request = httpMocks.createRequest({
