@@ -2176,9 +2176,7 @@ describe('BucketsRouter', function() {
       testUser.isDownloadRateLimited = sandbox.stub().returns(true);
       testUser.recordDownloadBytes = sandbox.stub()
         .callsArgWith(1, new Error('test'));
-    
       const pointers = [{ size: 1 }, { size: 10 }, { size: 5 }];
-      
       sandbox.stub(
         bucketsRouter.storage.models.Pointer,
         'find'
