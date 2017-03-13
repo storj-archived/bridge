@@ -76,7 +76,7 @@
     "storj-service-error-types": "^1.1.0",
     "storj-service-mailer": "^1.0.0",
     "storj-service-middleware": "^1.2.1",
-    "storj-service-storage-models": "pgerbes1/service-storage-models#33b98eee1b8b944cd323ae56ae30a7c27a21c627",
+    "storj-service-storage-models": "pgerbes1/service-storage-models",
     "through": "^2.3.8"
   }
 }
