@@ -1247,7 +1247,7 @@ describe('BucketsRouter', function() {
         req: request,
         eventEmitter: EventEmitter
       });
-      function StorageEvent() {};
+      function StorageEvent() {}
       StorageEvent.prototype.save = sandbox.stub().callsArgWith(0, null);
       sandbox.stub(
         bucketsRouter.storage.models,
@@ -1345,7 +1345,7 @@ describe('BucketsRouter', function() {
           'b5e37e3f5c8',
         type: 'sha512'
       };
-      var entry = { frame: 'frameid', bucket: 'bucketid', hmac: hmac}
+      var entry = { frame: 'frameid', bucket: 'bucketid', hmac: hmac};
       sandbox.stub(
         bucketsRouter.storage.models.BucketEntry,
         'create'
@@ -1354,7 +1354,7 @@ describe('BucketsRouter', function() {
         frame: 'frameid',
         toObject: sandbox.stub().returns(entry)
       });
-      function StorageEvent() {};
+      function StorageEvent() {}
       StorageEvent.prototype.save = sandbox.stub().callsArgWith(0, new Error('test'));
       sandbox.stub(
         bucketsRouter.storage.models,
@@ -2754,7 +2754,7 @@ describe('BucketsRouter', function() {
         bucketsRouter,
         '_getPointersFromEntry'
       ).callsArgWith(3, null, pointers);
-      function StorageEvent() {}; 
+      function StorageEvent() {}
       StorageEvent.prototype.save = sinon.stub().callsArgWith(0, null);
       sandbox.stub(
         bucketsRouter.storage.models,
@@ -3310,7 +3310,7 @@ describe('BucketsRouter', function() {
         },
         exec: sinon.stub().callsArgWith(0, new Error('Failed to lookup bucket entry'))
       });
-      function StorageEvent() {};
+      function StorageEvent() {}
       StorageEvent.prototype.save = sinon.stub().callsArgWith(0, null);
       var _storageEvent = sinon.stub(
         bucketsRouter.storage.models,
@@ -3353,7 +3353,7 @@ describe('BucketsRouter', function() {
         },
         exec: sinon.stub().callsArgWith(0, null, null)
       });
-      function StorageEvent() {};
+      function StorageEvent() {}
       StorageEvent.prototype.save = sinon.stub().callsArgWith(0, null);
       var _storageEvent = sinon.stub(
         bucketsRouter.storage.models,
@@ -3397,7 +3397,7 @@ describe('BucketsRouter', function() {
           })
         })
       });
-      function StorageEvent() {};
+      function StorageEvent() {}
       StorageEvent.prototype.save = sinon.stub().callsArgWith(0, null);
       var _storageEvent = sinon.stub(
         bucketsRouter.storage.models,
@@ -3444,7 +3444,7 @@ describe('BucketsRouter', function() {
           })
         })
       });
-      function StorageEvent() {};
+      function StorageEvent() {}
       StorageEvent.prototype.save = sinon.stub().callsArgWith(0, null);
       var _storageEvent = sinon.stub(
         bucketsRouter.storage.models,
