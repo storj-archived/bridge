@@ -2360,6 +2360,15 @@ describe('BucketsRouter', function() {
 
     it('should throw error if storage event save fails', function(done) {
       sandbox.stub(log, 'warn');
+      const testUser = new bucketsRouter.storage.models.User({
+        _id: 'testuser@storj.io',
+        hashpass: storj.utils.sha256('password')
+      });
+      testUser.isDownloadRateLimited = sandbox.stub().returns(true);
+      testUser.recordDownloadBytes = sandbox.stub()
+        .callsArgWith(1, null);
+
+      const pointers = [{ size: 2 }, { size: 2 }, { size: 2}];
       sandbox.stub(
         bucketsRouter.storage.models.Pointer,
         'find'
@@ -2373,7 +2382,7 @@ describe('BucketsRouter', function() {
         sort: function() {
           return this;
         },
-        exec: sandbox.stub().callsArgWith(0, null, [{size: 10}])
+        exec: sandbox.stub().callsArgWith(0, null, pointers)
       });
       var token = {};
       sandbox.stub(
