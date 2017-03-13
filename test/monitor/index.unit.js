@@ -83,6 +83,8 @@ describe('Monitor', function() {
       mirrors.sort(Monitor.sortByTimeoutRate);
 
       expect(mirrors).to.eql([{
+        contact: { }
+      }, {
         contact: { timeoutRate: 0 }
       }, {
         contact: { timeoutRate: 0.03 }
@@ -94,8 +96,6 @@ describe('Monitor', function() {
         contact: { timeoutRate: 0.99 }
       }, {
         contact: { timeoutRate: 1 }
-      }, {
-        contact: { }
       }]);
     });
   });
