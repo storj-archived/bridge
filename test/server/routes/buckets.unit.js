@@ -2339,12 +2339,21 @@ describe('BucketsRouter', function() {
         },
         exec: sandbox.stub().callsArgWith(0, null, [{size: 10}])
       });
+      function StorageEvent() {}
+      StorageEvent.prototype.save = sinon.stub().callsArgWith(0, null);
+      sandbox.stub(
+        bucketsRouter.storage.models,
+        'StorageEvent',
+        StorageEvent
+      );
       var token = {};
       sandbox.stub(
         bucketsRouter,
         '_getRetrievalToken'
       ).callsArgWith(2, null, token);
       bucketsRouter._getPointersFromEntry({
+        bucket: 'bucketid',
+        _id: 'bucketentryid',
         frame: { shards: [] }
       }, {
         skip: 6,
@@ -2354,6 +2363,14 @@ describe('BucketsRouter', function() {
           return done(err);
         }
         expect(results[0]).to.equal(token);
+        expect(bucketsRouter.storage.models.StorageEvent.prototype.save.callCount).to.equal(1); 
+        expect(bucketsRouter.storage.models.StorageEvent.args[0][0]).to.eql({
+          bucket: 'bucketid',
+          bucketEntry: 'bucketentryid',
+          downloadBandwidth: 10,
+          storage: 0,
+          user: 'gordon@storj.io'
+        });
         done();
       });
     });
@@ -2364,11 +2381,8 @@ describe('BucketsRouter', function() {
         _id: 'testuser@storj.io',
         hashpass: storj.utils.sha256('password')
       });
-      testUser.isDownloadRateLimited = sandbox.stub().returns(true);
-      testUser.recordDownloadBytes = sandbox.stub()
-        .callsArgWith(1, null);
-
-      const pointers = [{ size: 2 }, { size: 2 }, { size: 2}];
+      testUser.isDownloadRateLimited = sandbox.stub().returns(false);
+      testUser.recordDownloadBytes = sandbox.stub().callsArgWith(1, null);
       sandbox.stub(
         bucketsRouter.storage.models.Pointer,
         'find'
@@ -2382,13 +2396,12 @@ describe('BucketsRouter', function() {
         sort: function() {
           return this;
         },
-        exec: sandbox.stub().callsArgWith(0, null, pointers)
+        exec: sandbox.stub().callsArgWith(0, null, [{size: 10}])
       });
-      var token = {};
       sandbox.stub(
         bucketsRouter,
         '_getRetrievalToken'
-      ).callsArgWith(2, null, token);
+      ).callsArgWith(2, null, {});
       function StorageEvent() {}
       StorageEvent.prototype.save = sinon.stub().callsArgWith(0, new Error('test'));
       sandbox.stub(
@@ -2401,10 +2414,7 @@ describe('BucketsRouter', function() {
       }, {
         skip: 6,
         limit: 12
-      }, someUser, function(err) {
-        if (err) {
-          return done(err);
-        }
+      }, testUser, function() {
         expect(log.warn.callCount).to.equal(1);
         done();
       });
