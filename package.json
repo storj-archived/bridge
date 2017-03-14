@@ -1,6 +1,6 @@
 {
   "name": "storj-bridge",
-  "version": "5.3.3",
+  "version": "5.5.0",
   "description": "Access the Storj network using a simple REST API.",
   "main": "index.js",
   "directories": {
@@ -14,7 +14,7 @@
   "scripts": {
     "testsuite": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=test _mocha --recursive test/**",
     "coverage": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=test ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- --recursive",
-    "linter": "./node_modules/.bin/jshint --config .jshintrc ./index.js ./lib ./test",
+    "linter": "./node_modules/.bin/eslint ./index.js ./lib ./test",
     "test": "npm run testsuite && npm run linter",
     "develop": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=develop node script/develop.js start",
     "make-docs": "./node_modules/.bin/jsdoc index.js lib -r -R README.md -u ./doc -c .jsdoc.json --verbose -d ./jsdoc",
@@ -79,8 +79,8 @@
     "storj-service-error-types": "^1.1.0",
     "storj-service-mailer": "^1.0.0",
     "storj-service-middleware": "^1.2.1",
-    "storj-service-storage-models": "^8.6.0",
     "supertest": "^3.0.0",
+    "storj-service-storage-models": "^8.9.0",
     "through": "^2.3.8"
   }
 }

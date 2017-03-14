@@ -3,6 +3,7 @@
 const fs = require('fs');
 const sinon = require('sinon');
 const expect = require('chai').expect;
+const EventEmitter = require('events').EventEmitter;
 const Storage = require('storj-service-storage-models');
 const ComplexClient = require('storj-complex').createClient;
 const storj = require('storj-lib');
@@ -59,6 +60,542 @@ describe('Monitor', function() {
       });
     });
 
+  });
+
+  describe('@sortByTimeoutRate', function() {
+    it('will sort with the best timeout rate (0) at top', function() {
+      const mirrors = [{
+        contact: { timeoutRate: 0.99 }
+      }, {
+        contact: { timeoutRate: 0.03 }
+      }, {
+        contact: { }
+      }, {
+        contact: { timeoutRate: 0.98 }
+      }, {
+        contact: { timeoutRate: 0.98 }
+      }, {
+        contact: { timeoutRate: 1 }
+      }, {
+        contact: { timeoutRate: 0 }
+      }];
+
+      mirrors.sort(Monitor.sortByTimeoutRate);
+
+      expect(mirrors).to.eql([{
+        contact: { }
+      }, {
+        contact: { timeoutRate: 0 }
+      }, {
+        contact: { timeoutRate: 0.03 }
+      }, {
+        contact: { timeoutRate: 0.98 }
+      }, {
+        contact: { timeoutRate: 0.98 }
+      }, {
+        contact: { timeoutRate: 0.99 }
+      }, {
+        contact: { timeoutRate: 1 }
+      }]);
+    });
+  });
+
+  describe('#_fetchDestinations', function() {
+    it('it will filter and sort mirrors', function(done) {
+      sandbox.spy(Monitor, 'sortByTimeoutRate');
+      const monitor = new Monitor(config);
+      const results = [
+        {},
+        {
+          contact: {
+            timeoutRate: 0.001
+          },
+          isEstablished: false
+        },
+        {
+          contact: {
+            timeoutRate: 0.01
+          },
+          isEstablished: false
+        },
+        {
+          contact: {},
+          isEstablished: true
+        }
+      ];
+      const exec = sandbox.stub().callsArgWith(0, null, results);
+      const populate = sandbox.stub().returns({exec: exec});
+      const find = sandbox.stub().returns({populate: populate});
+      monitor.storage = {
+        models: {
+          Mirror: {
+            find: find
+          }
+        }
+      };
+      const shard = {
+        hash: '1aa3af35db376b56545d16155f1ceb49b3a4a7c3'
+      };
+      monitor._fetchDestinations(shard, (err, mirrors) => {
+        if (err) {
+          return done(err);
+        }
+        expect(populate.callCount).to.equal(1);
+        expect(find.callCount).to.equal(1);
+        expect(find.args[0][0].shardHash).to.equal(shard.hash);
+        expect(exec.callCount).to.equal(1);
+        expect(mirrors.length).to.equal(2);
+        expect(mirrors[0].isEstablished).to.equal(false);
+        expect(mirrors[0].contact.timeoutRate).to.equal(0.001);
+        expect(Monitor.sortByTimeoutRate.callCount).to.equal(1);
+        done();
+      });
+    });
+    it('it will give error on query failure', function(done) {
+      const monitor = new Monitor(config);
+      const exec = sandbox.stub().callsArgWith(0, new Error('test'));
+      const populate = sandbox.stub().returns({exec: exec});
+      const find = sandbox.stub().returns({populate: populate});
+      monitor.storage = {
+        models: {
+          Mirror: {
+            find: find
+          }
+        }
+      };
+      const shard = {
+        hash: '1aa3af35db376b56545d16155f1ceb49b3a4a7c3'
+      };
+      monitor._fetchDestinations(shard, (err) => {
+        expect(err).to.be.instanceOf(Error);
+        done();
+      });
+    });
+  });
+
+  describe('#_fetchSources', function() {
+    it('it will query and sort contacts', function(done) {
+      sandbox.stub(log, 'error');
+      const monitor = new Monitor(config);
+      const results = [{
+        toObject: sandbox.stub().returns({
+          address: '127.0.0.2',
+          port: 10002
+        })
+      }, {
+        toObject: sandbox.stub().returns({
+          address: '127.0.0.1',
+          port: 10001
+        })
+      }, {
+        toObject: sandbox.stub().returns({}) // invalid contact
+      }];
+      const exec = sandbox.stub().callsArgWith(0, null, results);
+      const sort = sandbox.stub().returns({exec: exec});
+      const find = sandbox.stub().returns({sort: sort});
+      monitor.storage = {
+        models: {
+          Contact: {
+            find: find
+          }
+        }
+      };
+      const shard = {
+        contracts: {
+          'farmer1': {},
+          'farmer2': {}
+        }
+      };
+
+      monitor._fetchSources(shard, (err, contacts) => {
+        if (err) {
+          return done(err);
+        }
+        expect(find.callCount).to.equal(1);
+        expect(find.args[0][0]._id.$in).to.eql(['farmer1', 'farmer2']);
+        expect(sort.callCount).to.equal(1);
+        expect(sort.args[0][0].lastSeen).to.equal(-1);
+        expect(exec.callCount).to.equal(1);
+        expect(contacts.length).to.equal(2);
+        expect(contacts[0]).to.be.instanceOf(storj.Contact);
+        expect(contacts[1]).to.be.instanceOf(storj.Contact);
+        expect(contacts[0].address).to.equal('127.0.0.2');
+        expect(contacts[0].port).to.equal(10002);
+        done();
+      });
+    });
+    it('it will query and sort contacts', function(done) {
+      sandbox.stub(log, 'error');
+      const monitor = new Monitor(config);
+      const exec = sandbox.stub().callsArgWith(0, new Error('test'));
+      const sort = sandbox.stub().returns({exec: exec});
+      const find = sandbox.stub().returns({sort: sort});
+      monitor.storage = {
+        models: {
+          Contact: {
+            find: find
+          }
+        }
+      };
+      const shard = {
+        contracts: {
+          'farmer1': {},
+          'farmer2': {}
+        }
+      };
+
+      monitor._fetchSources(shard, (err) => {
+        expect(err).to.be.instanceOf(Error);
+        done();
+      });
+    });
+  });
+
+  describe('#_saveShard', function() {
+    it('it will add contract, save shard and update mirror', function() {
+      sandbox.stub(log, 'error');
+      const monitor = new Monitor(config);
+      monitor.contracts = {
+        save: sandbox.stub().callsArgWith(1, null)
+      };
+      const shard = {
+        addContract: sandbox.stub()
+      };
+      const destination = {
+        save: sandbox.stub().callsArgWith(0, null),
+        contact: {
+          address: '127.0.0.1',
+          port: 10000
+        },
+        contract: {}
+      };
+      monitor._saveShard(shard, destination);
+      expect(shard.addContract.callCount).to.equal(1);
+      expect(shard.addContract.args[0][0]).to.be.instanceOf(storj.Contact);
+      expect(shard.addContract.args[0][1]).to.be.instanceOf(storj.Contract);
+      expect(monitor.contracts.save.callCount).to.equal(1);
+      expect(destination.save.callCount).to.equal(1);
+      expect(log.error.callCount).to.equal(0);
+      expect(destination.isEstablished).to.equal(true);
+    });
+    it('it will log error saving contract', function() {
+      sandbox.stub(log, 'error');
+      const monitor = new Monitor(config);
+      monitor.contracts = {
+        save: sandbox.stub().callsArgWith(1, new Error('test'))
+      };
+      const shard = {
+        addContract: sandbox.stub()
+      };
+      const destination = {
+        save: sandbox.stub().callsArgWith(0, null),
+        contact: {
+          address: '127.0.0.1',
+          port: 10000
+        },
+        contract: {}
+      };
+      monitor._saveShard(shard, destination);
+      expect(monitor.contracts.save.callCount).to.equal(1);
+      expect(log.error.callCount).to.equal(1);
+      expect(destination.save.callCount).to.equal(0);
+    });
+    it('it will log error saving mirror', function() {
+      sandbox.stub(log, 'error');
+      const monitor = new Monitor(config);
+      monitor.contracts = {
+        save: sandbox.stub().callsArgWith(1, null)
+      };
+      const shard = {
+        addContract: sandbox.stub()
+      };
+      const destination = {
+        save: sandbox.stub().callsArgWith(0, new Error('test')),
+        contact: {
+          address: '127.0.0.1',
+          port: 10000
+        },
+        contract: {}
+      };
+      monitor._saveShard(shard, destination);
+      expect(monitor.contracts.save.callCount).to.equal(1);
+      expect(destination.save.callCount).to.equal(1);
+      expect(log.error.callCount).to.equal(1);
+    });
+  });
+
+  describe('#_transferShard', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
+
+    it('will handle an invalid contract', function() {
+      sandbox.stub(log, 'error');
+      sandbox.stub(log, 'warn');
+      sandbox.stub(storj, 'Contract').throws(new Error('Invalid contract'));
+      const monitor = new Monitor(config);
+      monitor._saveShard = sinon.stub();
+      monitor.network = {
+        getRetrievalPointer: sinon.stub().callsArg(2)
+      };
+      const shard = {};
+      const contact = storj.Contact({
+        address: '127.0.0.1',
+        port: 100000
+      });
+      const mirror = {
+        contract: {}
+      };
+      const state = {
+        sources: [contact],
+        destinations: [mirror]
+      };
+      sandbox.spy(monitor, '_transferShard');
+      monitor._transferShard(shard, state);
+      expect(log.warn.callCount).to.equal(1);
+      expect(log.error.callCount).to.equal(1);
+      expect(monitor._transferShard.callCount).to.equal(2);
+    });
+
+    it('will handle error pointer, shift source, and try again', function() {
+      sandbox.stub(log, 'error');
+      sandbox.stub(log, 'warn');
+      const monitor = new Monitor(config);
+      monitor._saveShard = sinon.stub();
+      monitor.network = {
+        getRetrievalPointer: sinon.stub().callsArgWith(2, new Error('test'))
+      };
+      const shard = {};
+      const contact = storj.Contact({
+        address: '127.0.0.1',
+        port: 100000
+      });
+      const mirror = {
+        contract: {}
+      };
+      const state = {
+        sources: [contact],
+        destinations: [mirror]
+      };
+      sandbox.spy(monitor, '_transferShard');
+      monitor._transferShard(shard, state);
+      expect(monitor.network.getRetrievalPointer.callCount)
+        .to.equal(1);
+      expect(monitor.network.getRetrievalPointer.args[0][0])
+        .to.equal(contact);
+      expect(monitor.network.getRetrievalPointer.args[0][1])
+        .to.be.instanceOf(storj.Contract);
+      expect(log.error.callCount).to.equal(1);
+      expect(log.warn.callCount).to.equal(1);
+      expect(monitor._transferShard.callCount).to.equal(2);
+      expect(monitor._saveShard.callCount).to.equal(0);
+    });
+
+    it('will handle mirror error, shift dest., and try again', function() {
+      sandbox.stub(log, 'error');
+      sandbox.stub(log, 'warn');
+      const monitor = new Monitor(config);
+      monitor._saveShard = sinon.stub();
+      const pointer = {};
+      monitor.network = {
+        getRetrievalPointer: sinon.stub().callsArgWith(2, null, pointer),
+        getMirrorNodes: sinon.stub().callsArgWith(2, new Error('timeout'))
+      };
+      const shard = {};
+      const contact = storj.Contact({
+        address: '127.0.0.1',
+        port: 100000
+      });
+      const mirror = {
+        contract: {},
+        contact: {
+          address: '128.0.0.1',
+          port: 100000
+        }
+      };
+      const state = {
+        sources: [contact],
+        destinations: [mirror]
+      };
+      sandbox.spy(monitor, '_transferShard');
+      monitor._transferShard(shard, state);
+      expect(monitor.network.getMirrorNodes.callCount)
+        .to.equal(1);
+      expect(monitor.network.getMirrorNodes.args[0][0][0])
+        .to.equal(pointer);
+      expect(monitor.network.getMirrorNodes.args[0][1][0])
+        .to.be.instanceOf(storj.Contact);
+      expect(log.error.callCount).to.equal(1);
+      expect(log.warn.callCount).to.equal(1);
+      expect(monitor._transferShard.callCount).to.equal(2);
+      expect(monitor._saveShard.callCount).to.equal(0);
+    });
+
+    it('will save shard updated with new contract', function() {
+      sandbox.stub(log, 'error');
+      sandbox.stub(log, 'warn');
+      const monitor = new Monitor(config);
+      monitor._saveShard = sinon.stub();
+      const pointer = {};
+      monitor.network = {
+        getRetrievalPointer: sinon.stub().callsArgWith(2, null, pointer),
+        getMirrorNodes: sinon.stub().callsArgWith(2, null, {})
+      };
+      const shard = {};
+      const contact = storj.Contact({
+        address: '127.0.0.1',
+        port: 100000
+      });
+      const mirror = {
+        contract: {},
+        contact: {
+          address: '128.0.0.1',
+          port: 100000
+        }
+      };
+      const state = {
+        sources: [contact],
+        destinations: [mirror]
+      };
+      sandbox.spy(monitor, '_transferShard');
+      monitor._transferShard(shard, state);
+      expect(log.error.callCount).to.equal(0);
+      expect(log.warn.callCount).to.equal(0);
+      expect(monitor._transferShard.callCount).to.equal(1);
+      expect(monitor._saveShard.callCount).to.equal(1);
+      expect(monitor._saveShard.args[0][0]).to.equal(shard);
+      expect(monitor._saveShard.args[0][1]).to.equal(state.destinations[0]);
+    });
+
+  });
+
+  describe('#_replicateShard', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
+
+    it('it will fetch sources and destinations', function() {
+      const monitor = new Monitor(config);
+      monitor._transferShard = sinon.stub();
+      const destinations = [];
+      const sources = [];
+      monitor._fetchDestinations = sinon.stub()
+        .callsArgWith(1, null, destinations);
+      monitor._fetchSources = sinon.stub().callsArgWith(1, null, sources);
+      const shard = {};
+      monitor._replicateShard(shard);
+      expect(monitor._transferShard.callCount).to.equal(1);
+      expect(monitor._transferShard.args[0][0]).to.equal(shard);
+      expect(monitor._transferShard.args[0][1]).to.eql({
+        sources: [],
+        destinations: []
+      });
+    });
+
+    it('it will handle error from queries', function() {
+      sandbox.stub(log, 'error');
+      const monitor = new Monitor(config);
+      monitor._transferShard = sinon.stub();
+      const destinations = [];
+      monitor._fetchDestinations = sinon.stub()
+        .callsArgWith(1, null, destinations);
+      monitor._fetchSources = sinon.stub().callsArgWith(1, new Error('test'));
+      const shard = {};
+      monitor._replicateShard(shard);
+      expect(log.error.callCount).to.equal(1);
+    });
+  });
+
+  describe('#_replicateFarmer', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
+
+    it('it will log on error', function(done) {
+      sandbox.stub(log, 'info');
+      sandbox.stub(log, 'error');
+      const monitor = new Monitor(config);
+      const cursor = new EventEmitter();
+      const nodeID = '353ba728e2d74826c2fcbf5ada2fe1c402e3eda1';
+      monitor.storage = {
+        models: {
+          Shard: {
+            find: sandbox.stub().returns({
+              cursor: sandbox.stub().returns(cursor)
+            })
+          }
+        }
+      };
+      const contact = {
+        nodeID: nodeID
+      };
+      monitor._replicateFarmer(contact);
+      cursor.on('error', () => {
+        expect(log.info.callCount).to.equal(1);
+        expect(log.error.callCount).to.equal(1);
+        expect(log.error.args[0][1]).to.equal(nodeID);
+        expect(log.error.args[0][2]).to.equal('test');
+        done();
+      });
+      cursor.emit('error', new Error('test'));
+    });
+
+    it('will call replicateShard for each data item', function(done) {
+      sandbox.stub(log, 'info');
+      const monitor = new Monitor(config);
+      const cursor = new EventEmitter();
+      monitor.storage = {
+        models: {
+          Shard: {
+            find: sandbox.stub().returns({
+              cursor: sandbox.stub().returns(cursor)
+            })
+          }
+        }
+      };
+      const data = {
+        toObject: sandbox.stub().returns({
+          hash: '03780c65a61ebe7334e9ff2a9267a9d725fc2d4b'
+        })
+      };
+      const contact = {
+        nodeID: '353ba728e2d74826c2fcbf5ada2fe1c402e3eda1'
+      };
+      monitor._replicateShard = sinon.stub();
+      monitor._replicateFarmer(contact);
+      cursor.on('data', () => {
+        expect(log.info.callCount).to.equal(2);
+        expect(monitor._replicateShard.callCount).to.equal(1);
+        expect(monitor._replicateShard.args[0][0])
+          .to.be.instanceOf(storj.StorageItem);
+        expect(monitor._replicateShard.args[0][0].hash)
+          .to.equal('03780c65a61ebe7334e9ff2a9267a9d725fc2d4b');
+        expect(data.toObject.callCount).to.equal(1);
+        done();
+      });
+      cursor.emit('data', data);
+    });
+
+    it('it will log on close', function(done) {
+      sandbox.stub(log, 'info');
+      const monitor = new Monitor(config);
+      const cursor = new EventEmitter();
+      monitor.storage = {
+        models: {
+          Shard: {
+            find: sandbox.stub().returns({
+              cursor: sandbox.stub().returns(cursor)
+            })
+          }
+        }
+      };
+      const contact = {
+        nodeID: '353ba728e2d74826c2fcbf5ada2fe1c402e3eda1'
+      };
+      monitor._replicateFarmer(contact);
+      cursor.on('close', () => {
+        expect(log.info.callCount).to.equal(2);
+        done();
+      });
+      cursor.emit('close');
+    });
   });
 
   describe('#run', function() {
@@ -197,6 +734,7 @@ describe('Monitor', function() {
         }
       };
       monitor.wait = sandbox.stub();
+      monitor._replicateFarmer = sinon.stub();
       monitor.run();
 
       expect(find.callCount).to.equal(1);
@@ -240,6 +778,9 @@ describe('Monitor', function() {
         .to.equal('7b8b30132e930c7827ee47efebfb197d6a3246d4');
       expect(log.warn.args[0][2])
         .to.equal(0.05);
+      expect(monitor._replicateFarmer.callCount).to.equal(1);
+      expect(monitor._replicateFarmer.args[0][0])
+        .to.be.instanceOf(storj.Contact);
 
       expect(monitor.network.ping.callCount).to.equal(3);
       expect(monitor.network.ping.args[0][0]).to.be.instanceOf(storj.Contact);
