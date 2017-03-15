@@ -3310,6 +3310,62 @@ describe('BucketsRouter', function() {
       bucketsRouter.listFilesInBucket(request, response);
     });
 
+    it('should send back bucket entries from startDate', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/buckets/:bucket_id/files',
+        params: {
+          id: 'bucketid'
+        },
+        query: {
+          startDate: '1489615902401'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var bucket = new bucketsRouter.storage.models.Bucket({
+        user: someUser._id
+      });
+      var _bucketFindOne = sandbox.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, bucket);
+      var entries = [
+        { frame: {} },
+        { frame: {} },
+        { frame: {} }
+      ];
+      var cursor = new ReadableStream({
+        read: function() {
+          this.push(entries.shift() || null);
+        },
+        objectMode: true
+      });
+      const find = {};
+      find.populate = sandbox.stub().returns(find);
+      find.limit = sandbox.stub().returns(find);
+      find.cursor = sandbox.stub().returns(cursor);
+      var _bucketEntryFind = sandbox.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'find'
+      ).returns(find);
+      response.on('end', function() {
+        expect(find.limit.callCount).to.equal(1);
+        expect(find.limit.args[0][0]).to.equal(2000);
+        expect(_bucketFindOne.callCount).to.equal(1);
+        expect(_bucketEntryFind.callCount).to.equal(1);
+        expect(_bucketEntryFind.args[0][0]).to.eql({
+          bucket: 'bucketid',
+          created: { $lte: 1489615902401 }
+        });
+        done();
+      });
+      bucketsRouter.listFilesInBucket(request, response);
+    });
+
   });
 
   describe('#removeFile', function() {

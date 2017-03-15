@@ -5,6 +5,43 @@ const utils = require('../lib/utils');
 
 describe('module:utils', function() {
 
+  describe('parseTimestamp', function() {
+    it('timestamp as string', function() {
+      const ts = utils.parseTimestamp('1489617787371');
+      expect(ts).to.equal(1489617787371);
+    });
+
+    it('timestamp as number', function() {
+      const ts = utils.parseTimestamp(1489617787371);
+      expect(ts).to.equal(1489617787371);
+    });
+
+    it('ISO string', function() {
+      const ts = utils.parseTimestamp('2017-03-15T22:44:25.736Z');
+      expect(ts).to.equal(1489617865736);
+    });
+
+    it('undefined', function() {
+      const ts = utils.parseTimestamp();
+      expect(ts).to.equal(0);
+    });
+
+    it('null', function() {
+      const ts = utils.parseTimestamp(null);
+      expect(ts).to.equal(0);
+    });
+
+    it('hex string', function() {
+      const ts = utils.parseTimestamp('abcdef');
+      expect(ts).to.equal(0);
+    });
+
+    it('garbage string', function() {
+      const ts = utils.parseTimestamp('garbage');
+      expect(ts).to.equal(0);
+    });
+  });
+
   describe('#createArrayFormatter', function() {
 
     it('should emit [] if nothing written', function(done) {
