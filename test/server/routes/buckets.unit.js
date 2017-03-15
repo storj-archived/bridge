@@ -1361,7 +1361,7 @@ describe('BucketsRouter', function() {
       sandbox.stub(
         bucketsRouter.storage.models.Frame,
         'findOne'
-      ).callsArgWith(1, null, { 
+      ).callsArgWith(1, null, {
         _id: 'frameid',
         locked: false,
         lock: sandbox.stub().callsArg(0),
@@ -2388,7 +2388,7 @@ describe('BucketsRouter', function() {
           return done(err);
         }
         expect(results[0]).to.equal(token);
-        expect(bucketsRouter.storage.models.StorageEvent.prototype.save.callCount).to.equal(1); 
+        expect(bucketsRouter.storage.models.StorageEvent.prototype.save.callCount).to.equal(1);
         expect(bucketsRouter.storage.models.StorageEvent.args[0][0]).to.eql({
           bucket: 'bucketid',
           bucketEntry: 'bucketentryid',
@@ -3210,6 +3210,8 @@ describe('BucketsRouter', function() {
   });
 
   describe('#listFilesInBucket', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
 
     it('should internal error if bucket query fails', function(done) {
       var request = httpMocks.createRequest({
@@ -3275,7 +3277,7 @@ describe('BucketsRouter', function() {
       var bucket = new bucketsRouter.storage.models.Bucket({
         user: someUser._id
       });
-      var _bucketFindOne = sinon.stub(
+      var _bucketFindOne = sandbox.stub(
         bucketsRouter.storage.models.Bucket,
         'findOne'
       ).callsArgWith(1, null, bucket);
@@ -3290,18 +3292,19 @@ describe('BucketsRouter', function() {
         },
         objectMode: true
       });
-      var _bucketEntryFind = sinon.stub(
+      const find = {};
+      find.populate = sandbox.stub().returns(find);
+      find.limit = sandbox.stub().returns(find);
+      find.cursor = sandbox.stub().returns(cursor);
+      var _bucketEntryFind = sandbox.stub(
         bucketsRouter.storage.models.BucketEntry,
         'find'
-      ).returns({
-        populate: function() {
-          return this;
-        },
-        cursor: sinon.stub().returns(cursor)
-      });
+      ).returns(find);
       response.on('end', function() {
-        _bucketFindOne.restore();
-        _bucketEntryFind.restore();
+        expect(find.limit.callCount).to.equal(1);
+        expect(find.limit.args[0][0]).to.equal(2000);
+        expect(_bucketFindOne.callCount).to.equal(1);
+        expect(_bucketEntryFind.callCount).to.equal(1);
         done();
       });
       bucketsRouter.listFilesInBucket(request, response);
