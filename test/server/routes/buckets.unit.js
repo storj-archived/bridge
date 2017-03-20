@@ -1,5 +1,6 @@
 'use strict';
 
+const crypto = require('crypto');
 const httpMocks = require('node-mocks-http');
 const sinon = require('sinon');
 const storj = require('storj-lib');
@@ -201,6 +202,26 @@ describe('BucketsRouter', function() {
   });
 
   describe('#createBucket', function() {
+
+    it('should give error for max name length', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'POST',
+        url: '/buckets',
+        body: {
+          pubkeys: [],
+          name: crypto.randomBytes(260/2 + 1).toString('hex')
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      bucketsRouter.createBucket(request, response, function(err) {
+        expect(err).to.be.instanceOf(errors.BadRequestError);
+        done();
+      });
+    });
 
     it('should bad request error if invalid pubkey given', function(done) {
       var request = httpMocks.createRequest({
@@ -1030,6 +1051,29 @@ describe('BucketsRouter', function() {
   describe('#createEntryFromFrame', function() {
     const sandbox = sinon.sandbox.create();
     afterEach(() => sandbox.restore());
+
+    it('should give error with max length name', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'POST',
+        url: '/buckets/:bucket_id/files',
+        body: {
+          frame: 'frameid',
+          filename: crypto.randomBytes(20000).toString('hex')
+        },
+        params: {
+          id: 'bucketid'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      bucketsRouter.createEntryFromFrame(request, response, function(err) {
+        expect(err).to.be.instanceOf(errors.BadRequestError);
+        done();
+      });
+    });
 
     it('should internal error if bucket query fails', function(done) {
       var request = httpMocks.createRequest({
