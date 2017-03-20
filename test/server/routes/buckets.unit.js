@@ -74,10 +74,13 @@ describe('BucketsRouter', function() {
         req: request,
         eventEmitter: EventEmitter
       });
+      let chain = {};
+      chain.limit = sinon.stub().returns(chain);
+      chain.exec = sinon.stub().callsArgWith(0, new Error('Panic!'));
       var _bucketFind = sinon.stub(
         bucketsRouter.storage.models.Bucket,
         'find'
-      ).callsArgWith(1, new Error('Panic!'));
+      ).returns(chain);
       bucketsRouter.getBuckets(request, response, function(err) {
         _bucketFind.restore();
         expect(err.message).to.equal('Panic!');
@@ -95,16 +98,21 @@ describe('BucketsRouter', function() {
         req: request,
         eventEmitter: EventEmitter
       });
-      var _bucketFind = sinon.stub(
-        bucketsRouter.storage.models.Bucket,
-        'find'
-      ).callsArgWith(1, null, [
+      let chain = {};
+      chain.limit = sinon.stub().returns(chain);
+      chain.exec = sinon.stub().callsArgWith(0, null, [
         new bucketsRouter.storage.models.Bucket({
           user: someUser._id
         })
       ]);
+      var _bucketFind = sinon.stub(
+        bucketsRouter.storage.models.Bucket,
+        'find'
+      ).returns(chain);
       response.on('end', function() {
         _bucketFind.restore();
+        expect(chain.limit.callCount).to.equal(1);
+        expect(chain.limit.args[0][0]).to.equal(5000);
         expect(response._getData()).to.have.lengthOf(1);
         done();
       });
