@@ -268,6 +268,8 @@ describe('BucketsRouter', function() {
   });
 
   describe('#destroyBucketById', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
 
     it('should internal error if query fails', function(done) {
       var request = httpMocks.createRequest({
@@ -309,6 +311,31 @@ describe('BucketsRouter', function() {
         expect(err.message).to.equal('Bucket not found');
         done();
       });
+    });
+
+    it('should log error if unable to remove bucket entries', function() {
+      sandbox.stub(log, 'error');
+      var request = httpMocks.createRequest({
+        method: 'DELETE',
+        url: '/buckets/:bucket_id'
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      sandbox.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, {
+        remove: sandbox.stub().callsArg(0)
+      });
+      sandbox.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'remove'
+      ).callsArgWith(1, new Error('test'));
+      bucketsRouter.destroyBucketById(request, response);
+      expect(log.error.callCount).to.equal(1);
     });
 
     it('should internal error if deletion fails', function(done) {
