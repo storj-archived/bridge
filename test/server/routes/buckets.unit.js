@@ -120,6 +120,47 @@ describe('BucketsRouter', function() {
       bucketsRouter.getBuckets(request, response);
     });
 
+    it('should return buckets after date', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/buckets',
+        query: {
+          startDate: '1489615902401'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      let chain = {};
+      chain.limit = sinon.stub().returns(chain);
+      chain.exec = sinon.stub().callsArgWith(0, null, [
+        new bucketsRouter.storage.models.Bucket({
+          user: someUser._id
+        })
+      ]);
+      var _bucketFind = sinon.stub(
+        bucketsRouter.storage.models.Bucket,
+        'find'
+      ).returns(chain);
+      response.on('end', function() {
+        _bucketFind.restore();
+        expect(chain.limit.callCount).to.equal(1);
+        expect(chain.limit.args[0][0]).to.equal(5000);
+        expect(response._getData()).to.have.lengthOf(1);
+        expect(_bucketFind.callCount).to.equal(1);
+        expect(_bucketFind.args[0][0]).to.eql({
+          user: 'gordon@storj.io',
+          created: {
+            $gt: 1489615902401
+          }
+        });
+        done();
+      });
+      bucketsRouter.getBuckets(request, response);
+    });
+
   });
 
   describe('#getBucketById', function() {
@@ -3411,7 +3452,7 @@ describe('BucketsRouter', function() {
         expect(_bucketEntryFind.callCount).to.equal(1);
         expect(_bucketEntryFind.args[0][0]).to.eql({
           bucket: 'bucketid',
-          created: { $lte: 1489615902401 }
+          created: { $gt: 1489615902401 }
         });
         done();
       });
