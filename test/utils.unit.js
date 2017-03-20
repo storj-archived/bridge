@@ -11,6 +11,11 @@ describe('module:utils', function() {
       expect(ts).to.equal(1489617787371);
     });
 
+    it('timestamp as string (double)', function() {
+      const ts = utils.parseTimestamp('1489617787371.89');
+      expect(ts).to.equal(1489617787371);
+    });
+
     it('timestamp as number', function() {
       const ts = utils.parseTimestamp(1489617787371);
       expect(ts).to.equal(1489617787371);
