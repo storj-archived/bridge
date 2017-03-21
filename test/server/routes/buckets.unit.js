@@ -351,11 +351,16 @@ describe('BucketsRouter', function() {
         req: request,
         eventEmitter: EventEmitter
       });
+      var _bucketEntryAggregate = sinon.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        "aggregate"
+      ).callsArgWith(1, null, [{}])
       var _bucketFindOne = sinon.stub(
         bucketsRouter.storage.models.Bucket,
         'findOne'
       ).callsArgWith(1, new Error('Failed to lookup bucket'));
       bucketsRouter.destroyBucketById(request, response, function(err) {
+        _bucketEntryAggregate.restore();
         _bucketFindOne.restore();
         expect(err.message).to.equal('Failed to lookup bucket');
         done();
@@ -372,11 +377,16 @@ describe('BucketsRouter', function() {
         req: request,
         eventEmitter: EventEmitter
       });
+      var _bucketEntryAggregate = sinon.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        "aggregate"
+      ).callsArgWith(1, null, [{}])
       var _bucketFindOne = sinon.stub(
         bucketsRouter.storage.models.Bucket,
         'findOne'
       ).callsArgWith(1, null, null);
       bucketsRouter.destroyBucketById(request, response, function(err) {
+        _bucketEntryAggregate.restore();
         _bucketFindOne.restore();
         expect(err.message).to.equal('Bucket not found');
         done();
@@ -394,6 +404,10 @@ describe('BucketsRouter', function() {
         req: request,
         eventEmitter: EventEmitter
       });
+      sandbox.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'aggregate'
+      ).callsArgWith(1, null, [{}]);
       sandbox.stub(
         bucketsRouter.storage.models.Bucket,
         'findOne'
@@ -421,6 +435,10 @@ describe('BucketsRouter', function() {
       var bucket = new bucketsRouter.storage.models.Bucket({
         user: someUser._id
       });
+      var _bucketEntryAggregate = sinon.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        "aggregate"
+      ).callsArgWith(1, null, [{}])
       var _bucketFindOne = sinon.stub(
         bucketsRouter.storage.models.Bucket,
         'findOne'
@@ -430,6 +448,7 @@ describe('BucketsRouter', function() {
         new Error('Failed to remove bucket')
       );
       bucketsRouter.destroyBucketById(request, response, function(err) {
+        _bucketEntryAggregate.restore();
         _bucketFindOne.restore();
         _bucketRemove.restore();
         expect(err.message).to.equal('Failed to remove bucket');
@@ -450,12 +469,17 @@ describe('BucketsRouter', function() {
       var bucket = new bucketsRouter.storage.models.Bucket({
         user: someUser._id
       });
+      var _bucketEntryAggregate = sinon.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        "aggregate"
+      ).callsArgWith(1, null, [{}])
       var _bucketFindOne = sinon.stub(
         bucketsRouter.storage.models.Bucket,
         'findOne'
       ).callsArgWith(1, null, bucket);
       var _bucketRemove = sinon.stub(bucket, 'remove').callsArg(0);
       response.on('end', function() {
+        _bucketEntryAggregate.restore();
         _bucketFindOne.restore();
         _bucketRemove.restore();
         expect(response.statusCode).to.equal(204);
