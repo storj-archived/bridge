@@ -488,6 +488,39 @@ describe('BucketsRouter', function() {
       bucketsRouter.destroyBucketById(request, response);
     });
 
+    it('should internal error if aggregation fails', function(done) {
+      sandbox.stub(log, 'warn');
+      var request = httpMocks.createRequest({
+        method: 'DELETE',
+        url: '/buckets/:bucket_id'
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _bucketEntryAggregate = sinon.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'aggregate'
+      ).callsArgWith(1, new Error('Storage event aggregation failed'), [{}, {}]);
+      var bucket = new bucketsRouter.storage.models.Bucket({
+        user: someUser._id
+      });
+      var _bucketFindOne = sinon.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, bucket);
+      var _bucketRemove = sinon.stub(bucket, 'remove').callsArg(0);
+      response.on('end', function() {
+        _bucketEntryAggregate.restore();
+        _bucketFindOne.restore();
+        _bucketRemove.restore();
+        expect(log.warn.callCount).to.equal(1);
+        done();
+      });
+      bucketsRouter.destroyBucketById(request, response);
+    });
+
   });
 
   describe('#updateBucketById', function() {
