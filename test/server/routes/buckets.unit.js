@@ -521,6 +521,49 @@ describe('BucketsRouter', function() {
       bucketsRouter.destroyBucketById(request, response);
     });
 
+    it('should log warning if storage events fail to save', function(done) {
+      sandbox.stub(log, 'warn');
+      var request = httpMocks.createRequest({
+        method: 'DELETE',
+        url: '/buckets/:bucket_id'
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _bucketEntryAggregate = sinon.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'aggregate'
+      ).callsArgWith(1, null, [{}, {}]);
+      var bucket = new bucketsRouter.storage.models.Bucket({
+        user: someUser._id
+      });
+      var _bucketFindOne = sinon.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, bucket);
+      var _bucketRemove = sinon.stub(bucket, 'remove').callsArg(0, null);
+      var _bucketEntryRemove = sinon.stub(
+         bucketsRouter.storage.models.BucketEntry,
+         'remove'
+      ).callsArgWith(1, null);
+      var _storageEventInsert = sinon.stub(
+        bucketsRouter.storage.models.StorageEvent.collection,
+        'insert'
+      ).callsArgWith(1, new Error('Storage events failed to save'));
+      response.on('end', function() {
+        _bucketEntryAggregate.restore();
+        _bucketFindOne.restore();
+        _bucketRemove.restore();
+        _bucketEntryRemove.restore();
+        _storageEventInsert.restore();
+        expect(log.warn.callCount).to.equal(1);
+        done();
+      });
+      bucketsRouter.destroyBucketById(request, response);
+    });
+
   });
 
   describe('#updateBucketById', function() {
