@@ -488,7 +488,7 @@ describe('BucketsRouter', function() {
       bucketsRouter.destroyBucketById(request, response);
     });
 
-    it('should internal error if aggregation fails', function(done) {
+    it('should log warning if aggregation fails', function(done) {
       sandbox.stub(log, 'warn');
       var request = httpMocks.createRequest({
         method: 'DELETE',
