@@ -354,7 +354,7 @@ describe('BucketsRouter', function() {
       var _bucketEntryAggregate = sinon.stub(
         bucketsRouter.storage.models.BucketEntry,
         'aggregate'
-      ).callsArgWith(1, null, [{}])
+      ).callsArgWith(1, null, [{}]);
       var _bucketFindOne = sinon.stub(
         bucketsRouter.storage.models.Bucket,
         'findOne'
@@ -380,7 +380,7 @@ describe('BucketsRouter', function() {
       var _bucketEntryAggregate = sinon.stub(
         bucketsRouter.storage.models.BucketEntry,
         'aggregate'
-      ).callsArgWith(1, null, [{}])
+      ).callsArgWith(1, null, [{}]);
       var _bucketFindOne = sinon.stub(
         bucketsRouter.storage.models.Bucket,
         'findOne'
@@ -438,7 +438,7 @@ describe('BucketsRouter', function() {
       var _bucketEntryAggregate = sinon.stub(
         bucketsRouter.storage.models.BucketEntry,
         'aggregate'
-      ).callsArgWith(1, null, [{}])
+      ).callsArgWith(1, null, [{}]);
       var _bucketFindOne = sinon.stub(
         bucketsRouter.storage.models.Bucket,
         'findOne'
@@ -472,7 +472,7 @@ describe('BucketsRouter', function() {
       var _bucketEntryAggregate = sinon.stub(
         bucketsRouter.storage.models.BucketEntry,
         'aggregate'
-      ).callsArgWith(1, null, [{}])
+      ).callsArgWith(1, null, [{}]);
       var _bucketFindOne = sinon.stub(
         bucketsRouter.storage.models.Bucket,
         'findOne'
