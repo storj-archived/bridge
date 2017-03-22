@@ -548,16 +548,16 @@ describe('BucketsRouter', function() {
          bucketsRouter.storage.models.BucketEntry,
          'remove'
       ).callsArgWith(1, null);
-      var _storageEventInsert = sinon.stub(
-        bucketsRouter.storage.models.StorageEvent.collection,
-        'insert'
-      ).callsArgWith(1, new Error('Storage events failed to save'));
+      var _storageEventSave = sinon.stub(
+        bucketsRouter.storage.models.StorageEvent.prototype,
+        'save'
+      ).callsArgWith(0, new Error('Storage events failed to save'));
       response.on('end', function() {
         _bucketEntryAggregate.restore();
         _bucketFindOne.restore();
         _bucketRemove.restore();
         _bucketEntryRemove.restore();
-        _storageEventInsert.restore();
+        _storageEventSave.restore();
         expect(log.warn.callCount).to.equal(1);
         done();
       });
@@ -590,16 +590,16 @@ describe('BucketsRouter', function() {
          bucketsRouter.storage.models.BucketEntry,
          'remove'
       ).callsArgWith(1, null);
-      var _storageEventInsert = sinon.stub(
-        bucketsRouter.storage.models.StorageEvent.collection,
-        'insert'
-      ).callsArgWith(1, null);
+      var _storageEventSave = sinon.stub(
+        bucketsRouter.storage.models.StorageEvent.prototype,
+        'save'
+      ).callsArgWith(0, null);
       response.on('end', function() {
         _bucketEntryAggregate.restore();
         _bucketFindOne.restore();
         _bucketRemove.restore();
         _bucketEntryRemove.restore();
-        _storageEventInsert.restore();
+        _storageEventSave.restore();
         expect(response.statusCode).to.equal(204);
         done();
       });
