@@ -15,17 +15,20 @@ program.option('-c, --config <path_to_config_file>', 'path to the config file');
 program.option('-d, --datadir <path_to_datadir>', 'path to the data directory');
 program.parse(process.argv);
 
+const NOW = Date.now();
+const HOURS_24 = ms('24h');
+
 const logger = require('../lib/logger');
 const config = new Config(process.env.NODE_ENV || 'develop', program.config,
                           program.datadir);
 const { mongoUrl, mongoOpts } = config.storage;
 const storage = new Storage(mongoUrl, mongoOpts, { logger });
 const network = new ComplexClient(config.complex);
-const cursor = storage.models.Shard.find({}).cursor();
+const cursor = storage.models.Shard.find({
+  $gte: { 'contracts.contract.store_end': NOW - HOURS_24 },
+  $lte: { 'contracts.contract.store_end': NOW + HOURS_24 }
+}).cursor();
 const counter = { processed: 0, renewed: 0, errored: 0 };
-
-const NOW = Date.now();
-const HOURS_24 = ms('24h');
 
 cursor
   .on('error', handleCursorError)
