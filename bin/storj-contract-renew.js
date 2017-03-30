@@ -25,8 +25,10 @@ const { mongoUrl, mongoOpts } = config.storage;
 const storage = new Storage(mongoUrl, mongoOpts, { logger });
 const network = new ComplexClient(config.complex);
 const cursor = storage.models.Shard.find({
-  $gte: { 'contracts.contract.store_end': NOW },
-  $lte: { 'contracts.contract.store_end': NOW + HOURS_24 }
+  'contracts.contract.store_end': {
+    $gte: NOW,
+    $lte: { $add: [NOW, HOURS_24] }
+  }
 }).cursor();
 const counter = { processed: 0, renewed: 0, errored: 0 };
 
