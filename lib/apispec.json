@@ -907,6 +907,15 @@
           { "ecdsa signature": [] }
         ],
         "summary": "Lists all of the buckets belonging to the user",
+        "parameters": [
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": false,
+            "type": "number",
+            "description": "The start date as unix millisecond timestamp or ISO date"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Buckets successfully returned",
@@ -1433,6 +1442,13 @@
             "name": "id",
             "description": "The unique bucket ID for the request",
             "required": true
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": false,
+            "type": "number",
+            "description": "The start date as unix millisecond timestamp or ISO date"
           }
         ],
         "responses": {
