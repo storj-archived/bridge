@@ -217,6 +217,35 @@ describe('FramesRouter', function() {
 
     afterEach(() => sandbox.restore());
 
+    it('should give error with max blacklisted nodeids', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'PUT',
+        url: '/frames/frameid',
+        params: {
+          frame: 'frameid'
+        },
+        body: {
+          exclude: new Array(400),
+          index: 0,
+          hash: storj.utils.rmd160('data'),
+          size: 1024 * 1024 * 8,
+          challenges: auditStream.getPrivateRecord().challenges,
+          tree: auditStream.getPublicRecord()
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+
+      framesRouter.addShardToFrame(request, response, function(err) {
+        expect(err).to.be.instanceOf(errors.BadRequestError);
+        done();
+      });
+
+    });
+
     it('should give error if transfer rate limit reached', function(done) {
       var request = httpMocks.createRequest({
         method: 'PUT',
