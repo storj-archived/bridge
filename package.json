@@ -54,6 +54,7 @@
     "sinon": "^1.17.2"
   },
   "dependencies": {
+    "analytics-node": "^2.4.0",
     "async": "^2.1.4",
     "commander": "^2.9.0",
     "cors": "^2.7.1",
