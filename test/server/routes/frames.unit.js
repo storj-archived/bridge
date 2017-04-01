@@ -8,6 +8,7 @@ const EventEmitter = require('events').EventEmitter;
 const FramesRouter = require('../../../lib/server/routes/frames');
 const errors = require('storj-service-error-types');
 const log = require('../../../lib/logger');
+const analytics = require('../../../lib/vendor/analytics')
 
 describe('FramesRouter', function() {
 
@@ -47,6 +48,10 @@ describe('FramesRouter', function() {
         framesRouter.storage.models.Frame,
         'create'
       ).callsArgWith(1, new Error('Panic!'));
+      sandbox.stub(
+        analytics,
+        'track'
+      )
       framesRouter.createFrame(request, response, function(err) {
         expect(err).to.be.instanceOf(errors.TransferRateError);
         expect(err.message).to.match(/Could not create frame, transfer/);
@@ -277,6 +282,10 @@ describe('FramesRouter', function() {
         framesRouter.storage.models.Frame,
         'findOne'
       ).callsArgWith(1, new Error('Panic!'));
+      sandbox.stub(
+        analytics,
+        'track'
+      )
       framesRouter.addShardToFrame(request, response, function(err) {
         expect(err).to.be.instanceOf(errors.TransferRateError);
         expect(err.message).to.match(/Could not add shard to frame, transfer/);
