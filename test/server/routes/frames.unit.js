@@ -27,6 +27,9 @@ describe('FramesRouter', function() {
   someUser.recordUploadBytes = sinon.stub().callsArg(1);
 
   describe('#createFrame', function() {
+    const sandbox = sinon.sandbox.create();
+    beforeEach(() => sandbox.stub(analytics, 'track'));
+    afterEach(() => sandbox.restore());
 
     it('should give error if transfer rate limit reached', function(done) {
       var request = httpMocks.createRequest({
@@ -48,10 +51,6 @@ describe('FramesRouter', function() {
         framesRouter.storage.models.Frame,
         'create'
       ).callsArgWith(1, new Error('Panic!'));
-      sandbox.stub(
-        analytics,
-        'track'
-      );
       framesRouter.createFrame(request, response, function(err) {
         expect(err).to.be.instanceOf(errors.TransferRateError);
         expect(err.message).to.match(/Could not create frame, transfer/);
@@ -213,6 +212,8 @@ describe('FramesRouter', function() {
 
   describe('#addShardToFrame', function() {
     const sandbox = sinon.sandbox.create();
+    beforeEach(() => sandbox.stub(analytics, 'track'));
+    afterEach(() => sandbox.restore());
 
     var auditStream = new storj.AuditStream(3);
 
@@ -282,10 +283,6 @@ describe('FramesRouter', function() {
         framesRouter.storage.models.Frame,
         'findOne'
       ).callsArgWith(1, new Error('Panic!'));
-      sandbox.stub(
-        analytics,
-        'track'
-      );
       framesRouter.addShardToFrame(request, response, function(err) {
         expect(err).to.be.instanceOf(errors.TransferRateError);
         expect(err.message).to.match(/Could not add shard to frame, transfer/);

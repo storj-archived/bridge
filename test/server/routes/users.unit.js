@@ -7,6 +7,7 @@ const storj = require('storj-lib');
 const expect = require('chai').expect;
 const EventEmitter = require('events').EventEmitter;
 const UsersRouter = require('../../../lib/server/routes/users');
+const analytics = require('../../../lib/vendor/analytics');
 
 describe('UsersRouter', function() {
 
@@ -59,6 +60,12 @@ describe('UsersRouter', function() {
   });
 
   describe('#createUser', function() {
+    const sandbox = sinon.sandbox.create();
+    beforeEach(function () {
+      sandbox.stub(analytics, 'track');
+      sandbox.stub(analytics, 'identify');
+    });
+    afterEach(() => sandbox.restore());
 
     it('should callback error if creation fails', function(done) {
       var request = httpMocks.createRequest({
@@ -193,6 +200,12 @@ describe('UsersRouter', function() {
   });
 
   describe('#confirmActivateUser', function() {
+    const sandbox = sinon.sandbox.create();
+    beforeEach(function () {
+      sandbox.stub(analytics, 'track');
+      sandbox.stub(analytics, 'identify');
+    });
+    afterEach(() => sandbox.restore());
 
     it('should internal error if query fails', function(done) {
       var request = httpMocks.createRequest({
