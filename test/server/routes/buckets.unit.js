@@ -10,7 +10,7 @@ const BucketsRouter = require('../../../lib/server/routes/buckets');
 const ReadableStream = require('stream').Readable;
 const errors = require('storj-service-error-types');
 const log = require('../../../lib/logger');
-const analytics = require('../../../lib/vendor/analytics')
+const analytics = require('../../../lib/vendor/analytics');
 
 /* jshint maxstatements:false */
 describe('BucketsRouter', function() {
@@ -2724,7 +2724,7 @@ describe('BucketsRouter', function() {
       sandbox.stub(
         analytics,
         'track'
-      )
+      );
 
       bucketsRouter.getFile(request, response, function(err) {
         expect(err).to.be.instanceOf(errors.TransferRateError);
