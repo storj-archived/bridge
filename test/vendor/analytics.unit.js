@@ -37,7 +37,7 @@ describe('BridgeAnalytics', function() {
     });
 
     it('should call super', function (done) {
-      bridgeAnalytics.identify(0, {});
+      bridgeAnalytics.identify(0, {traits: {}});
       sinon.assert.calledOnce(Analytics.prototype.identify);
       done();
     });
