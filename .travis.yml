@@ -6,3 +6,5 @@ after_script:
   - cat ./coverage/lcov.info | ./node_modules/.bin/coveralls
 services:
   - mongodb
+env:
+  - SEGMENT_WRITE_KEY = 'not a real key'
