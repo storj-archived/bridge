@@ -1409,6 +1409,11 @@
                   "type": "number",
                   "example": 5071076
                 },
+                "created": {
+                  "type": "string",
+                  "description": "The date and time the file was created",
+                  "example": "2017-03-22T19:54:34.146Z"
+                },
                 "hmac": {
                   "type": "object",
                   "properties": {
@@ -1705,6 +1710,11 @@
                 "size": {
                   "type": "number",
                   "example": 5071076
+                },
+                "created": {
+                  "type": "string",
+                  "description": "The date and time the file was created",
+                  "example": "2017-03-22T19:54:34.146Z"
                 },
                 "hmac": {
                   "type": "object",

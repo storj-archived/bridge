@@ -4012,6 +4012,7 @@ it('should throw error on storage event save failure', function(done) {
           bucket: 'bucketid',
           mimetype: 'application/json',
           filename: 'package.json',
+          created: '2017-03-22T19:54:34.146Z',
           frame: 'frameid',
           size: 1024,
           id: 'fileid',
@@ -4026,6 +4027,7 @@ it('should throw error on storage event save failure', function(done) {
       response.on('end', function() {
         _getBucketUnregistered.restore();
         _bucketEntryFindOne.restore();
+        expect(response._getData().created).to.equal('2017-03-22T19:54:34.146Z');
         expect(response._getData().filename).to.equal('package.json');
         expect(response._getData().hmac).to.eql({
           type: 'sha512',
