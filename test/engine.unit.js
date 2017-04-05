@@ -10,6 +10,9 @@ const Mailer = require('storj-service-mailer');
 const middleware = require('storj-service-middleware');
 const log = require('../lib/logger');
 const Server = require('..').Server;
+const Express = require('express');
+const request = require('supertest');
+const rateLimiter = require('express-limiter');
 
 describe('Engine', function() {
 
@@ -153,7 +156,7 @@ describe('Engine', function() {
     const sandbox = sinon.sandbox.create();
     afterEach(() => sandbox.restore());
 
-    it('should setup storage, mailer, server', function(done) {
+    it('should setup storage, mailer, server, and redis', function(done) {
       const clock = sandbox.useFakeTimers();
 
       var config = Config('__tmptest');
@@ -164,6 +167,12 @@ describe('Engine', function() {
         expect(engine.storage).to.be.instanceOf(Storage);
         expect(engine.mailer).to.be.instanceOf(Mailer);
         expect(engine.server).to.be.instanceOf(Server);
+        expect(engine.client).to.be.ok;
+        expect(engine.client).to.be.an('object');
+        expect(engine.client.connection_options.host).to.be.a('string');
+        expect(engine.client.connection_options.port).to.be.a('number');
+        expect(engine.client.auth_pass).to.not.equal(undefined);
+        expect(engine.client).to.be.ok;
         expect(engine._healthInterval);
         clock.tick(Engine.HEALTH_INTERVAL + 10);
         expect(engine._logHealthInfo.callCount).to.equal(1);
@@ -176,18 +185,37 @@ describe('Engine', function() {
   });
 
   describe('#_configureApp', function() {
-    const sandbox = sinon.sandbox.create();
-    afterEach(() => sandbox.restore());
+    let sandbox, all, use, express, TestEngine, rateLimiterMiddleware, rateLimiter;
 
-    it('it should use middleware error handler', function(done) {
-      const use = sandbox.stub();
-      const express = sandbox.stub().returns({
+    before(() => {
+      sandbox = sinon.sandbox.create();
+      all = sandbox.stub();
+      use = sandbox.stub();
+      express = sandbox.stub().returns({
+        all: all,
         use: use,
         get: sandbox.stub()
       });
-      const TestEngine = proxyquire('../lib/engine', {
-        express: express
+      rateLimiterMiddleware = function(err, req, res, next) {
+        next();
+      };
+      rateLimiter = function(app, db) {
+        return function(opts) {
+          app.all(opts.path, rateLimiterMiddleware)
+          return rateLimiterMiddleware;
+        }
+      };
+      TestEngine = proxyquire('../lib/engine', {
+        "express": express,
+        "express-limiter": rateLimiter,
       });
+    })
+
+    afterEach(() => {
+      sandbox.restore()
+    });
+
+    it('it should use middleware error handler', function(done) {
       const errorhandler = function(err, req, res, next) {
         next();
       };
@@ -197,11 +225,39 @@ describe('Engine', function() {
       var engine = new TestEngine(config);
       engine._configureApp();
       expect(middleware.errorhandler.callCount).to.equal(1);
-      expect(use.args[2][0]).to.equal(errorhandler);
+      expect(use.args[3][0]).to.equal(errorhandler);
+      done();
+    });
+
+    it('it should use rate limiter middleware', function(done) {
+
+      // sandbox.stub(middleware, 'errorhandler').returns(errorhandler);
+      sandbox.stub(Server, 'Routes').returns([]);
+      var config = Config('__tmptest');
+      var engine = new TestEngine(config);
+      sandbox.stub(engine, 'rateLimiter').returns(rateLimiter);
+      engine._configureApp();
+      expect(engine.rateLimiter.callCount).to.equal(1);
+      expect(all.args[0][1]).to.equal(rateLimiterMiddleware);
       done();
     });
 
   });
+
+  // describe('#_rateLimiterMiddleware', function() {
+  //   afterEach(() => {
+  //     engine.
+  //   })
+  //   it('it should rate limit requests', function(done) {
+  //     var config = Config('__tmptest');
+  //     var engine = new Engine(config);
+  //
+  //     engine.start(function(err) {
+  //       console.log('engine server app: ', engine.server.app);
+  //     });
+  //
+  //   })
+  // })
 
   describe('#_handleRootGET', function() {
 
