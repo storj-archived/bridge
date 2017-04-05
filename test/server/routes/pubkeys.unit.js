@@ -6,7 +6,7 @@ const storj = require('storj-lib');
 const expect = require('chai').expect;
 const EventEmitter = require('events').EventEmitter;
 const PubkeysRouter = require('../../../lib/server/routes/pubkeys');
-const analytics = require('../../../lib/vendor/analytics');
+const analytics = require('storj-analytics');
 
 describe('PubkeysRouter', function() {
 

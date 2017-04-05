@@ -8,7 +8,7 @@ const EventEmitter = require('events').EventEmitter;
 const FramesRouter = require('../../../lib/server/routes/frames');
 const errors = require('storj-service-error-types');
 const log = require('../../../lib/logger');
-const analytics = require('../../../lib/vendor/analytics');
+const analytics = require('storj-analytics');
 
 describe('FramesRouter', function() {
 
