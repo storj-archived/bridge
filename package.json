@@ -70,6 +70,7 @@
     "nodemailer": "^2.0.0",
     "rc": "^1.1.6",
     "readable-stream": "^2.0.5",
+    "redis": "^2.7.1",
     "storj-complex": "^5.0.0",
     "storj-lib": "^6.2.0",
     "storj-mongodb-adapter": "^7.0.1",
