@@ -70,11 +70,8 @@ function handleCursorData(shard) {
   for (let contractInfo of shard.contracts) {
     let { contract: contractObj, nodeID } = contractInfo;
     let contract = new storj.Contract(contractObj);
-    let willExpireNext24 = (contract.get('store_end') - HOURS_24) <= NOW;
 
-    if (willExpireNext24) {
-      needsRenewal.push([nodeID, contract]);
-    }
+    needsRenewal.push([nodeID, contract]);
   }
 
   let renewalContracts = needsRenewal.map(([nodeId, contract]) => {
