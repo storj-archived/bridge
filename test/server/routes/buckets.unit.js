@@ -10,6 +10,7 @@ const BucketsRouter = require('../../../lib/server/routes/buckets');
 const ReadableStream = require('stream').Readable;
 const errors = require('storj-service-error-types');
 const log = require('../../../lib/logger');
+const analytics = require('storj-analytics');
 
 /* jshint maxstatements:false */
 describe('BucketsRouter', function() {
@@ -243,6 +244,9 @@ describe('BucketsRouter', function() {
   });
 
   describe('#createBucket', function() {
+    const sandbox = sinon.sandbox.create();
+    beforeEach(() => sandbox.stub(analytics, 'track'));
+    afterEach(() => sandbox.restore());
 
     it('should give error for max name length', function(done) {
       var request = httpMocks.createRequest({
@@ -339,6 +343,7 @@ describe('BucketsRouter', function() {
 
   describe('#destroyBucketById', function() {
     const sandbox = sinon.sandbox.create();
+    beforeEach(() => sandbox.stub(analytics, 'track'));
     afterEach(() => sandbox.restore());
 
     it('should internal error if query fails', function(done) {
@@ -965,6 +970,9 @@ describe('BucketsRouter', function() {
   });
 
   describe('#createBucketToken', function() {
+    const sandbox = sinon.sandbox.create();
+    beforeEach(() => sandbox.stub(analytics, 'track'));
+    afterEach(() => sandbox.restore());
 
     it('should error if bucket not accessible', function(done) {
       var request = httpMocks.createRequest({
@@ -1233,6 +1241,7 @@ describe('BucketsRouter', function() {
 
   describe('#createEntryFromFrame', function() {
     const sandbox = sinon.sandbox.create();
+    beforeEach(() => sandbox.stub(analytics, 'track'));
     afterEach(() => sandbox.restore());
 
     it('should give error with max length name', function(done) {
@@ -2683,8 +2692,8 @@ describe('BucketsRouter', function() {
   });
 
   describe('#getFile', function() {
-
     const sandbox = sinon.sandbox.create();
+    beforeEach(() => sandbox.stub(analytics, 'track'));
     afterEach(() => sandbox.restore());
 
     it('should limit user if limit has been reached', function(done) {
@@ -4012,6 +4021,7 @@ it('should throw error on storage event save failure', function(done) {
           bucket: 'bucketid',
           mimetype: 'application/json',
           filename: 'package.json',
+          created: '2017-03-22T19:54:34.146Z',
           frame: 'frameid',
           size: 1024,
           id: 'fileid',
@@ -4026,6 +4036,7 @@ it('should throw error on storage event save failure', function(done) {
       response.on('end', function() {
         _getBucketUnregistered.restore();
         _bucketEntryFindOne.restore();
+        expect(response._getData().created).to.equal('2017-03-22T19:54:34.146Z');
         expect(response._getData().filename).to.equal('package.json');
         expect(response._getData().hmac).to.eql({
           type: 'sha512',

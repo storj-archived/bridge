@@ -6,6 +6,7 @@ const storj = require('storj-lib');
 const expect = require('chai').expect;
 const EventEmitter = require('events').EventEmitter;
 const PubkeysRouter = require('../../../lib/server/routes/pubkeys');
+const analytics = require('storj-analytics');
 
 describe('PubkeysRouter', function() {
 
@@ -69,6 +70,9 @@ describe('PubkeysRouter', function() {
   });
 
   describe('#addPublicKey', function() {
+    const sandbox = sinon.sandbox.create();
+    beforeEach(() => sandbox.stub(analytics, 'track'));
+    afterEach(() => sandbox.restore());
 
     it('should return internal error if mongodb fails', function(done) {
       var request = httpMocks.createRequest({
@@ -152,6 +156,9 @@ describe('PubkeysRouter', function() {
   });
 
   describe('#destroyPublicKey', function() {
+    const sandbox = sinon.sandbox.create();
+    beforeEach(() => sandbox.stub(analytics, 'track'));
+    afterEach(() => sandbox.restore());
 
     it('should return internal error if query fails', function(done) {
       var request = httpMocks.createRequest({
@@ -255,4 +262,3 @@ describe('PubkeysRouter', function() {
   });
 
 });
-
