@@ -30,7 +30,7 @@ const cursor = storage.models.Shard.find({
     $lte: NOW + HOURS_24
   }
 }).cursor();
-const counter = { processed: 0, renewed: 0, errored: 0 };
+const counter = { processed: 0, renewed: 0, errored: 0, errors: [] };
 
 cursor
   .on('error', handleCursorError)
@@ -170,6 +170,7 @@ function updateContractRecord(contact, contract, next) {
 function renewContract([contact, contract], next) {
   network.renewContract(contract, contact, (err) => {
     if (err) {
+      counter.errors.push({ contract, contact, error: err.message });
       counter.errored++;
       next();
     } else {
