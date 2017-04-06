@@ -75,7 +75,6 @@ function handleCursorData(shard) {
   }
 
   let renewalContracts = needsRenewal.map(([nodeId, contract]) => {
-    contract.set('store_begin', NOW);
     contract.set('store_end', NOW + ms('90d'));
 
     return [nodeId, contract];
