@@ -115,7 +115,7 @@ function checkIfNeedsRenew([contact, contract], done) {
       (next) => getPointerObjects(shardHash, next),
       (pointers, next) => getAssociatedFrames(pointers, next),
       (frames, next) => getParentBucketEntries(frames, next),
-      (entries, next) => renewContract([contact, contract], entries, next)
+      (next) => renewContract([contact, contract], next)
     ],
     () => finishProcessingContract(done)
   );
@@ -143,7 +143,7 @@ function getParentBucketEntries(frames, next) {
       $in: frames.map((frame) => frame._id)
     }
   }, (err, entries) => {
-    next(err || entries.length === 0, entries);
+    next(err || entries.length === 0);
   });
 }
 
@@ -167,7 +167,7 @@ function updateContractRecord(contact, contract, next) {
   });
 }
 
-function renewContract([contact, contract], entries, next) {
+function renewContract([contact, contract], next) {
   network.renewContract(contract, contact, (err) => {
     if (err) {
       counter.errored++;
