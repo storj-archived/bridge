@@ -9,7 +9,8 @@
   },
   "bin": {
     "storj-bridge": "bin/storj-bridge.js",
-    "storj-monitor": "bin/storj-monitor.js"
+    "storj-monitor": "bin/storj-monitor.js",
+    "storj-renew": "bin/storj-contract-renew.js"
   },
   "scripts": {
     "testsuite": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=test _mocha --recursive test/**",
