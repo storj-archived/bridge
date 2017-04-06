@@ -234,7 +234,7 @@ describe('ContractRenewalJob', function() {
   it('should renew all contracts needed', function(done) {
     this.timeout(10000);
     function parseStderr(err) {
-      let errLines = stderr.split('\n');
+      let errLines = err.split('\n');
       return new Error(
         JSON.parse(errLines[errLines.length - 1]).error
       );
