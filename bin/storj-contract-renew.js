@@ -8,7 +8,7 @@ const storj = require('storj-lib');
 const program = require('commander');
 const Config = require('../lib/config');
 const Storage = require('storj-service-storage-models');
-const { Client: ComplexClient } = require('storj-complex');
+const complex = require('storj-complex');
 
 program.version(require('../package').version);
 program.option('-c, --config <path_to_config_file>', 'path to the config file');
@@ -18,16 +18,16 @@ program.parse(process.argv);
 const NOW = Date.now();
 const HOURS_24 = ms('24h');
 
-const logger = require('../lib/logger');
+const logger = require('kad-logger-json')(0);
 const config = new Config(process.env.NODE_ENV || 'develop', program.config,
                           program.datadir);
 const { mongoUrl, mongoOpts } = config.storage;
 const storage = new Storage(mongoUrl, mongoOpts, { logger });
-const network = new ComplexClient(config.complex);
+const network = complex.createClient(config.complex);
 const cursor = storage.models.Shard.find({
   'contracts.contract.store_end': {
     $gte: NOW,
-    $lte: { $add: [NOW, HOURS_24] }
+    $lte: NOW + HOURS_24
   }
 }).cursor();
 const counter = { processed: 0, renewed: 0, errored: 0 };
@@ -35,7 +35,7 @@ const counter = { processed: 0, renewed: 0, errored: 0 };
 cursor
   .on('error', handleCursorError)
   .on('data', handleCursorData)
-  .on('close', handleCursorClose);
+  .on('end', handleCursorClose);
 
 /**
  * Prints the error and continues processing cursor
@@ -43,7 +43,8 @@ cursor
  * @param {error} error
  */
 function handleCursorError(err) {
-  logger.warn(err.message);
+  process.stderr.write(JSON.stringify({ error: err.message }));
+  process.exit(1);
 }
 
 /**
@@ -51,10 +52,8 @@ function handleCursorError(err) {
  * @function
  */
 function handleCursorClose() {
-  logger.info('shard renewal job completed');
-  logger.info('total contracts processed: %i', counter.processed);
-  logger.info('total contracts renewwed: %i', counter.renewed);
-  logger.info('total contracts errored: %i', counter.errored);
+  process.stdout.write(JSON.stringify(counter));
+  process.exit();
 }
 
 /**
@@ -102,8 +101,8 @@ function lookupFarmer([nodeId, contract], next) {
 function maybeRenewContracts(err, results) {
   let canBeRenewed = results.filter((result) => !!result);
 
-  async.parallelLimit(canBeRenewed, 6, checkIfNeedsRenew,
-                      () => cursor.resume());
+  async.eachLimit(canBeRenewed, 6, checkIfNeedsRenew,
+                  () => cursor.resume());
 }
 
 function finishProcessingContract(done) {
@@ -133,8 +132,8 @@ function getPointerObjects(shardHash, next) {
 
 function getAssociatedFrames(pointers, next) {
   storage.models.Frame.find({
-    $in: {
-      pointers: pointers.map((pointer) => pointer._id)
+    shards: {
+      $in: pointers.map((pointer) => pointer._id)
     }
   }, (err, frames) => {
     next(err || frames.length === 0, frames);
@@ -143,11 +142,31 @@ function getAssociatedFrames(pointers, next) {
 
 function getParentBucketEntries(frames, next) {
   storage.models.BucketEntry.find({
-    $in: {
-      frame: frames.map((frame) => frame._id)
+    frame: {
+      $in: frames.map((frame) => frame._id)
     }
   }, (err, entries) => {
-    next(err || entries === 0, entries);
+    next(err || entries.length === 0, entries);
+  });
+}
+
+function updateContractRecord(contact, contract, next) {
+  storage.models.Shard.findOne({
+    hash: contract.get('data_hash')
+  }, function(err, shard) {
+    if (err) {
+      return next(err);
+    }
+
+    for (let contract of shard.contracts) {
+      if (contract.nodeID !== contact.nodeID) {
+        continue;
+      }
+
+      contract.contract = contract.toObject();
+    }
+
+    shard.save(next);
   });
 }
 
@@ -155,10 +174,10 @@ function renewContract([contact, contract], entries, next) {
   network.renewContract(contract, contact, (err) => {
     if (err) {
       counter.errored++;
+      next();
     } else {
       counter.renewed++;
+      updateContractRecord(contact, contract, next);
     }
-
-    next();
   });
 }
