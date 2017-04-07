@@ -709,6 +709,7 @@ describe('FramesRouter', function() {
           index: 0,
           hash: storj.utils.rmd160('data'),
           size: 1024 * 1024 * 8,
+          parity: true,
           challenges: auditStream.getPrivateRecord().challenges,
           tree: auditStream.getPublicRecord()
         }
@@ -782,6 +783,16 @@ describe('FramesRouter', function() {
         _getConsign.restore();
         _frameSave.restore();
         var result = response._getData();
+
+        expect(_pointerCreate.callCount).to.equal(1);
+        expect(_pointerCreate.args[0][0].challenges.length).to.equal(3);
+        expect(_pointerCreate.args[0][0].hash)
+          .to.equal('cd43325b85172ca28e96785d0cb4832fd62cdf43');
+        expect(_pointerCreate.args[0][0].index).to.equal(0);
+        expect(_pointerCreate.args[0][0].parity).to.equal(true);
+        expect(_pointerCreate.args[0][0].size).to.equal(8388608);
+        expect(_pointerCreate.args[0][0].tree.length).to.equal(4);
+
         expect(result.farmer.nodeID).to.equal(storj.utils.rmd160('farmer'));
         expect(result.hash).to.equal(storj.utils.rmd160('data'));
         expect(result.token).to.equal('token');
