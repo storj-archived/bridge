@@ -4063,7 +4063,7 @@ it('should throw error on storage event save failure', function(done) {
         expect(response._getData().filename).to.equal('package.json');
         expect(response._getData().erasure).to.eql({
           type: 'reedsolomon'
-        })
+        });
         expect(response._getData().hmac).to.eql({
           type: 'sha512',
           value: 'f891be8e91491e4aeeb193e9e3afb49e83b6cc18df2be9732dd62545' +
