@@ -2101,7 +2101,7 @@ describe('BucketsRouter', function() {
     afterEach(() => sandbox.restore());
 
     it('should internal error if contract cannot load', function(done) {
-      var _load = sandbox.stub(
+      sandbox.stub(
         bucketsRouter.contracts,
         'load'
       ).callsArgWith(1, new Error('Failed to load item'));
@@ -2113,12 +2113,12 @@ describe('BucketsRouter', function() {
 
     it('should callback after timeout, not double, w/ data', function(done) {
       sandbox.stub(log, 'warn');
-      var _load = sandbox.stub(
+      sandbox.stub(
         bucketsRouter.contracts,
         'load'
       ).callsArgWith(1, null, new storj.StorageItem({}));
       var clock = sandbox.useFakeTimers();
-      var _contactFind = sandbox.stub(
+      sandbox.stub(
         bucketsRouter.storage.models.Contact,
         'find'
       ).callsArgWith(1, null, [
@@ -2128,7 +2128,7 @@ describe('BucketsRouter', function() {
           port: 1234
         })
       ]);
-      var _requestRetrievalPointer = sandbox.stub(
+      sandbox.stub(
         bucketsRouter,
         '_requestRetrievalPointer',
         function(item, meta, cb) {
@@ -2163,11 +2163,11 @@ describe('BucketsRouter', function() {
     });
 
     it('should callback error if query fails', function(done) {
-      var _load = sandbox.stub(
+      sandbox.stub(
         bucketsRouter.contracts,
         'load'
       ).callsArgWith(1, null, new storj.StorageItem({}));
-      var _contactFind = sandbox.stub(
+      sandbox.stub(
         bucketsRouter.storage.models.Contact,
         'find'
       ).callsArgWith(1, new Error('Query failed'));
@@ -2178,7 +2178,7 @@ describe('BucketsRouter', function() {
     });
 
     it('should log error if no token retrieved, give w/ data', function(done) {
-      var _load = sandbox.stub(
+      sandbox.stub(
         bucketsRouter.contracts,
         'load'
       ).callsArgWith(1, null, storj.StorageItem({
@@ -2189,7 +2189,7 @@ describe('BucketsRouter', function() {
           nodeid3: { data_hash: storj.utils.rmd160('') }
         }
       }));
-      var _contactFind = sandbox.stub(
+      sandbox.stub(
         bucketsRouter.storage.models.Contact,
         'find'
       ).callsArgWith(1, null, [
@@ -2212,7 +2212,7 @@ describe('BucketsRouter', function() {
           lastSeen: 12
         })
       ]);
-      var _requestRetrievalPointer = sandbox.stub(
+      sandbox.stub(
         bucketsRouter,
         '_requestRetrievalPointer',
         function(item, options, next) {
@@ -2242,7 +2242,7 @@ describe('BucketsRouter', function() {
     });
 
     it('should callback with pointer when received', function(done) {
-      var _load = sandbox.stub(
+      sandbox.stub(
         bucketsRouter.contracts,
         'load'
       ).callsArgWith(1, null, storj.StorageItem({
@@ -2253,7 +2253,7 @@ describe('BucketsRouter', function() {
           nodeid3: { data_hash: storj.utils.rmd160('') }
         }
       }));
-      var _requestRetrievalPointer = sandbox.stub(
+      sandbox.stub(
         bucketsRouter,
         '_requestRetrievalPointer',
         function(item, options, next) {
@@ -2265,7 +2265,7 @@ describe('BucketsRouter', function() {
           next(null, true);
         }
       );
-      var _contactFind = sandbox.stub(
+      sandbox.stub(
         bucketsRouter.storage.models.Contact,
         'find'
       ).callsArgWith(1, null, [
