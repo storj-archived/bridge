@@ -2132,7 +2132,7 @@ describe('BucketsRouter', function() {
         bucketsRouter,
         '_requestRetrievalPointer',
         function(item, meta, cb) {
-          setTimeout(cb, 12000);
+          setTimeout(cb, 22000);
         }
       );
       const sPointer = {
