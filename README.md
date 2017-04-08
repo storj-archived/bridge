@@ -65,7 +65,7 @@ License
 -------
 
 Storj Bridge - Access The Storj Network via REST Interface  
-Copyright (C) 2016 Storj Labs, Inc
+Copyright (C) 2017 Storj Labs, Inc
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published
