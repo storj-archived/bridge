@@ -1,6 +1,6 @@
 {
   "name": "storj-bridge",
-  "version": "5.7.0",
+  "version": "5.9.0",
   "description": "Access the Storj network using a simple REST API.",
   "main": "index.js",
   "directories": {
@@ -9,13 +9,15 @@
   },
   "bin": {
     "storj-bridge": "bin/storj-bridge.js",
-    "storj-monitor": "bin/storj-monitor.js"
+    "storj-monitor": "bin/storj-monitor.js",
+    "storj-renew": "bin/storj-contract-renew.js"
   },
   "scripts": {
     "testsuite": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=test _mocha --recursive test/**",
     "coverage": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=test ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- --recursive",
+    "integration": "NODE_ENV=test _mocha --recursive test-integration/**",
     "linter": "./node_modules/.bin/jshint --config .jshintrc ./index.js ./lib ./test",
-    "test": "npm run testsuite && npm run linter",
+    "test": "npm run testsuite && npm run integration && npm run linter",
     "develop": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=develop node script/develop.js start",
     "make-docs": "./node_modules/.bin/jsdoc index.js lib -r -R README.md -u ./doc -c .jsdoc.json --verbose -d ./jsdoc",
     "publish-docs": "gh-pages -d jsdoc --repo git@github.com:Storj/bridge.git",
@@ -54,6 +56,7 @@
     "sinon": "^1.17.2"
   },
   "dependencies": {
+    "analytics-node": "^2.4.0",
     "async": "^2.1.4",
     "commander": "^2.9.0",
     "cors": "^2.7.1",
@@ -71,13 +74,14 @@
     "rc": "^1.1.6",
     "readable-stream": "^2.0.5",
     "redis": "^2.7.1",
-    "storj-complex": "^5.0.0",
+    "storj-analytics": "^1.0.0",
+    "storj-complex": "^5.1.0",
     "storj-lib": "^6.2.0",
     "storj-mongodb-adapter": "^7.0.1",
     "storj-service-error-types": "^1.1.0",
     "storj-service-mailer": "^1.0.0",
     "storj-service-middleware": "^1.2.1",
-    "storj-service-storage-models": "^8.14.0",
+    "storj-service-storage-models": "^8.15.0",
     "through": "^2.3.8"
   }
 }

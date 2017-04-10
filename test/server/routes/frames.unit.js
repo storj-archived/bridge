@@ -8,6 +8,7 @@ const EventEmitter = require('events').EventEmitter;
 const FramesRouter = require('../../../lib/server/routes/frames');
 const errors = require('storj-service-error-types');
 const log = require('../../../lib/logger');
+const analytics = require('storj-analytics');
 
 describe('FramesRouter', function() {
 
@@ -26,6 +27,9 @@ describe('FramesRouter', function() {
   someUser.recordUploadBytes = sinon.stub().callsArg(1);
 
   describe('#createFrame', function() {
+    const sandbox = sinon.sandbox.create();
+    beforeEach(() => sandbox.stub(analytics, 'track'));
+    afterEach(() => sandbox.restore());
 
     it('should give error if transfer rate limit reached', function(done) {
       var request = httpMocks.createRequest({
@@ -208,6 +212,8 @@ describe('FramesRouter', function() {
 
   describe('#addShardToFrame', function() {
     const sandbox = sinon.sandbox.create();
+    beforeEach(() => sandbox.stub(analytics, 'track'));
+    afterEach(() => sandbox.restore());
 
     var auditStream = new storj.AuditStream(3);
 
