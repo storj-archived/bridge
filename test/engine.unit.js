@@ -11,6 +11,7 @@ const middleware = require('storj-service-middleware');
 const log = require('../lib/logger');
 const Server = require('..').Server;
 const redis = require('redis');
+const EventEmitter = require('events').EventEmitter;
 
 describe('Engine', function() {
 
@@ -174,6 +175,20 @@ describe('Engine', function() {
         });
       });
     });
+
+    it('should handle redis error event', () => {
+      const redisStub = new EventEmitter();
+      sandbox.stub(redis, 'createClient').returns(redisStub);
+      sandbox.stub(log, 'error');
+
+      const config = Config('__tmptest');
+      const engine = new Engine(config);
+      engine.start(function(err) {
+        redisStub.emit('error', new Error('Test!'));
+        expect(log.error.callCount).to.equal(1);
+      })
+
+    })
 
   });
 
