@@ -78,6 +78,7 @@ describe('Engine', function() {
           readyState: 1
         }
       };
+      engine.redis = redis.createClient();
       engine._countPendingResponses = sinon.stub().returns(10);
       engine._logHealthInfo();
       expect(log.info.callCount).to.equal(1);
@@ -115,6 +116,7 @@ describe('Engine', function() {
           readyState: 1
         }
       };
+      engine.redis = redis.createClient();
       engine._countPendingResponses = sinon.stub().returns(10);
       engine._logHealthInfo();
       expect(log.info.callCount).to.equal(1);
