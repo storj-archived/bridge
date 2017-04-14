@@ -10,6 +10,7 @@ const Mailer = require('storj-service-mailer');
 const middleware = require('storj-service-middleware');
 const log = require('../lib/logger');
 const Server = require('..').Server;
+const redis = require('redis');
 
 describe('Engine', function() {
 
@@ -164,6 +165,7 @@ describe('Engine', function() {
         expect(engine.storage).to.be.instanceOf(Storage);
         expect(engine.mailer).to.be.instanceOf(Mailer);
         expect(engine.server).to.be.instanceOf(Server);
+        expect(engine.redis).to.be.instanceOf(redis.RedisClient);
         expect(engine._healthInterval);
         clock.tick(Engine.HEALTH_INTERVAL + 10);
         expect(engine._logHealthInfo.callCount).to.equal(1);
