@@ -1,6 +1,6 @@
 {
   "name": "storj-bridge",
-  "version": "5.9.0",
+  "version": "5.9.1",
   "description": "Access the Storj network using a simple REST API.",
   "main": "index.js",
   "directories": {
@@ -52,6 +52,7 @@
     "node-mocks-http": "^1.5.4",
     "noisegen": "^1.0.0",
     "proxyquire": "^1.7.10",
+    "redis-mock": "^0.16.0",
     "rimraf": "^2.5.3",
     "sinon": "^1.17.2"
   },
@@ -73,11 +74,12 @@
     "nodemailer": "^2.0.0",
     "rc": "^1.1.6",
     "readable-stream": "^2.0.5",
+    "redis": "^2.7.1",
     "storj-analytics": "^1.0.0",
     "storj-complex": "^5.1.0",
     "storj-lib": "^6.2.0",
     "storj-mongodb-adapter": "^7.0.1",
-    "storj-service-error-types": "^1.1.0",
+    "storj-service-error-types": "^1.2.0",
     "storj-service-mailer": "^1.0.0",
     "storj-service-middleware": "^1.3.0",
     "storj-service-storage-models": "^8.16.1",
