@@ -8,7 +8,7 @@ const EventEmitter = require('events').EventEmitter;
 describe('HealthRouter', function() {
   const healthRouter = new HealthRouter(
     require('../../_fixtures/router-opts')
-  )
+  );
 
   describe('#health', function() {
 
@@ -48,6 +48,6 @@ describe('HealthRouter', function() {
         });
 
         healthRouter.health(req, res);
-      })
-  })
-})
+      });
+  });
+});
