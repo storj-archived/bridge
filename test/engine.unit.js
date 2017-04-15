@@ -62,6 +62,7 @@ describe('Engine', function() {
     const sandbox = sinon.sandbox.create();
     afterEach(() => sandbox.restore());
 
+    /* jshint ignore:start */ // ignore for too many function statements
     it('will handle error', function() {
       var config = Config('__tmptest');
       var engine = new Engine(config);
@@ -99,6 +100,7 @@ describe('Engine', function() {
       expect(report.pendingResponses).to.equal(10);
       expect(report.databaseState).to.equal(1);
     });
+    /* jshint ignore:end */
 
     it('will log health information', function() {
       var config = Config('__tmptest');
@@ -185,12 +187,11 @@ describe('Engine', function() {
 
       const config = Config('__tmptest');
       const engine = new Engine(config);
-      engine.start(function(err) {
+      engine.start(function() {
         redisStub.emit('error', new Error('Test!'));
         expect(log.error.callCount).to.equal(1);
-      })
-
-    })
+      });
+    });
 
   });
 
