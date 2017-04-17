@@ -22,6 +22,8 @@ describe('HealthRouter', function() {
           eventEmitter: EventEmitter
         });
 
+        healthRouter.storage.connection.readyState = 1;
+
         res.on('end', function() {
           expect(res._getData()).to.equal('OK');
           done();
@@ -40,7 +42,7 @@ describe('HealthRouter', function() {
           eventEmitter: EventEmitter
         });
 
-        healthRouter.storage = undefined;
+        healthRouter.storage.connection.readyState = 0;
 
         res.on('end', function() {
           console.log('res._getData()', res._getData());
