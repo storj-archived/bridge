@@ -10,6 +10,8 @@ const Mailer = require('storj-service-mailer');
 const middleware = require('storj-service-middleware');
 const log = require('../lib/logger');
 const Server = require('..').Server;
+const redis = require('redis');
+const EventEmitter = require('events').EventEmitter;
 
 describe('Engine', function() {
 
@@ -60,6 +62,7 @@ describe('Engine', function() {
     const sandbox = sinon.sandbox.create();
     afterEach(() => sandbox.restore());
 
+    /* jshint ignore:start */ // ignore for too many function statements
     it('will handle error', function() {
       var config = Config('__tmptest');
       var engine = new Engine(config);
@@ -76,6 +79,7 @@ describe('Engine', function() {
           readyState: 1
         }
       };
+      engine.redis = redis.createClient();
       engine._countPendingResponses = sinon.stub().returns(10);
       engine._logHealthInfo();
       expect(log.info.callCount).to.equal(1);
@@ -96,6 +100,7 @@ describe('Engine', function() {
       expect(report.pendingResponses).to.equal(10);
       expect(report.databaseState).to.equal(1);
     });
+    /* jshint ignore:end */
 
     it('will log health information', function() {
       var config = Config('__tmptest');
@@ -113,6 +118,7 @@ describe('Engine', function() {
           readyState: 1
         }
       };
+      engine.redis = redis.createClient();
       engine._countPendingResponses = sinon.stub().returns(10);
       engine._logHealthInfo();
       expect(log.info.callCount).to.equal(1);
@@ -164,12 +170,26 @@ describe('Engine', function() {
         expect(engine.storage).to.be.instanceOf(Storage);
         expect(engine.mailer).to.be.instanceOf(Mailer);
         expect(engine.server).to.be.instanceOf(Server);
+        expect(engine.redis).to.be.instanceOf(redis.RedisClient);
         expect(engine._healthInterval);
         clock.tick(Engine.HEALTH_INTERVAL + 10);
         expect(engine._logHealthInfo.callCount).to.equal(1);
         engine.server.server.close(function() {
           done();
         });
+      });
+    });
+
+    it('should handle redis error event', () => {
+      const redisStub = new EventEmitter();
+      sandbox.stub(redis, 'createClient').returns(redisStub);
+      sandbox.stub(log, 'error');
+
+      const config = Config('__tmptest');
+      const engine = new Engine(config);
+      engine.start(function() {
+        redisStub.emit('error', new Error('Test!'));
+        expect(log.error.callCount).to.equal(1);
       });
     });
 
