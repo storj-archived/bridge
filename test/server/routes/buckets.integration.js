@@ -53,7 +53,9 @@ describe('BucketsRouter Integration', function() {
 
       let body = '';
 
+
       req.on('response', (res) => {
+        console.log('res', res);
         expect(res.statusCode).to.equal(400);
         res
           .on('data', (data) => {
