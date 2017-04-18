@@ -19,8 +19,8 @@ node('node') {
 
       sh "git rev-parse --short HEAD > .git/commit-id"
       def commit_id = readFile('.git/commit-id').trim()
-      sh "./dockerfiles/build.sh storjlabs/bridge:${env.BUILD_ID} storjlabs/bridge:${commit_id} storjlabs/bridge:latest"
-      sh "./dockerfiles/build.sh storjlabs/storj-monitor:${env.BUILD_ID} storjlabs/storj-monitor:${commit_id} storjlabs/storj-monitor:latest"
+      sh "./dockerfiles/build-bridge.sh storjlabs/bridge:${env.BUILD_ID} storjlabs/bridge:${commit_id} storjlabs/bridge:latest"
+      sh "./dockerfiles/build-storj-monitor.sh storjlabs/storj-monitor:${env.BUILD_ID} storjlabs/storj-monitor:${commit_id} storjlabs/storj-monitor:latest"
       sh "./dockerfiles/push.sh storjlabs/bridge:${env.BUILD_ID} storjlabs/bridge:${commit_id} storjlabs/bridge:latest"
       sh "./dockerfiles/push.sh storjlabs/storj-monitor:${env.BUILD_ID} storjlabs/storj-monitor:${commit_id} storjlabs/storj-monitor:latest"
 
