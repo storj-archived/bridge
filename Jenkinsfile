@@ -27,7 +27,7 @@ node('node') {
     stage 'Deploy'
 
       echo 'Push to Repo'
-      sh "./dockerfiles/deploy.staging.sh bridge storjlabs/bridge:${env.BUILD_ID}"
+      sh "./dockerfiles/deploy.staging.sh bridge-api storjlabs/bridge:${env.BUILD_ID}"
       sh "./dockerfiles/deploy.staging.sh storj-monitor storjlabs/storj-monitor:${env.BUILD_ID}"
 
     stage 'Cleanup'
