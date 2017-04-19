@@ -22,6 +22,30 @@ describe('Limiter', () => {
     expect(defaults).to.be.an('object');
   });
 
+  it('should lookup based on forwarded header', () => {
+    const defaults = limiter.DEFAULTS;
+    const req = {
+      headers: {
+        'x-forwarded-for': '127.0.0.2'
+      },
+      connection: {
+        remoteAddress: '127.0.0.3'
+      }
+    };
+    expect(defaults.lookup(req)).to.eql(['127.0.0.2']);
+  });
+
+  it('should lookup based on remote address', () => {
+    const defaults = limiter.DEFAULTS;
+    const req = {
+      headers: {},
+      connection: {
+        remoteAddress: '127.0.0.3'
+      }
+    };
+    expect(defaults.lookup(req)).to.eql(['127.0.0.3']);
+  });
+
   it('should return rate limited error', (done) => {
     const req = httpMocks.createRequest({
       connection: {
