@@ -1522,7 +1522,8 @@ describe('BucketsRouter', function() {
           },
           erasure: {
             type: 'reedsolomon'
-          }
+          },
+          index: '0c8b74d283a4d52a32332d622bd66fdf67f7c80eed3a2854da1df0a56f7135bb'
         },
         params: {
           id: 'bucketid'
@@ -1580,7 +1581,8 @@ describe('BucketsRouter', function() {
             type: 'reedsolomon'
           },
           mimetype: 'application/octet-stream',
-          name: 'somefilename'
+          name: 'somefilename',
+          index: '0c8b74d283a4d52a32332d622bd66fdf67f7c80eed3a2854da1df0a56f7135bb'
         });
         expect(response._getData().hmac).to.eql(hmac);
         expect(response._getData().bucket).to.equal('bucketid');
