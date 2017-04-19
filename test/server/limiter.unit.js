@@ -46,6 +46,32 @@ describe('Limiter', () => {
     expect(defaults.lookup(req)).to.eql(['127.0.0.3']);
   });
 
+  it('should log json with url and ip', function(done) {
+    sandbox.stub(log, 'info');
+    const defaults = limiter.DEFAULTS;
+    const req = {
+      method: 'PUT',
+      originalUrl: '/frames/:frame_id/',
+      headers: {
+        'x-forwarded-for': '127.0.0.2'
+      },
+      connection: {
+        remoteAddress: '127.0.0.3'
+      }
+    };
+    const res = {};
+    let t = '{"rate_limited": {"url": "%s", "method": "%s", "ip": "%s"}}';
+    defaults.onRateLimited(req, res, (err) => {
+      expect(err).to.be.instanceOf(errors.RateLimited);
+      expect(log.info.callCount).to.equal(1);
+      expect(log.info.args[0][0]).to.eql(t);
+      expect(log.info.args[0][1]).to.eql('/frames/:frame_id/');
+      expect(log.info.args[0][2]).to.eql('PUT');
+      expect(log.info.args[0][3]).to.eql('127.0.0.2');
+      done();
+    });
+  });
+
   it('should return rate limited error', (done) => {
     const req = httpMocks.createRequest({
       connection: {
