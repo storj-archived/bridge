@@ -377,7 +377,10 @@ describe('Monitor', function() {
       monitor.network = {
         getRetrievalPointer: sinon.stub().callsArgWith(2, new Error('test'))
       };
-      const shard = {};
+      const contract = new storj.Contract();
+      const shard = {
+        getContract: sandbox.stub().returns(contract)
+      };
       const contact = storj.Contact({
         address: '127.0.0.1',
         port: 100000
@@ -399,6 +402,8 @@ describe('Monitor', function() {
           .to.equal(contact);
         expect(monitor.network.getRetrievalPointer.args[0][1])
           .to.be.instanceOf(storj.Contract);
+        expect(monitor.network.getRetrievalPointer.args[0][1])
+          .to.equal(contract);
         expect(log.warn.callCount).to.equal(1);
         expect(monitor._transferShard.callCount).to.equal(2);
         expect(monitor._saveShard.callCount).to.equal(0);
@@ -416,7 +421,10 @@ describe('Monitor', function() {
         getRetrievalPointer: sinon.stub().callsArgWith(2, null, pointer),
         getMirrorNodes: sinon.stub().callsArgWith(2, new Error('timeout'))
       };
-      const shard = {};
+      const contract = new storj.Contract();
+      const shard = {
+        getContract: sandbox.stub().returns(contract)
+      };
       const contact = storj.Contact({
         address: '127.0.0.1',
         port: 100000
@@ -460,7 +468,10 @@ describe('Monitor', function() {
         getRetrievalPointer: sinon.stub().callsArgWith(2, null, pointer),
         getMirrorNodes: sinon.stub().callsArgWith(2, null, {})
       };
-      const shard = {};
+      const contract = new storj.Contract();
+      const shard = {
+        getContract: sandbox.stub().returns(contract)
+      };
       const contact = storj.Contact({
         address: '127.0.0.1',
         port: 100000
