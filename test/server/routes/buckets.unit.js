@@ -1507,6 +1507,9 @@ describe('BucketsRouter', function() {
               'ec5d318076ef86adc5771dc4b7b1ce8802bb3b9dce9f7c5a438afd1b1f52f' +
               'b5e37e3f5c8',
             type: 'sha512'
+          },
+          erasure: {
+            type: 'reedsolomon'
           }
         },
         params: {
@@ -1560,6 +1563,9 @@ describe('BucketsRouter', function() {
             value: 'f891be8e91491e4aeeb193e9e3afb49e83b6cc18df2be9732dd62545' +
               'ec5d318076ef86adc5771dc4b7b1ce8802bb3b9dce9f7c5a438afd1b1f52f' +
               'b5e37e3f5c8'
+          },
+          erasure: {
+            type: 'reedsolomon'
           },
           mimetype: 'application/octet-stream',
           name: 'somefilename'
@@ -2097,26 +2103,28 @@ describe('BucketsRouter', function() {
   });
 
   describe('#_getRetrievalToken', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
 
     it('should internal error if contract cannot load', function(done) {
-      var _load = sinon.stub(
+      sandbox.stub(
         bucketsRouter.contracts,
         'load'
       ).callsArgWith(1, new Error('Failed to load item'));
       bucketsRouter._getRetrievalToken({}, {}, function(err) {
-        _load.restore();
         expect(err.message).to.equal('Failed to load item');
         done();
       });
     });
 
-    it('should callback after timeout and not double', function(done) {
-      var _load = sinon.stub(
+    it('should callback after timeout, not double, w/ data', function(done) {
+      sandbox.stub(log, 'warn');
+      sandbox.stub(
         bucketsRouter.contracts,
         'load'
       ).callsArgWith(1, null, new storj.StorageItem({}));
-      var clock = sinon.useFakeTimers();
-      var _contactFind = sinon.stub(
+      var clock = sandbox.useFakeTimers();
+      sandbox.stub(
         bucketsRouter.storage.models.Contact,
         'find'
       ).callsArgWith(1, null, [
@@ -2126,45 +2134,57 @@ describe('BucketsRouter', function() {
           port: 1234
         })
       ]);
-      var _requestRetrievalPointer = sinon.stub(
+      sandbox.stub(
         bucketsRouter,
         '_requestRetrievalPointer',
         function(item, meta, cb) {
-          setTimeout(cb, 12000);
+          setTimeout(cb, 22000);
         }
       );
-      bucketsRouter._getRetrievalToken({}, {}, function(err) {
-        _contactFind.restore();
-        _load.restore();
+      const sPointer = {
+        index: 12,
+        hash: 'shardhash',
+        size: 65536,
+        parity: true
+      };
+      bucketsRouter._getRetrievalToken(sPointer, {}, function(err, result) {
         setImmediate(() => {
-          clock.restore();
-          _requestRetrievalPointer.restore();
-          expect(err.message).to.equal('Failed to get retrieval token');
+          if (err) {
+            return done(err);
+          }
+          expect(result).to.eql({
+            index: 12,
+            hash: 'shardhash',
+            size: 65536,
+            parity: true
+          });
+          expect(log.warn.callCount).to.equal(1);
+          expect(result.token).to.equal(undefined);
+          expect(result.operation).to.equal(undefined);
+          expect(result.farmer).to.equal(undefined);
           done();
         });
       });
-      clock.tick(12000);
+      clock.tick(22000);
     });
 
     it('should callback error if query fails', function(done) {
-      var _load = sinon.stub(
+      sandbox.stub(
         bucketsRouter.contracts,
         'load'
       ).callsArgWith(1, null, new storj.StorageItem({}));
-      var _contactFind = sinon.stub(
+      sandbox.stub(
         bucketsRouter.storage.models.Contact,
         'find'
       ).callsArgWith(1, new Error('Query failed'));
       bucketsRouter._getRetrievalToken({}, {}, function(err) {
-        _contactFind.restore();
-        _load.restore();
         expect(err.message).to.equal('Query failed');
         done();
       });
     });
 
-    it('should internal error if no token retrieved', function(done) {
-      var _load = sinon.stub(
+    it('should log error if no token retrieved, give w/ data', function(done) {
+      sandbox.stub(
         bucketsRouter.contracts,
         'load'
       ).callsArgWith(1, null, storj.StorageItem({
@@ -2175,7 +2195,7 @@ describe('BucketsRouter', function() {
           nodeid3: { data_hash: storj.utils.rmd160('') }
         }
       }));
-      var _contactFind = sinon.stub(
+      sandbox.stub(
         bucketsRouter.storage.models.Contact,
         'find'
       ).callsArgWith(1, null, [
@@ -2198,26 +2218,37 @@ describe('BucketsRouter', function() {
           lastSeen: 12
         })
       ]);
-      var _requestRetrievalPointer = sinon.stub(
+      sandbox.stub(
         bucketsRouter,
         '_requestRetrievalPointer',
         function(item, options, next) {
           next();
         }
       );
-      bucketsRouter._getRetrievalToken({}, {
+      const sPointer = {
+        index: 12,
+        hash: 'shardhash',
+        size: 65536,
+        parity: true
+      };
+      bucketsRouter._getRetrievalToken(sPointer, {
         excludeFarmers: ['nodeid3']
-      }, function(err) {
-        _contactFind.restore();
-        _load.restore();
-        _requestRetrievalPointer.restore();
-        expect(err.message).to.equal('Failed to get retrieval token');
+      }, function(err, result) {
+        if (err) {
+          return done(err);
+        }
+        expect(result).to.eql({
+          index: 12,
+          hash: 'shardhash',
+          size: 65536,
+          parity: true
+        });
         done();
       });
     });
 
     it('should callback with pointer when received', function(done) {
-      var _load = sinon.stub(
+      sandbox.stub(
         bucketsRouter.contracts,
         'load'
       ).callsArgWith(1, null, storj.StorageItem({
@@ -2228,7 +2259,7 @@ describe('BucketsRouter', function() {
           nodeid3: { data_hash: storj.utils.rmd160('') }
         }
       }));
-      var _requestRetrievalPointer = sinon.stub(
+      sandbox.stub(
         bucketsRouter,
         '_requestRetrievalPointer',
         function(item, options, next) {
@@ -2240,7 +2271,7 @@ describe('BucketsRouter', function() {
           next(null, true);
         }
       );
-      var _contactFind = sinon.stub(
+      sandbox.stub(
         bucketsRouter.storage.models.Contact,
         'find'
       ).callsArgWith(1, null, [
@@ -2267,9 +2298,6 @@ describe('BucketsRouter', function() {
       bucketsRouter._getRetrievalToken({}, {
         excludeFarmers: ['nodeid3']
       }, function(err, result) {
-        _load.restore();
-        _contactFind.restore();
-        _requestRetrievalPointer.restore();
         expect(result.token).to.equal('correct token');
         done();
       });
@@ -2395,9 +2423,7 @@ describe('BucketsRouter', function() {
         ).to.equal(1);
         expect(err).to.equal(null);
         expect(meta.pointer.token).to.equal('token');
-        expect(meta.pointer.hash).to.equal(storj.utils.rmd160(''));
         expect(meta.pointer.farmer.nodeID).to.equal(storj.utils.rmd160('nodeid'));
-        expect(meta.pointer.operation).to.equal('PULL');
         done();
       });
     });
@@ -4030,6 +4056,9 @@ it('should throw error on storage event save failure', function(done) {
             value: 'f891be8e91491e4aeeb193e9e3afb49e83b6cc18df2be9732dd62545' +
               'ec5d318076ef86adc5771dc4b7b1ce8802bb3b9dce9f7c5a438afd1b1f52f' +
               'b5e37e3f5c8'
+          },
+          erasure: {
+            type: 'reedsolomon'
           }
         })
       });
@@ -4038,6 +4067,9 @@ it('should throw error on storage event save failure', function(done) {
         _bucketEntryFindOne.restore();
         expect(response._getData().created).to.equal('2017-03-22T19:54:34.146Z');
         expect(response._getData().filename).to.equal('package.json');
+        expect(response._getData().erasure).to.eql({
+          type: 'reedsolomon'
+        });
         expect(response._getData().hmac).to.eql({
           type: 'sha512',
           value: 'f891be8e91491e4aeeb193e9e3afb49e83b6cc18df2be9732dd62545' +
