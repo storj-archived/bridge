@@ -315,6 +315,21 @@ describe('ReportsRouter', function() {
             data_hash: storj.utils.rmd160('shardhash')
           },
           isEstablished: false
+        }),
+        new reportsRouter.storage.models.Mirror({
+          shardHash: 'shardhash',
+          contact: new reportsRouter.storage.models.Contact({
+            _id: '28dd8e03bf86f7cf14ac7866c44628cebb21a2d3',
+            address: '0.0.0.0',
+            port: 1234,
+            protocol: '1.0.0',
+            lastSeen: Date.now(),
+            userAgent: 'test'
+          }),
+          contract: {
+            data_hash: storj.utils.rmd160('shardhash')
+          },
+          isEstablished: false
         })
       ];
       sandbox.stub(
@@ -332,7 +347,8 @@ describe('ReportsRouter', function() {
         contracts: {
           node3: {
             data_hash: storj.utils.rmd160('shardhash')
-          }
+          },
+          '28dd8e03bf86f7cf14ac7866c44628cebb21a2d3': {}
         }
       });
       sandbox.stub(
