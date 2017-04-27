@@ -4046,6 +4046,8 @@ it('should throw error on storage event save failure', function(done) {
         req: request,
         eventEmitter: EventEmitter
       });
+      const index = '5bcfdacf38f0660efc7910abdc688cc0f7e4d285feb75c769ae8e41' +
+            '4bfd4c386';
       var _getBucketUnregistered = sinon.stub(
         bucketsRouter,
         '_getBucketUnregistered'
@@ -4073,7 +4075,8 @@ it('should throw error on storage event save failure', function(done) {
           },
           erasure: {
             type: 'reedsolomon'
-          }
+          },
+          index: index
         })
       });
       response.on('end', function() {
@@ -4090,6 +4093,7 @@ it('should throw error on storage event save failure', function(done) {
             'ec5d318076ef86adc5771dc4b7b1ce8802bb3b9dce9f7c5a438afd1b1f52f' +
             'b5e37e3f5c8'
         });
+        expect(response._getData().index).to.eql(index);
         done();
       });
       bucketsRouter.getFileInfo(request, response);
