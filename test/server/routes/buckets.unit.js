@@ -243,6 +243,12 @@ describe('BucketsRouter', function() {
 
   });
 
+
+  describe('#getBucketId', function() {
+    it('', function() {
+    });
+  });
+
   describe('#createBucket', function() {
     const sandbox = sinon.sandbox.create();
     beforeEach(() => sandbox.stub(analytics, 'track'));
@@ -3933,6 +3939,153 @@ it('should throw error on storage event save failure', function(done) {
       bucketsRouter.removeFile(request, response);
     });
 
+  });
+
+  describe('#getFileId', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
+
+    it('should give internal error', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/buckets/:bucket_id/file-ids/:name',
+        params: {
+          id: 'bucketid',
+          name: 'base64encryptedfilename'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      sandbox.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(3, new Error('Failed to get bucket'));
+      bucketsRouter.getFileId(request, response, function(err) {
+        expect(err).to.be.instanceOf(errors.InternalError);
+        expect(err.message).to.equal('Failed to get bucket');
+        done();
+      });
+    });
+
+    it('should give notfound error', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/buckets/:bucket_id/file-ids/:name',
+        params: {
+          id: 'bucketid',
+          name: 'base64encryptedfilename'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      sandbox.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(3, null, null);
+      bucketsRouter.getFileId(request, response, function(err) {
+        expect(err).to.be.instanceOf(errors.NotFoundError);
+        expect(err.message).to.equal('Bucket not found');
+        done();
+      });
+    });
+
+    it('should give internal error', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/buckets/:bucket_id/file-ids/:name',
+        params: {
+          id: 'bucketid',
+          name: 'base64encryptedfilename'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      sandbox.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(3, null, {});
+      sandbox.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'findOne'
+      ).callsArgWith(3, new Error('test'));
+      bucketsRouter.getFileId(request, response, function(err) {
+        expect(err).to.be.instanceOf(errors.InternalError);
+        expect(err.message).to.equal('test');
+        done();
+      });
+    });
+
+    it('should give notfound error', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/buckets/:bucket_id/file-ids/:name',
+        params: {
+          id: 'bucketid',
+          name: 'base64encryptedfilename'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      sandbox.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(3, null, {});
+      sandbox.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'findOne'
+      ).callsArgWith(3, null, null);
+      bucketsRouter.getFileId(request, response, function(err) {
+        expect(err).to.be.instanceOf(errors.NotFoundError);
+        expect(err.message).to.equal('File not found');
+        done();
+      });
+    });
+
+    it('should give file id', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/buckets/:bucket_id/file-ids/:name',
+        params: {
+          id: 'bucketid',
+          name: 'base64encryptedfilename'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      sandbox.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(3, null, {});
+      sandbox.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'findOne'
+      ).callsArgWith(3, null, { _id: '998960317b6725a3f8080c2b'});
+      response.on('end', function() {
+        expect(response.statusCode).to.equal(200);
+        expect(response._getData().id).to.equal('998960317b6725a3f8080c2b');
+        done();
+      });
+      bucketsRouter.getFileId(request, response, function(err) {
+        if (err) {
+          return done(err);
+        }
+      });
+    });
   });
 
   describe('#getFileInfo', function() {
