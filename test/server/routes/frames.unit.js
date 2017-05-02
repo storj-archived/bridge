@@ -442,6 +442,50 @@ describe('FramesRouter', function() {
       });
     });
 
+    it('should return bad request if contract throws', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'PUT',
+        url: '/frames/frameid',
+        params: {
+          frame: 'frameid'
+        },
+        body: {
+          index: 0,
+          hash: 'notahash',
+          size: -10000,
+          challenges: auditStream.getPrivateRecord().challenges,
+          tree: auditStream.getPublicRecord()
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      sandbox.stub(
+        framesRouter.storage.models.Frame,
+        'findOne'
+      ).callsArgWith(1, null, new framesRouter.storage.models.Frame({
+        user: someUser._id
+      }));
+      sandbox.stub(
+        framesRouter.storage.models.Pointer,
+        'create'
+      ).callsArgWith(1, null, new framesRouter.storage.models.Pointer({
+        index: 0,
+        hash: storj.utils.rmd160('data'),
+        size: 1024 * 1024 * 8,
+        challenges: auditStream.getPrivateRecord().challenges,
+        tree: auditStream.getPublicRecord()
+      }));
+      framesRouter.addShardToFrame(request, response, function(err) {
+        expect(err).to.be.instanceOf(errors.BadRequestError);
+        expect(err.message)
+          .to.equal('Invalid contract specification was supplied');
+        done();
+      });
+    });
+
     it('should return internal error if no offer received', function(done) {
       var request = httpMocks.createRequest({
         method: 'PUT',
