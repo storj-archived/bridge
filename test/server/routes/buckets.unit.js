@@ -2819,6 +2819,55 @@ describe('BucketsRouter', function() {
     beforeEach(() => sandbox.stub(analytics, 'track'));
     afterEach(() => sandbox.restore());
 
+    it('should not rate limit using free tier config', function(done) {
+      const request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/buckets/:bucket_id/files/:file_id',
+        params: {
+          id: 'bucketid'
+        }
+      });
+      request.token = {
+        bucket: 'bucketid'
+      };
+      const testUser = new bucketsRouter.storage.models.User({
+        _id: 'testuser@storj.io',
+        hashpass: storj.utils.sha256('password')
+      });
+      testUser.isFreeTier = false;
+      testUser.isDownloadRateLimited = sinon.stub().returns(true);
+      testUser.recordDownloadBytes = sinon.stub().callsArg(1);
+
+      const response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+
+      sandbox.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, {});
+
+      sandbox.stub(
+        bucketsRouter.storage.models.User,
+        'findOne'
+      ).callsArgWith(1, null, testUser);
+
+      bucketsRouter.getFile(request, response, function(err) {
+        expect(testUser.isDownloadRateLimited.callCount).to.equal(1);
+        expect(testUser.isDownloadRateLimited.args[0][0])
+          .to.equal(27000000000);
+        expect(testUser.isDownloadRateLimited.args[0][1])
+          .to.equal(90000000000);
+        expect(testUser.isDownloadRateLimited.args[0][2])
+          .to.equal(540000000000);
+        expect(err).to.be.instanceOf(errors.TransferRateError);
+        expect(err.message)
+          .to.equal('Could not get file, transfer rate limit reached.');
+        done();
+      });
+    });
+
     it('should limit user if limit has been reached', function(done) {
       const request = httpMocks.createRequest({
         method: 'GET',

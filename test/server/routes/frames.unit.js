@@ -31,6 +31,40 @@ describe('FramesRouter', function() {
     beforeEach(() => sandbox.stub(analytics, 'track'));
     afterEach(() => sandbox.restore());
 
+    it('should not rate limit using free tier config', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'POST',
+        url: '/frames'
+      });
+      var testUser = new framesRouter.storage.models.User({
+        _id: 'testuser@storj.io',
+        hashpass: storj.utils.sha256('password')
+      });
+      testUser.isFreeTier = false;
+      testUser.isUploadRateLimited = sandbox.stub().returns(true);
+      testUser.recordUploadBytes = sandbox.stub().callsArg(1);
+      request.user = testUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      sandbox.stub(
+        framesRouter.storage.models.Frame,
+        'create'
+      ).callsArgWith(1, new Error('Panic!'));
+      framesRouter.createFrame(request, response, function(err) {
+        expect(err).to.be.instanceOf(errors.TransferRateError);
+        expect(testUser.isUploadRateLimited.callCount).to.equal(1);
+        expect(testUser.isUploadRateLimited.args[0][0]).to.equal(9000000000);
+        expect(testUser.isUploadRateLimited.args[0][1]).to.equal(30000000000);
+        expect(testUser.isUploadRateLimited.args[0][2]).to.equal(180000000000);
+        expect(err.message).to.match(/Could not create frame, transfer/);
+        expect(testUser.recordUploadBytes.callCount).to.equal(0);
+        expect(testUser.isUploadRateLimited.callCount).to.equal(1);
+        done();
+      });
+    });
+
     it('should give error if transfer rate limit reached', function(done) {
       var request = httpMocks.createRequest({
         method: 'POST',
