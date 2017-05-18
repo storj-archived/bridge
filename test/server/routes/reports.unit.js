@@ -764,6 +764,21 @@ describe('ReportsRouter', function() {
                   data_hash: storj.utils.rmd160('shardhash')
                 },
                 isEstablished: false
+              }),
+              new reportsRouter.storage.models.Mirror({
+                shardHash: 'shardhash',
+                contact: new reportsRouter.storage.models.Contact({
+                  _id: storj.utils.rmd160('node3'),
+                  address: '0.0.0.0',
+                  port: 1234,
+                  protocol: '1.0.0',
+                  lastSeen: Date.now(),
+                  userAgent: 'test'
+                }),
+                contract: {
+                  data_hash: storj.utils.rmd160('shardhash3')
+                },
+                isEstablished: true
               })
             ])
           };
@@ -772,6 +787,7 @@ describe('ReportsRouter', function() {
       var item = storj.StorageItem({
         hash: storj.utils.rmd160('shardhash'),
         contracts: {
+          '2b6e0d0e45c1dcea62f701a31e4be1b507ab67d4': {},
           node3: {
             data_hash: storj.utils.rmd160('shardhash')
           }
@@ -804,7 +820,7 @@ describe('ReportsRouter', function() {
         reportsRouter.contracts,
         'save'
       ).callsArgWith(1, null);
-      reportsRouter._triggerMirrorEstablish(0, hash, function(err) {
+      reportsRouter._triggerMirrorEstablish(2, hash, function(err) {
         _mirrorFind.restore();
         _contractsLoad.restore();
         _getContactById.restore();
