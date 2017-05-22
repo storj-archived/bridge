@@ -30,9 +30,11 @@ describe('Limiter', () => {
       },
       connection: {
         remoteAddress: '127.0.0.3'
-      }
+      },
+      route: {}
     };
-    expect(defaults.lookup(req)).to.eql(['127.0.0.2']);
+    console.log('x-forwarded-for', defaults.lookup(req))
+    expect(defaults.lookup(req)).to.eql(['127.0.0.2', undefined]);
   });
 
   it('should lookup based on remote address', () => {
@@ -41,10 +43,28 @@ describe('Limiter', () => {
       headers: {},
       connection: {
         remoteAddress: '127.0.0.3'
-      }
+      },
+      route: {}
     };
-    expect(defaults.lookup(req)).to.eql(['127.0.0.3']);
+    console.log('remote address', defaults.lookup(req))
+    expect(defaults.lookup(req)).to.eql(['127.0.0.3', undefined]);
   });
+
+  it('should lookup based on route', () => {
+    const defaults = limiter.DEFAULTS;
+    const req = {
+      headers: {},
+      connection: {
+        remoteAddress: '127.0.0.3'
+      },
+      route: {
+        path: '/test'
+      }
+    }
+    console.log('route', defaults.lookup(req))
+    expect(defaults.lookup(req)).to.eql(['127.0.0.3', '/test'])
+    // expect(defaults.lookkup(req));
+  })
 
   it('should log json with url and ip', function(done) {
     sandbox.stub(log, 'info');
