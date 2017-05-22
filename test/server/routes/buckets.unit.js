@@ -1617,7 +1617,9 @@ describe('BucketsRouter', function() {
         req: request,
         eventEmitter: EventEmitter
       });
-      function StorageEvent() {}
+      function StorageEvent(data) {
+        expect(data.storage).to.equal(12345);
+      }
       StorageEvent.prototype.save = sandbox.stub().callsArgWith(0, null);
       sandbox.stub(
         bucketsRouter.storage.models,
@@ -1634,6 +1636,7 @@ describe('BucketsRouter', function() {
       ).callsArgWith(1, null, {
         _id: 'frameid',
         locked: false,
+        storageSize: 12345,
         lock: sandbox.stub().callsArg(0)
       });
       const hmac = {
