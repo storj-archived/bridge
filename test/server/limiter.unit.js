@@ -33,7 +33,7 @@ describe('Limiter', () => {
       },
       route: {}
     };
-    console.log('x-forwarded-for', defaults.lookup(req))
+    console.log('x-forwarded-for', defaults.lookup(req));
     expect(defaults.lookup(req)).to.eql(['127.0.0.2', undefined]);
   });
 
@@ -46,7 +46,7 @@ describe('Limiter', () => {
       },
       route: {}
     };
-    console.log('remote address', defaults.lookup(req))
+    console.log('remote address', defaults.lookup(req));
     expect(defaults.lookup(req)).to.eql(['127.0.0.3', undefined]);
   });
 
@@ -60,11 +60,10 @@ describe('Limiter', () => {
       route: {
         path: '/test'
       }
-    }
-    console.log('route', defaults.lookup(req))
-    expect(defaults.lookup(req)).to.eql(['127.0.0.3', '/test'])
-    // expect(defaults.lookkup(req));
-  })
+    };
+    console.log('route', defaults.lookup(req));
+    expect(defaults.lookup(req)).to.eql(['127.0.0.3', '/test']);
+  });
 
   it('should log json with url and ip', function(done) {
     sandbox.stub(log, 'info');
