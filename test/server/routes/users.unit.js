@@ -338,6 +338,48 @@ describe('UsersRouter', function() {
 
   });
 
+  describe('#addReferralPartner', function() {
+    const sandbox = sinon.sandbox.create();
+    beforeEach(function () {
+      sandbox.stub(analytics, 'track');
+      sandbox.stub(analytics, 'identify');
+    });
+    afterEach(() => sandbox.restore());
+
+    it('should fail if missing partner data', function (done) {
+      var somePartner = { partner: '' };
+      var request = httpMocks.createRequest({
+        method: 'PUT',
+        url: '/users/gordon@storj.io/partner',
+        body: somePartner
+      });
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      usersRouter.addReferralPartner(request, response, function(err) {
+        expect(err.message).to.equal('Missing partner data');
+        done();
+      });
+    });
+
+    it('should fail if partner does not exist', function (done) {
+      done();
+    });
+
+    it('should fail if user is not found', function (done) {
+      done();
+    });
+
+    it('should fail if referralPartner field already exists', function (done) {
+      done();
+    });
+
+    it('should return modified user object if successful', function (done) {
+      done();
+    });
+  });
+
   describe('#reactivateUser', function() {
 
     it('should internal error if query fails', function(done) {
