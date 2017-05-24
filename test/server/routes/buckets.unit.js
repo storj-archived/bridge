@@ -2600,9 +2600,6 @@ describe('BucketsRouter', function() {
         _save.restore();
         _contactFindOne.restore();
         _getRetrievalPointer.restore();
-        expect(
-          item.meta[storj.utils.rmd160('nodeid')].downloadCount
-        ).to.equal(1);
         expect(err).to.equal(null);
         expect(meta.pointer.token).to.equal('token');
         expect(meta.pointer.farmer.nodeID).to.equal(storj.utils.rmd160('nodeid'));
