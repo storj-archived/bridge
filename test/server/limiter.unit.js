@@ -17,13 +17,13 @@ beforeEach(() => {
 afterEach(() => sandbox.restore());
 
 describe('Limiter', () => {
-  it('should export defaults', () => {
-    const defaults = limiter.DEFAULTS;
-    expect(defaults).to.be.an('object');
+  it('should export defaults without config', () => {
+    const defaults = limiter.DEFAULTS();
+    expect(defaults).to.be.a('object');
   });
 
   it('should lookup based on forwarded header', () => {
-    const defaults = limiter.DEFAULTS;
+    const defaults = limiter.DEFAULTS();
     const req = {
       headers: {
         'x-forwarded-for': '127.0.0.2'
@@ -33,12 +33,11 @@ describe('Limiter', () => {
       },
       route: {}
     };
-    console.log('x-forwarded-for', defaults.lookup(req));
     expect(defaults.lookup(req)).to.eql(['127.0.0.2', undefined]);
   });
 
   it('should lookup based on remote address', () => {
-    const defaults = limiter.DEFAULTS;
+    const defaults = limiter.DEFAULTS();
     const req = {
       headers: {},
       connection: {
@@ -51,7 +50,7 @@ describe('Limiter', () => {
   });
 
   it('should lookup based on route', () => {
-    const defaults = limiter.DEFAULTS;
+    const defaults = limiter.DEFAULTS();
     const req = {
       headers: {},
       connection: {
@@ -67,7 +66,7 @@ describe('Limiter', () => {
 
   it('should log json with url and ip', function(done) {
     sandbox.stub(log, 'info');
-    const defaults = limiter.DEFAULTS;
+    const defaults = limiter.DEFAULTS();
     const req = {
       method: 'PUT',
       originalUrl: '/frames/:frame_id/',
@@ -105,7 +104,7 @@ describe('Limiter', () => {
       return errors.RateLimited('Too Many Requests');
     };
     const _log = sandbox.spy(log, 'info');
-    const limit = limiter.DEFAULTS.onRateLimited(req, res, next);
+    const limit = limiter.DEFAULTS().onRateLimited(req, res, next);
 
     expect(limit.statusCode).to.equal(429);
     expect(limit.message).to.equal('Too Many Requests');
