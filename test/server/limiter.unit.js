@@ -33,7 +33,7 @@ describe('Limiter', () => {
       },
       route: {}
     };
-    expect(defaults.lookup(req)).to.eql(['127.0.0.2', undefined]);
+    expect(defaults.lookup(req)).to.eql(['127.0.0.2', undefined, undefined]);
   });
 
   it('should lookup based on remote address', () => {
@@ -45,7 +45,7 @@ describe('Limiter', () => {
       },
       route: {}
     };
-    expect(defaults.lookup(req)).to.eql(['127.0.0.3', undefined]);
+    expect(defaults.lookup(req)).to.eql(['127.0.0.3', undefined, undefined]);
   });
 
   it('should lookup based on route', () => {
@@ -59,7 +59,22 @@ describe('Limiter', () => {
         path: '/test'
       }
     };
-    expect(defaults.lookup(req)).to.eql(['127.0.0.3', '/test']);
+    expect(defaults.lookup(req)).to.eql(['127.0.0.3', '/test', undefined]);
+  });
+
+  it('should lookup based on method', () => {
+    const defaults = limiter.DEFAULTS();
+    const req = {
+      method: 'GET',
+      headers: {},
+      connection: {
+        remoteAddress: '127.0.0.3'
+      },
+      route: {
+        path: '/test'
+      }
+    };
+    expect(defaults.lookup(req)).to.eql(['127.0.0.3', '/test', 'GET']);
   });
 
   it('should log json with url and ip', function(done) {
