@@ -45,7 +45,6 @@ describe('Limiter', () => {
       },
       route: {}
     };
-    console.log('remote address', defaults.lookup(req));
     expect(defaults.lookup(req)).to.eql(['127.0.0.3', undefined]);
   });
 
@@ -60,7 +59,6 @@ describe('Limiter', () => {
         path: '/test'
       }
     };
-    console.log('route', defaults.lookup(req));
     expect(defaults.lookup(req)).to.eql(['127.0.0.3', '/test']);
   });
 
