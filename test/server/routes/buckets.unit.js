@@ -44,6 +44,9 @@ describe('BucketsRouter', function() {
       };
       const res = {};
       router._usetokenOrVerify(req, res, (err) => {
+        if (err) {
+          return done(err);
+        }
         expect(router._verify[0].callCount).to.equal(1);
         expect(router._verify[0].args[0][0]).to.equal(req);
         expect(router._verify[0].args[0][1]).to.equal(res);
@@ -91,6 +94,9 @@ describe('BucketsRouter', function() {
       };
       const res = {};
       router._usetokenOrVerify(req, res, (err) => {
+        if (err) {
+          return done(err);
+        }
         expect(router._verify[0].callCount).to.equal(0);
         expect(router._verify[1].callCount).to.equal(0);
         expect(router._usetoken.callCount).to.equal(1);
