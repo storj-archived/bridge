@@ -3298,7 +3298,7 @@ describe('BucketsRouter', function() {
       bucketsRouter.getFile(request, response);
     });
 
-    it('should send retrieval pointers w/o token (using auth)', function(done) {
+    it('should send retrieval pointers w/o token (w/ user)', function(done) {
       var request = httpMocks.createRequest({
         method: 'GET',
         url: '/buckets/:bucket_id/files/:file_id',
@@ -3307,6 +3307,7 @@ describe('BucketsRouter', function() {
         },
         query: {}
       });
+      request.user = someUser;
       const testUser = new bucketsRouter.storage.models.User({
         _id: 'testuser@storj.io',
         hashpass: storj.utils.sha256('password')
@@ -3352,7 +3353,7 @@ describe('BucketsRouter', function() {
       ).callsArgWith(3, null, pointers);
       response.on('end', function() {
         expect(bucketsRouter.storage.models.Bucket.findOne.args[0][0])
-          .to.eql({ _id: 'bucketid' });
+          .to.eql({ _id: 'bucketid', user: 'gordon@storj.io' });
         expect(bucketsRouter._getPointersFromEntry.args[0][2])
           .to.equal(testUser);
         expect(JSON.stringify(response._getData())).to.equal(
