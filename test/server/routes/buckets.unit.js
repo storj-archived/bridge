@@ -25,6 +25,82 @@ describe('BucketsRouter', function() {
   someUser.isDownloadRateLimited = sinon.stub().returns(false);
   someUser.recordDownloadBytes = sinon.stub().callsArg(1);
 
+  describe('#_usetokenOrVerify', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
+
+    it('will fallback to use auth middlewares', function(done) {
+      const router = new BucketsRouter(
+        require('../../_fixtures/router-opts')
+      );
+      const rawbody = sandbox.stub().callsArg(2);
+      const authenticate = sandbox.stub().callsArg(2);
+      router._verify = [rawbody, authenticate];
+      router._usetoken = sandbox.stub();
+      const req = {
+        headers: {
+          'authorization': 'base64header'
+        }
+      };
+      const res = {};
+      router._usetokenOrVerify(req, res, (err) => {
+        expect(router._verify[0].callCount).to.equal(1);
+        expect(router._verify[0].args[0][0]).to.equal(req);
+        expect(router._verify[0].args[0][1]).to.equal(res);
+        expect(router._verify[1].callCount).to.equal(1);
+        expect(router._verify[1].args[0][0]).to.equal(req);
+        expect(router._verify[1].args[0][1]).to.equal(res);
+        expect(router._usetoken.callCount).to.equal(0);
+        done();
+      });
+    });
+
+    it('will pass error from rawbody middlewares', function(done) {
+      const router = new BucketsRouter(
+        require('../../_fixtures/router-opts')
+      );
+      const rawbody = sandbox.stub().callsArgWith(2, new Error('test'));
+      const authenticate = sandbox.stub().callsArg(2);
+      router._verify = [rawbody, authenticate];
+      router._usetoken = sandbox.stub();
+      const req = {
+        headers: {
+          'authorization': 'base64header'
+        }
+      };
+      const res = {};
+      router._usetokenOrVerify(req, res, (err) => {
+        expect(err).to.be.instanceOf(Error);
+        expect(err.message).to.equal('test');
+        done();
+      });
+    });
+
+    it('will use token auth middleware', function(done) {
+      const router = new BucketsRouter(
+        require('../../_fixtures/router-opts')
+      );
+      const rawbody = sandbox.stub().callsArg(2);
+      const authenticate = sandbox.stub().callsArg(2);
+      router._verify = [rawbody, authenticate];
+      router._usetoken = sandbox.stub().callsArg(2);
+      const req = {
+        headers: {
+          'x-token': 'token'
+        }
+      };
+      const res = {};
+      router._usetokenOrVerify(req, res, (err) => {
+        expect(router._verify[0].callCount).to.equal(0);
+        expect(router._verify[1].callCount).to.equal(0);
+        expect(router._usetoken.callCount).to.equal(1);
+        expect(router._usetoken.args[0][0]).to.equal(req);
+        expect(router._usetoken.args[0][1]).to.equal(res);
+        done();
+      });
+    });
+  });
+
   describe('#_validate', function() {
     it('will callback WITH error for invalid bucket id', function(done) {
       const req = {
@@ -2949,7 +3025,6 @@ describe('BucketsRouter', function() {
       });
     });
 
-
     it('should 404 if user query is not found', function(done) {
       var request = httpMocks.createRequest({
         method: 'GET',
@@ -3211,6 +3286,73 @@ describe('BucketsRouter', function() {
         '_getPointersFromEntry'
       ).callsArgWith(3, null, pointers);
       response.on('end', function() {
+        expect(bucketsRouter.storage.models.Bucket.findOne.args[0][0])
+          .to.eql({ _id: 'bucketid' });
+        expect(bucketsRouter._getPointersFromEntry.args[0][2])
+          .to.equal(testUser);
+        expect(JSON.stringify(response._getData())).to.equal(
+          JSON.stringify(pointers)
+        );
+        done();
+      });
+      bucketsRouter.getFile(request, response);
+    });
+
+    it('should send retrieval pointers w/o token (using auth)', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'GET',
+        url: '/buckets/:bucket_id/files/:file_id',
+        params: {
+          id: 'bucketid'
+        },
+        query: {}
+      });
+      const testUser = new bucketsRouter.storage.models.User({
+        _id: 'testuser@storj.io',
+        hashpass: storj.utils.sha256('password')
+      });
+      testUser.isDownloadRateLimited = sinon.stub().returns(false);
+      testUser.recordDownloadBytes = sinon.stub().callsArg(1);
+
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+
+      sandbox.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, {
+        _id: 'bucketid',
+      });
+
+      sandbox.stub(
+        bucketsRouter.storage.models.User,
+        'findOne'
+      ).callsArgWith(1, null, testUser);
+
+      var entry = {
+        frame: {
+          size: 1024 * 8
+        }
+      };
+      sandbox.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'findOne'
+      ).returns({
+        populate: function() {
+          return this;
+        },
+        exec: sandbox.stub().callsArgWith(0, null, entry)
+      });
+      var pointers = [{ pointer: 'one' }, { pointer: 'two' }];
+      sandbox.stub(
+        bucketsRouter,
+        '_getPointersFromEntry'
+      ).callsArgWith(3, null, pointers);
+      response.on('end', function() {
+        expect(bucketsRouter.storage.models.Bucket.findOne.args[0][0])
+          .to.eql({ _id: 'bucketid' });
         expect(bucketsRouter._getPointersFromEntry.args[0][2])
           .to.equal(testUser);
         expect(JSON.stringify(response._getData())).to.equal(
