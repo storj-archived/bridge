@@ -307,12 +307,11 @@ describe('UsersRouter', function() {
       usersRouter.createUser(request, response, function(err) {
         _partnerFindOne.restore();
         _userCreate.restore();
-        console.log('err', err)
         expect(err.message).to.equal('Omg error!');
         done();
       });
     });
-  })
+  });
 
   describe('#confirmActivateUser', function() {
     const sandbox = sinon.sandbox.create();
