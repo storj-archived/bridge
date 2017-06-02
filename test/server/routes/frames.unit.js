@@ -942,6 +942,7 @@ describe('FramesRouter', function() {
 
 
     it('should return data channel pointer from cached offer', function(done) {
+      /* jshint maxstatements: 100 */
       var request = httpMocks.createRequest({
         method: 'PUT',
         url: '/frames/frameid',
