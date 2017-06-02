@@ -1041,7 +1041,9 @@ describe('FramesRouter', function() {
 
       const farmer = {
         responseTime: 100,
-        nodeID: storj.utils.rmd160('farmer')
+        nodeID: storj.utils.rmd160('farmer'),
+        address: '127.0.0.1',
+        port: 8080
       };
       const contract = {};
 
@@ -1137,7 +1139,8 @@ describe('FramesRouter', function() {
       response.on('end', function() {
         var result = response._getData();
         expect(_getConsignmentPointer.callCount).to.equal(1);
-        expect(_getConsignmentPointer.args[0][0]).to.equal(farmer);
+        expect(_getConsignmentPointer.args[0][0].nodeID)
+          .to.equal(farmer.nodeID);
         expect(_getConsignmentPointer.args[0][1]).to.equal(contract);
 
         expect(_pointerCreate.callCount).to.equal(1);
