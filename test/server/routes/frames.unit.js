@@ -538,6 +538,63 @@ describe('FramesRouter', function() {
       });
     });
 
+    it('should log error from mirrors query', function(done) {
+      sandbox.stub(log, 'error');
+      var request = httpMocks.createRequest({
+        method: 'PUT',
+        url: '/frames/frameid',
+        params: {
+          frame: 'frameid'
+        },
+        body: {
+          index: 0,
+          hash: storj.utils.rmd160('data'),
+          size: 1024 * 1024 * 8,
+          challenges: auditStream.getPrivateRecord().challenges,
+          tree: auditStream.getPublicRecord()
+        }
+      });
+      request.user = someUser;
+
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+
+      const frame = new framesRouter.storage.models.Frame({
+        user: someUser._id
+      });
+
+      frame.addShard = sandbox.stub().callsArg(1);
+
+      sandbox.stub(
+        framesRouter.storage.models.Frame,
+        'findOne'
+      ).callsArgWith(1, null, frame);
+
+      sandbox.stub(
+        framesRouter.storage.models.Mirror,
+        'find'
+      ).returns({
+        populate: sandbox.stub().returns({
+          exec: sandbox.stub().callsArgWith(0, new Error('test'))
+        }),
+      });
+
+      sandbox.stub(
+        framesRouter,
+        '_getContractForShard'
+      ).callsArgWith(3, new Error('No storage offers received'));
+
+      framesRouter.addShardToFrame(request, response, function(err) {
+        expect(log.error.callCount).to.equal(1);
+        expect(log.error.args[0][0]).to.equal('test');
+        expect(err.message).to.equal('No storage offers received');
+        done();
+      });
+
+    });
+
     it('should return internal error if no offer received', function(done) {
       var request = httpMocks.createRequest({
         method: 'PUT',
