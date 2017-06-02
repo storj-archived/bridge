@@ -311,7 +311,7 @@ describe('FramesRouter', function() {
         req: request,
         eventEmitter: EventEmitter
       });
-      var _frameFindOne = sandbox.stub(
+      sandbox.stub(
         framesRouter.storage.models.Frame,
         'findOne'
       ).callsArgWith(1, new Error('Panic!'));
@@ -341,7 +341,7 @@ describe('FramesRouter', function() {
         req: request,
         eventEmitter: EventEmitter
       });
-      var _frameFindOne = sandbox.stub(
+      sandbox.stub(
         framesRouter.storage.models.Frame,
         'findOne'
       ).callsArgWith(1, null, null);
@@ -385,7 +385,7 @@ describe('FramesRouter', function() {
         'findOne'
       ).callsArgWith(1, null, frame);
 
-      var _pointerCreate = sandbox.stub(
+      sandbox.stub(
         framesRouter.storage.models.Mirror,
         'find'
       ).returns({
@@ -394,7 +394,7 @@ describe('FramesRouter', function() {
         }),
       });
 
-      var _frameFindOne = sandbox.stub(
+      sandbox.stub(
         framesRouter.storage.models.Pointer,
         'create'
       ).callsArgWith(1, new Error('Panic!'));
@@ -438,11 +438,13 @@ describe('FramesRouter', function() {
         user: someUser._id
       });
       frame.addShard = sandbox.stub().callsArg(1);
-      var _frameFindOne = sandbox.stub(
+
+      sandbox.stub(
         framesRouter.storage.models.Frame,
         'findOne'
       ).callsArgWith(1, null, frame);
-      var _pointerCreate = sandbox.stub(
+
+      sandbox.stub(
         framesRouter.storage.models.Pointer,
         'create'
       ).callsArgWith(1, null, new framesRouter.storage.models.Pointer({
@@ -452,7 +454,8 @@ describe('FramesRouter', function() {
         challenges: auditStream.getPrivateRecord().challenges,
         tree: auditStream.getPublicRecord()
       }));
-      var _auditFromRecords = sandbox.stub(
+
+      sandbox.stub(
         storj.AuditStream,
         'fromRecords'
       ).throws(new Error('Invalid audit stream'));
@@ -486,10 +489,12 @@ describe('FramesRouter', function() {
         user: someUser._id
       });
       frame.addShard = sandbox.stub().callsArg(1);
+
       sandbox.stub(
         framesRouter.storage.models.Frame,
         'findOne'
       ).callsArgWith(1, null, frame);
+
       sandbox.stub(
         framesRouter.storage.models.Pointer,
         'create'
@@ -500,6 +505,7 @@ describe('FramesRouter', function() {
         challenges: auditStream.getPrivateRecord().challenges,
         tree: auditStream.getPublicRecord()
       }));
+
       framesRouter.addShardToFrame(request, response, function(err) {
         expect(err).to.be.instanceOf(errors.BadRequestError);
         expect(err.message)
@@ -590,7 +596,7 @@ describe('FramesRouter', function() {
 
       frame.addShard = sandbox.stub().callsArg(1);
 
-      var _pointerCreate = sandbox.stub(
+      sandbox.stub(
         framesRouter.storage.models.Mirror,
         'find'
       ).returns({
@@ -599,7 +605,7 @@ describe('FramesRouter', function() {
         }),
       });
 
-      var _frameFindOne = sandbox.stub(
+      sandbox.stub(
         framesRouter.storage.models.Frame,
         'findOne'
       ).callsArgWith(1, null, frame);
@@ -607,7 +613,7 @@ describe('FramesRouter', function() {
       let farmer = {};
       let contract = {};
 
-      var _getContract = sandbox.stub(
+      sandbox.stub(
         framesRouter,
         '_getContractForShard',
         function(contract, audit, bl, callback) {
@@ -619,7 +625,7 @@ describe('FramesRouter', function() {
         }
       );
 
-      var _getConsign = sandbox.stub(
+      sandbox.stub(
         framesRouter.network,
         'getConsignmentPointer'
       ).callsArgWith(3, new Error('Cannot get token'));
@@ -668,7 +674,7 @@ describe('FramesRouter', function() {
         exec: sandbox.stub().callsArgWith(0, new Error('Cannot reload frame'))
       });
 
-      var _pointerCreate = sandbox.stub(
+      sandbox.stub(
         framesRouter.storage.models.Mirror,
         'find'
       ).returns({
@@ -677,7 +683,7 @@ describe('FramesRouter', function() {
         }),
       });
 
-      var _pointerCreate = sandbox.stub(
+      sandbox.stub(
         framesRouter.storage.models.Pointer,
         'create'
       ).callsArgWith(1, null, new framesRouter.storage.models.Pointer({
@@ -688,7 +694,7 @@ describe('FramesRouter', function() {
         tree: auditStream.getPublicRecord()
       }));
 
-      var _getContract = sandbox.stub(
+      sandbox.stub(
         framesRouter,
         '_getContractForShard',
         function(contract, audit, bl, callback) {
@@ -700,7 +706,7 @@ describe('FramesRouter', function() {
         }
       );
 
-      var _getConsign = sandbox.stub(
+      sandbox.stub(
         framesRouter.network,
         'getConsignmentPointer'
       ).callsArgWith(3, null, { token: 'token' });
