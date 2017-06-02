@@ -1140,6 +1140,13 @@ describe('FramesRouter', function() {
         'getConsignmentPointer'
       ).callsArgWith(3, null, { token: 'token' });
 
+      const item = new storj.StorageItem({ hash: storj.utils.rmd160('data') });
+      sandbox.stub(item, 'addContract');
+      sandbox.stub(item, 'addAuditRecords');
+
+      sandbox.stub(framesRouter.contracts, 'load').callsArgWith(1, null, item);
+      sandbox.stub(framesRouter.contracts, 'save').callsArgWith(1, null);
+
       response.on('end', function() {
         var result = response._getData();
         expect(_getConsignmentPointer.callCount).to.equal(1);
