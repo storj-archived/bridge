@@ -1045,7 +1045,9 @@ describe('FramesRouter', function() {
         address: '127.0.0.1',
         port: 8080
       };
-      const contract = {};
+      const contract = {
+        data_hash: storj.utils.rmd160('data_hash')
+      };
 
       const mirrors = [
         {
@@ -1141,7 +1143,8 @@ describe('FramesRouter', function() {
         expect(_getConsignmentPointer.callCount).to.equal(1);
         expect(_getConsignmentPointer.args[0][0].nodeID)
           .to.equal(farmer.nodeID);
-        expect(_getConsignmentPointer.args[0][1]).to.equal(contract);
+        expect(_getConsignmentPointer.args[0][1].get('data_hash'))
+          .to.equal(storj.utils.rmd160('data_hash'));
 
         expect(_pointerCreate.callCount).to.equal(1);
         expect(_pointerCreate.args[0][0].challenges.length).to.equal(3);
