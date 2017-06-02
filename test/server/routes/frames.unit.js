@@ -1048,6 +1048,7 @@ describe('FramesRouter', function() {
       const contract = {
         data_hash: storj.utils.rmd160('data_hash')
       };
+      const saveMirror = sandbox.stub();
 
       const mirrors = [
         {
@@ -1061,7 +1062,8 @@ describe('FramesRouter', function() {
         {
           contact: farmer,
           contract: contract,
-          isEstablished: false
+          isEstablished: false,
+          save: saveMirror
         },
         { },
         {
@@ -1160,6 +1162,8 @@ describe('FramesRouter', function() {
         expect(result.token).to.equal('token');
         expect(result.operation).to.equal('PUSH');
         expect(testUser.recordUploadBytes.callCount).to.equal(1);
+
+        expect(saveMirror.callCount).to.equal(1);
         done();
       });
       framesRouter.addShardToFrame(request, response);
