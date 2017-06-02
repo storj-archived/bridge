@@ -380,7 +380,7 @@ describe('FramesRouter', function() {
 
       frame.addShard = sandbox.stub().callsArg(1);
 
-      var _frameFindOne = sandbox.stub(
+      sandbox.stub(
         framesRouter.storage.models.Frame,
         'findOne'
       ).callsArgWith(1, null, frame);
@@ -542,12 +542,12 @@ describe('FramesRouter', function() {
 
       frame.addShard = sandbox.stub().callsArg(1);
 
-      var _frameFindOne = sandbox.stub(
+      sandbox.stub(
         framesRouter.storage.models.Frame,
         'findOne'
       ).callsArgWith(1, null, frame);
 
-      var _pointerCreate = sandbox.stub(
+      sandbox.stub(
         framesRouter.storage.models.Mirror,
         'find'
       ).returns({
@@ -556,7 +556,7 @@ describe('FramesRouter', function() {
         }),
       });
 
-      var _getContract = sandbox.stub(
+      sandbox.stub(
         framesRouter,
         '_getContractForShard'
       ).callsArgWith(3, new Error('No storage offers received'));
@@ -609,9 +609,6 @@ describe('FramesRouter', function() {
         framesRouter.storage.models.Frame,
         'findOne'
       ).callsArgWith(1, null, frame);
-
-      let farmer = {};
-      let contract = {};
 
       sandbox.stub(
         framesRouter,
@@ -748,7 +745,7 @@ describe('FramesRouter', function() {
         'findOne'
       ).callsArgWith(1, null, frame);
 
-      var _pointerCreate = sandbox.stub(
+      sandbox.stub(
         framesRouter.storage.models.Mirror,
         'find'
       ).returns({
@@ -846,7 +843,7 @@ describe('FramesRouter', function() {
         }),
       });
 
-      var _frameSave = sandbox.stub(
+      sandbox.stub(
         framesRouter.storage.models.Frame.prototype,
         'save'
       ).callsArgWith(0);
