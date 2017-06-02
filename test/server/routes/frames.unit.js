@@ -834,7 +834,7 @@ describe('FramesRouter', function() {
         'findOne'
       ).callsArgWith(1, null, frame0);
 
-      var _pointerCreate = sandbox.stub(
+      sandbox.stub(
         framesRouter.storage.models.Mirror,
         'find'
       ).returns({
@@ -877,7 +877,7 @@ describe('FramesRouter', function() {
         tree: auditStream.getPublicRecord()
       }));
 
-      var _getContract = sandbox.stub(
+      sandbox.stub(
         framesRouter,
         '_getContractForShard',
         function(contract, audit, bl, callback) {
@@ -889,7 +889,7 @@ describe('FramesRouter', function() {
         }
       );
 
-      var _getConsign = sandbox.stub(
+      sandbox.stub(
         framesRouter.network,
         'getConsignmentPointer'
       ).callsArgWith(3, null, { token: 'token' });
@@ -961,7 +961,7 @@ describe('FramesRouter', function() {
         'save'
       ).callsArgWith(0);
 
-      var _pointerCreate = sandbox.stub(
+      sandbox.stub(
         framesRouter.storage.models.Mirror,
         'find'
       ).returns({
@@ -1079,7 +1079,7 @@ describe('FramesRouter', function() {
         )
       });
 
-      var _pointerCreate = sandbox.stub(
+      sandbox.stub(
         framesRouter.storage.models.Mirror,
         'find'
       ).returns({
