@@ -235,6 +235,7 @@ describe('FramesRouter', function() {
   });
 
   describe('#addShardToFrame', function() {
+    /* jshint maxstatements: 100 */
     const sandbox = sinon.sandbox.create();
     beforeEach(() => sandbox.stub(analytics, 'track'));
     afterEach(() => sandbox.restore());
@@ -1269,7 +1270,7 @@ describe('FramesRouter', function() {
         )
       });
 
-      var _pointerCreate = sandbox.stub(
+      sandbox.stub(
         framesRouter.storage.models.Pointer,
         'create'
       ).callsArgWith(1, null, new framesRouter.storage.models.Pointer({
@@ -1292,7 +1293,7 @@ describe('FramesRouter', function() {
         }
       );
 
-      var _getConsignmentPointer = sandbox.stub(
+      sandbox.stub(
         framesRouter.network,
         'getConsignmentPointer'
       ).callsArgWith(3, null, { token: 'token' });
@@ -1325,6 +1326,7 @@ describe('FramesRouter', function() {
     });
 
     it('should give error if unable to save contract', function(done) {
+      /* jshint maxstatements: 100 */
       var request = httpMocks.createRequest({
         method: 'PUT',
         url: '/frames/frameid',
@@ -1416,10 +1418,8 @@ describe('FramesRouter', function() {
         )
       });
 
-      const addContract = sandbox.stub(storj.StorageItem.prototype,
-                                       'addContract');
-      const addAuditRecords = sandbox.stub(storj.StorageItem.prototype,
-                                           'addAuditRecords');
+      sandbox.stub(storj.StorageItem.prototype, 'addContract');
+      sandbox.stub(storj.StorageItem.prototype, 'addAuditRecords');
 
       sandbox.stub(framesRouter.contracts, 'load')
         .callsArgWith(1, new Error('test'));
