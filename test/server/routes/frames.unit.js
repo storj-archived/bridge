@@ -133,6 +133,8 @@ describe('FramesRouter', function() {
   });
 
   describe('#_getContractForShard', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
 
     it('should callback with error if no offer received', function(done) {
       var _getStorageOffer = sinon.stub(
@@ -147,12 +149,36 @@ describe('FramesRouter', function() {
         data_hash: storj.utils.rmd160('data')
       });
       var audits = new storj.AuditStream(3);
-      framesRouter._getContractForShard(contract, audits, [], function(err) {
+      var res = { socket: { destroyed: false } }
+      framesRouter._getContractForShard(contract, audits, [], res, function(err) {
         _contractsLoad.restore();
         _getStorageOffer.restore();
         expect(err.message).to.equal('No storage offers received');
         done();
       });
+    });
+
+    it('should cancel and not save contract with client timeout', function() {
+      var _getStorageOffer = sandbox.stub(
+        framesRouter.network,
+        'getStorageOffer'
+      ).callsArgWith(2, null, {}, {});
+
+      var hash = storj.utils.rmd160('data');
+      var contract = new storj.Contract({
+        data_hash: hash
+      });
+      var item = new storj.StorageItem({ hash: hash });
+      sandbox.stub(item, 'addContract');
+      var _contractsLoad = sandbox.stub(
+        framesRouter.contracts,
+        'load'
+      ).callsArgWith(1, null, item);
+
+      var audits = new storj.AuditStream(3);
+      var res = { socket: { destroyed: true } }
+      framesRouter._getContractForShard(contract, audits, [], res);
+      expect(item.addContract.callCount).to.equal(0);
     });
 
     it('should callback with error if contract cannot save', function(done) {
@@ -178,10 +204,12 @@ describe('FramesRouter', function() {
         framesRouter.contracts,
         'save'
       ).callsArgWith(1, new Error('Failed to save'));
+      var res = { socket: { destroyed: false } }
       framesRouter._getContractForShard(
         contract,
         audits,
         [],
+        res,
         function(err) {
           _contractsLoad.restore();
           _getStorageOffer.restore();
@@ -215,10 +243,12 @@ describe('FramesRouter', function() {
         framesRouter.contracts,
         'save'
       ).callsArgWith(1, null);
+      var res = { socket: { destroyed: false } }
       framesRouter._getContractForShard(
         contract,
         audits,
         [],
+        res,
         function(err, farmer, contract2) {
           _contractsLoad.restore();
           _getStorageOffer.restore();
@@ -428,7 +458,7 @@ describe('FramesRouter', function() {
       let contract = {};
 
       sandbox.stub(framesRouter, '_getContractForShard')
-        .callsArgWith(3, null, farmer, contract);
+        .callsArgWith(4, null, farmer, contract);
 
       sandbox.stub(framesRouter.network, 'getConsignmentPointer')
         .callsArgWith(3, null, { token: 'token' });
@@ -585,7 +615,7 @@ describe('FramesRouter', function() {
       sandbox.stub(
         framesRouter,
         '_getContractForShard'
-      ).callsArgWith(3, new Error('No storage offers received'));
+      ).callsArgWith(4, new Error('No storage offers received'));
 
       framesRouter.addShardToFrame(request, response, function(err) {
         expect(log.error.callCount).to.equal(1);
@@ -641,7 +671,7 @@ describe('FramesRouter', function() {
       sandbox.stub(
         framesRouter,
         '_getContractForShard'
-      ).callsArgWith(3, new Error('No storage offers received'));
+      ).callsArgWith(4, new Error('No storage offers received'));
 
       framesRouter.addShardToFrame(request, response, function(err) {
         expect(err.message).to.equal('No storage offers received');
@@ -695,7 +725,7 @@ describe('FramesRouter', function() {
       sandbox.stub(
         framesRouter,
         '_getContractForShard',
-        function(contract, audit, bl, callback) {
+        function(contract, audit, bl, res, callback) {
           callback(null, storj.Contact({
             address: '127.0.0.1',
             port: 1337,
@@ -776,7 +806,7 @@ describe('FramesRouter', function() {
       sandbox.stub(
         framesRouter,
         '_getContractForShard',
-        function(contract, audit, bl, callback) {
+        function(contract, audit, bl, res, callback) {
           callback(null, storj.Contact({
             address: '127.0.0.1',
             port: 1337,
@@ -850,7 +880,7 @@ describe('FramesRouter', function() {
       sandbox.stub(
         framesRouter,
         '_getContractForShard',
-        function(contract, audit, bl, callback) {
+        function(contract, audit, bl, res, callback) {
           callback(null, storj.Contact({
             address: '127.0.0.1',
             port: 1337,
@@ -962,7 +992,7 @@ describe('FramesRouter', function() {
       sandbox.stub(
         framesRouter,
         '_getContractForShard',
-        function(contract, audit, bl, callback) {
+        function(contract, audit, bl, res, callback) {
           callback(null, storj.Contact({
             address: '127.0.0.1',
             port: 1337,
@@ -1127,7 +1157,7 @@ describe('FramesRouter', function() {
       sandbox.stub(
         framesRouter,
         '_getContractForShard',
-        function(contract, audit, bl, callback) {
+        function(contract, audit, bl, res, callback) {
           callback(null, storj.Contact({
             address: '127.0.0.1',
             port: 1337,
@@ -1284,7 +1314,7 @@ describe('FramesRouter', function() {
       sandbox.stub(
         framesRouter,
         '_getContractForShard',
-        function(contract, audit, bl, callback) {
+        function(contract, audit, bl, res, callback) {
           callback(null, storj.Contact({
             address: '127.0.0.1',
             port: 1337,
@@ -1518,7 +1548,7 @@ describe('FramesRouter', function() {
       sandbox.stub(
         framesRouter,
         '_getContractForShard',
-        function(contract, audit, bl, callback) {
+        function(contract, audit, bl, res, callback) {
           callback(null, storj.Contact({
             address: '127.0.0.1',
             port: 1337,
@@ -1618,7 +1648,7 @@ describe('FramesRouter', function() {
       sandbox.stub(
         framesRouter,
         '_getContractForShard',
-        function(contract, audit, bl, callback) {
+        function(contract, audit, bl, res, callback) {
           callback(null, storj.Contact({
             address: '127.0.0.1',
             port: 1337,
