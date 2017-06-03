@@ -149,7 +149,7 @@ describe('FramesRouter', function() {
         data_hash: storj.utils.rmd160('data')
       });
       var audits = new storj.AuditStream(3);
-      var res = { socket: { destroyed: false } }
+      var res = { socket: { destroyed: false } };
       framesRouter._getContractForShard(contract, audits, [], res, function(err) {
         _contractsLoad.restore();
         _getStorageOffer.restore();
@@ -159,7 +159,7 @@ describe('FramesRouter', function() {
     });
 
     it('should cancel and not save contract with client timeout', function() {
-      var _getStorageOffer = sandbox.stub(
+      sandbox.stub(
         framesRouter.network,
         'getStorageOffer'
       ).callsArgWith(2, null, {}, {});
@@ -170,13 +170,13 @@ describe('FramesRouter', function() {
       });
       var item = new storj.StorageItem({ hash: hash });
       sandbox.stub(item, 'addContract');
-      var _contractsLoad = sandbox.stub(
+      sandbox.stub(
         framesRouter.contracts,
         'load'
       ).callsArgWith(1, null, item);
 
       var audits = new storj.AuditStream(3);
-      var res = { socket: { destroyed: true } }
+      var res = { socket: { destroyed: true } };
       framesRouter._getContractForShard(contract, audits, [], res);
       expect(item.addContract.callCount).to.equal(0);
     });
@@ -204,7 +204,7 @@ describe('FramesRouter', function() {
         framesRouter.contracts,
         'save'
       ).callsArgWith(1, new Error('Failed to save'));
-      var res = { socket: { destroyed: false } }
+      var res = { socket: { destroyed: false } };
       framesRouter._getContractForShard(
         contract,
         audits,
@@ -243,7 +243,7 @@ describe('FramesRouter', function() {
         framesRouter.contracts,
         'save'
       ).callsArgWith(1, null);
-      var res = { socket: { destroyed: false } }
+      var res = { socket: { destroyed: false } };
       framesRouter._getContractForShard(
         contract,
         audits,
