@@ -136,11 +136,9 @@ describe('UsersRouter', function() {
         method: 'POST',
         url: '/users',
         body: {
-          opts: {
-            email: 'newuser@storj.io',
-            password: storj.utils.sha256('password'),
-            referralPartner: 'fortune100partner'
-          }
+          email: 'newuser@storj.io',
+          password: storj.utils.sha256('password'),
+          referralPartner: 'fortune100partner'
         }
       });
       var response = httpMocks.createResponse({
@@ -256,11 +254,9 @@ describe('UsersRouter', function() {
         method: 'POST',
         url: '/users',
         body: {
-          opts: {
-            email: 'newuser@storj.io',
-            password: storj.utils.sha256('password'),
-            referralPartner: 'fortune100partner'
-          }
+          email: 'newuser@storj.io',
+          password: storj.utils.sha256('password'),
+          referralPartner: 'fortune100partner'
         }
       });
       var response = httpMocks.createResponse({
@@ -284,11 +280,9 @@ describe('UsersRouter', function() {
         method: 'POST',
         url: '/users',
         body: {
-          opts: {
-            email: 'newuser@storj.io',
-            password: storj.utils.sha256('password'),
-            referralPartner: 'fortune100partner'
-          }
+          email: 'newuser@storj.io',
+          password: storj.utils.sha256('password'),
+          referralPartner: 'fortune100partner'
         }
       });
       var response = httpMocks.createResponse({
