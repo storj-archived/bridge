@@ -208,6 +208,10 @@
                 "pubkey": {
                   "description": "ECDSA key to initially register",
                   "type": "string"
+                },
+                "referralPartner": {
+                  "description": "Referral partner name for attribution tracking and metering",
+                  "type": "string"
                 }
               }
             }
