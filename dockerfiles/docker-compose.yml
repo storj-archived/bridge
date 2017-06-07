@@ -1,0 +1,33 @@
+version: '2'
+
+services:
+  redis:
+        container_name: redis
+        image: sameersbn/redis:latest
+        ports:
+                - "6379:6379"
+        volumes:
+                - /srv/docker/redis:/var/lib/redis
+        restart: always
+  mongo:
+        container_name: mongo
+        image: sameersbn/mongodb:latest
+        ports:
+                - "27017:27017"
+        volumes:
+                - /srv/docker/mongodb:/var/lib/mongodb
+        restart: always
+  bridge:
+        container_name: bridge
+        image: storj-bridge:latest
+        links:
+                - mongo
+                - redis
+        environment:
+                NODE_ENV: "develop"
+                MONGO_HOST: "mongo" #linked container name
+                REDIS_HOST: "redis" #linked container name
+                BRIDGE_PUBLIC_HOST: "127.0.0.1" #"5.129.56.130"
+        ports:
+                - "6382:6382"
+        restart: always
