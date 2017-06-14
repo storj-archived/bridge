@@ -1207,6 +1207,149 @@ describe('FramesRouter', function() {
       framesRouter.addShardToFrame(request, response);
     });
 
+    it('should get new contracts if no cached contracts available', function(done) {
+      /* jshint maxstatements: 100 */
+      var request = httpMocks.createRequest({
+        method: 'PUT',
+        url: '/frames/frameid',
+        params: {
+          frame: 'frameid'
+        },
+        body: {
+          index: 0,
+          hash: storj.utils.rmd160('data'),
+          size: 1024 * 1024 * 8,
+          parity: true,
+          challenges: auditStream.getPrivateRecord().challenges,
+          tree: auditStream.getPublicRecord()
+        }
+      });
+
+      var testUser = new framesRouter.storage.models.User({
+        _id: 'testuser@storj.io',
+        hashpass: storj.utils.sha256('password')
+      });
+      testUser.isUploadRateLimited = sandbox.stub().returns(false);
+      testUser.recordUploadBytes = sandbox.stub().callsArg(1);
+      request.user = testUser;
+
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+
+      const frame0 = new framesRouter.storage.models.Frame({
+        user: someUser._id
+      });
+      frame0.addShard = sandbox.stub().callsArg(1);
+
+      var _frameFindOne = sandbox.stub(
+        framesRouter.storage.models.Frame,
+        'findOne'
+      ).callsArgWith(1, null, frame0);
+
+      const farmer = {
+        responseTime: 100,
+        nodeID: storj.utils.rmd160('farmer'),
+        address: '127.0.0.1',
+        port: 8080
+      };
+      const contract = {
+        data_hash: storj.utils.rmd160('data_hash')
+      };
+      const saveMirror = sandbox.stub();
+
+      const mirrors = [
+        {
+          contact: { responseTime: 10100 },
+          isEstablished: true
+        },
+        {
+          contact: {},
+          isEstablished: true
+        },
+        {
+          contact: { responseTime: 200 },
+          isEstablished: true
+        },
+        {
+          contact: { responseTime: 4100 },
+          isEstablished: true
+        },
+        {
+          contact: { responseTime: 2100 },
+          isEstablished: true
+        }
+      ];
+
+      sandbox.stub(
+        framesRouter.storage.models.Mirror,
+        'find'
+      ).returns({
+        populate: sandbox.stub().returns({
+          exec: sandbox.stub().callsArgWith(0, null, mirrors)
+        }),
+      });
+
+      sandbox.stub(
+        framesRouter.storage.models.Frame.prototype,
+        'save'
+      ).callsArgWith(0);
+
+      var frame1 = new framesRouter.storage.models.Frame({
+        user: someUser._id
+      });
+      frame1.addShard = sandbox.stub().callsArg(1);
+      frame1.shards[0] = {
+        index: 0
+      };
+      _frameFindOne.onCall(1).returns({
+        populate: function() {
+          return this;
+        },
+        exec: sandbox.stub().callsArgWith(
+          0,
+          null,
+          frame1
+        )
+      });
+
+      var _pointerCreate = sandbox.stub(
+        framesRouter.storage.models.Pointer,
+        'create'
+      ).callsArgWith(1, null, new framesRouter.storage.models.Pointer({
+        index: 0,
+        hash: storj.utils.rmd160('data'),
+        size: 1024 * 1024 * 8,
+        challenges: auditStream.getPrivateRecord().challenges,
+        tree: auditStream.getPublicRecord()
+      }));
+
+      sandbox.stub(
+        framesRouter,
+        '_getContractForShard',
+        function(contract, audit, bl, res, callback) {
+          callback(null, storj.Contact({
+            address: '127.0.0.1',
+            port: 1337,
+            nodeID: storj.utils.rmd160('farmer')
+          }), contract);
+        }
+      );
+
+      var _getConsignmentPointer = sandbox.stub(
+        framesRouter.network,
+        'getConsignmentPointer'
+      ).callsArgWith(3, null, { token: 'token' });
+
+      response.on('end', function() {
+        var result = response._getData();
+        expect(framesRouter._getContractForShard.callCount).to.equal(1);
+        done();
+      });
+      framesRouter.addShardToFrame(request, response);
+    });
+
     it('should create new storage item for cached offer', function(done) {
       /* jshint maxstatements: 100 */
       var request = httpMocks.createRequest({
