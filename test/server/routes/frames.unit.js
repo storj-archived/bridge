@@ -1248,17 +1248,6 @@ describe('FramesRouter', function() {
         'findOne'
       ).callsArgWith(1, null, frame0);
 
-      const farmer = {
-        responseTime: 100,
-        nodeID: storj.utils.rmd160('farmer'),
-        address: '127.0.0.1',
-        port: 8080
-      };
-      const contract = {
-        data_hash: storj.utils.rmd160('data_hash')
-      };
-      const saveMirror = sandbox.stub();
-
       const mirrors = [
         {
           contact: { responseTime: 10100 },
@@ -1314,7 +1303,7 @@ describe('FramesRouter', function() {
         )
       });
 
-      var _pointerCreate = sandbox.stub(
+      sandbox.stub(
         framesRouter.storage.models.Pointer,
         'create'
       ).callsArgWith(1, null, new framesRouter.storage.models.Pointer({
@@ -1337,13 +1326,12 @@ describe('FramesRouter', function() {
         }
       );
 
-      var _getConsignmentPointer = sandbox.stub(
+      sandbox.stub(
         framesRouter.network,
         'getConsignmentPointer'
       ).callsArgWith(3, null, { token: 'token' });
 
       response.on('end', function() {
-        var result = response._getData();
         expect(framesRouter._getContractForShard.callCount).to.equal(1);
         done();
       });
