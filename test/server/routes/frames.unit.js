@@ -132,6 +132,32 @@ describe('FramesRouter', function() {
     });
   });
 
+  describe('#_selectFarmers', function() {
+
+    it('will handle error from contact query', function() {
+    });
+
+    it('combine results from two queries', function() {
+    });
+
+  });
+
+  describe('#_publishContract', function() {
+
+    it('will create item on error (e.g. no contract)', function() {
+    });
+
+    it('will call network client to publish contract', function() {
+    });
+
+    it('will handle error when saving contract', function() {
+    });
+
+    it('save contract and return completed contract and farmer', function() {
+    });
+
+  });
+
   describe('#_getContractForShard', function() {
     const sandbox = sinon.sandbox.create();
     afterEach(() => sandbox.restore());
