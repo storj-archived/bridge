@@ -29,8 +29,8 @@ node('node') {
     /* This should only deploy to staging if the branch is master */
       if (env.BRANCH_NAME == "master") {
         echo 'Push to Repo'
-        sh "./dockerfiles/deploy.staging.sh bridge-api storjlabs/bridge:${env.BUILD_ID}"
-        sh "./dockerfiles/deploy.staging.sh storj-monitor storjlabs/storj-monitor:${env.BUILD_ID}"
+        sh "./dockerfiles/deploy.staging.sh bridge-api storjlabs/bridge:${commit_id}"
+        sh "./dockerfiles/deploy.staging.sh storj-monitor storjlabs/storj-monitor:${commit_id}"
       }
 
     stage 'Cleanup'
