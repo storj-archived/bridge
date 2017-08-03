@@ -3370,6 +3370,8 @@ describe('BucketsRouter', function() {
   });
 
   describe('#listMirrorsForFile', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());    
 
     it('should return the mirrors for the file', function(done) {
       var request = httpMocks.createRequest({
@@ -3385,38 +3387,38 @@ describe('BucketsRouter', function() {
         req: request,
         eventEmitter: EventEmitter
       });
-      var _getBucketById = sinon.stub(
+      var _getBucketById = sandbox.stub(
         bucketsRouter,
         '_getBucketById'
       ).callsArgWith(2, null, {
         id: 'bucketid'
       });
-      var _bucketEntryFindOne = sinon.stub(
+      var _bucketEntryFindOne = sandbox.stub(
         bucketsRouter.storage.models.BucketEntry,
         'findOne'
       ).returns({
         populate: () => {
           return {
-            exec: sinon.stub().callsArgWith(0, null, {
+            exec: sandbox.stub().callsArgWith(0, null, {
               frame: { shards: [] }
             })
           };
         }
       });
-      var _pointerFind = sinon.stub(
+      var _pointerFind = sandbox.stub(
         bucketsRouter.storage.models.Pointer,
         'find'
       ).callsArgWith(1, null, [
         { hash: 'hash1' },
         { hash: 'hash2' }
       ]);
-      var _mirrorFind = sinon.stub(
+      var _mirrorFind = sandbox.stub(
         bucketsRouter.storage.models.Mirror,
         'find'
       ).returns({
         populate: () => {
           return {
-            exec: sinon.stub().callsArgWith(0, null, [
+            exec: sandbox.stub().callsArgWith(0, null, [
               {
                 toObject: (() => 'MIRROR'),
                 isEstablished: true
@@ -3464,38 +3466,38 @@ describe('BucketsRouter', function() {
         req: request,
         eventEmitter: EventEmitter
       });
-      var _getBucketById = sinon.stub(
+      var _getBucketById = sandbox.stub(
         bucketsRouter,
         '_getBucketById'
       ).callsArgWith(2, null, {
         id: 'bucketid'
       });
-      var _bucketEntryFindOne = sinon.stub(
+      var _bucketEntryFindOne = sandbox.stub(
         bucketsRouter.storage.models.BucketEntry,
         'findOne'
       ).returns({
         populate: () => {
           return {
-            exec: sinon.stub().callsArgWith(0, null, {
+            exec: sandbox.stub().callsArgWith(0, null, {
               frame: { shards: [] }
             })
           };
         }
       });
-      var _pointerFind = sinon.stub(
+      var _pointerFind = sandbox.stub(
         bucketsRouter.storage.models.Pointer,
         'find'
       ).callsArgWith(1, null, [
         { hash: 'hash1' },
         { hash: 'hash2' }
       ]);
-      var _mirrorFind = sinon.stub(
+      var _mirrorFind = sandbox.stub(
         bucketsRouter.storage.models.Mirror,
         'find'
       ).returns({
         populate: () => {
           return {
-            exec: sinon.stub().callsArgWith(
+            exec: sandbox.stub().callsArgWith(
               0, new Error('Failed to find mirror')
             )
           };
@@ -3525,35 +3527,35 @@ describe('BucketsRouter', function() {
         req: request,
         eventEmitter: EventEmitter
       });
-      var _getBucketById = sinon.stub(
+      var _getBucketById = sandbox.stub(
         bucketsRouter,
         '_getBucketById'
       ).callsArgWith(2, null, {
         id: 'bucketid'
       });
-      var _bucketEntryFindOne = sinon.stub(
+      var _bucketEntryFindOne = sandbox.stub(
         bucketsRouter.storage.models.BucketEntry,
         'findOne'
       ).returns({
         populate: () => {
           return {
-            exec: sinon.stub().callsArgWith(0, null, {
+            exec: sandbox.stub().callsArgWith(0, null, {
               frame: { shards: [] }
             })
           };
         }
       });
-      var _pointerFind = sinon.stub(
+      var _pointerFind = sandbox.stub(
         bucketsRouter.storage.models.Pointer,
         'find'
       ).callsArgWith(1, new Error('Failed to find pointers'));
-      var _mirrorFind = sinon.stub(
+      var _mirrorFind = sandbox.stub(
         bucketsRouter.storage.models.Mirror,
         'find'
       ).returns({
         populate: () => {
           return {
-            exec: sinon.stub().callsArgWith(0, null, [
+            exec: sandbox.stub().callsArgWith(0, null, [
               {
                 toObject: (() => 'MIRROR'),
                 isEstablished: true
@@ -3595,36 +3597,36 @@ describe('BucketsRouter', function() {
         req: request,
         eventEmitter: EventEmitter
       });
-      var _getBucketById = sinon.stub(
+      var _getBucketById = sandbox.stub(
         bucketsRouter,
         '_getBucketById'
       ).callsArgWith(2, null, {
         id: 'bucketid'
       });
-      var _bucketEntryFindOne = sinon.stub(
+      var _bucketEntryFindOne = sandbox.stub(
         bucketsRouter.storage.models.BucketEntry,
         'findOne'
       ).returns({
         populate: () => {
           return {
-            exec: sinon.stub().callsArgWith(0, new Error('Query failed'))
+            exec: sandbox.stub().callsArgWith(0, new Error('Query failed'))
           };
         }
       });
-      var _pointerFind = sinon.stub(
+      var _pointerFind = sandbox.stub(
         bucketsRouter.storage.models.Pointer,
         'find'
       ).callsArgWith(1, null, [
         { hash: 'hash1' },
         { hash: 'hash2' }
       ]);
-      var _mirrorFind = sinon.stub(
+      var _mirrorFind = sandbox.stub(
         bucketsRouter.storage.models.Mirror,
         'find'
       ).returns({
         populate: () => {
           return {
-            exec: sinon.stub().callsArgWith(0, null, [
+            exec: sandbox.stub().callsArgWith(0, null, [
               {
                 toObject: (() => 'MIRROR'),
                 isEstablished: true
@@ -3666,36 +3668,36 @@ describe('BucketsRouter', function() {
         req: request,
         eventEmitter: EventEmitter
       });
-      var _getBucketById = sinon.stub(
+      var _getBucketById = sandbox.stub(
         bucketsRouter,
         '_getBucketById'
       ).callsArgWith(2, null, {
         id: 'bucketid'
       });
-      var _bucketEntryFindOne = sinon.stub(
+      var _bucketEntryFindOne = sandbox.stub(
         bucketsRouter.storage.models.BucketEntry,
         'findOne'
       ).returns({
         populate: () => {
           return {
-            exec: sinon.stub().callsArgWith(0, null, null)
+            exec: sandbox.stub().callsArgWith(0, null, null)
           };
         }
       });
-      var _pointerFind = sinon.stub(
+      var _pointerFind = sandbox.stub(
         bucketsRouter.storage.models.Pointer,
         'find'
       ).callsArgWith(1, null, [
         { hash: 'hash1' },
         { hash: 'hash2' }
       ]);
-      var _mirrorFind = sinon.stub(
+      var _mirrorFind = sandbox.stub(
         bucketsRouter.storage.models.Mirror,
         'find'
       ).returns({
         populate: () => {
           return {
-            exec: sinon.stub().callsArgWith(0, null, [
+            exec: sandbox.stub().callsArgWith(0, null, [
               {
                 toObject: (() => 'MIRROR'),
                 isEstablished: true
