@@ -12,7 +12,7 @@ describe('POW Middleware', function() {
     redis.flushdb(done);
   });
 
-  describe('#getMiddleware', function() {
+  describe('#getPOWMiddleware', function() {
     let challenge = '2db77b11eab714c46febb51a78d56d9b34b306d6fc46aa6e6e25a92b48eff4bf';
     let target = '00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
 
@@ -28,7 +28,7 @@ describe('POW Middleware', function() {
     });
 
     it('will get invalid pow error', function(done) {
-      let middleware = pow.getMiddleware(redis);
+      let middleware = pow.getPOWMiddleware(redis);
 
       let req = {
         headers: function(key) {
@@ -50,7 +50,7 @@ describe('POW Middleware', function() {
     });
 
     it('will get unknown challenge error', function(done) {
-      let middleware = pow.getMiddleware(redis);
+      let middleware = pow.getPOWMiddleware(redis);
 
       let req = {
         headers: function(key) {
@@ -72,7 +72,7 @@ describe('POW Middleware', function() {
     });
 
     it('will increment count by one and remove challenge', function(done) {
-      let middleware = pow.getMiddleware(redis);
+      let middleware = pow.getPOWMiddleware(redis);
 
       let req = {
         headers: function(key) {

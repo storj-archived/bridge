@@ -8,13 +8,16 @@ const pow = require('../../../lib/server/middleware/farmer-auth');
 describe('Farmer Authentication Middleware', function() {
 
   describe('#authFarmer', function() {
-    it('will give error for invalid nodeid', function() {
-
-    });
     it('will give error for invalid timestamp', function() {
 
     });
     it('will give error for invalid pubkey', function() {
+
+    });
+    it('will give error for invalid nodeid', function() {
+
+    });
+    it('will give error if missing body', function() {
 
     });
     it('will give error for invalid signature', function() {
@@ -22,19 +25,27 @@ describe('Farmer Authentication Middleware', function() {
     });
     it('will continue without error', function() {
     });
-
   });
 
 
   describe('#checkTimestamp', function() {
-    it('will fail with timestamp below threshold', function() {
+    it('return false with timestamp below threshold', function() {
 
     });
-    it('will fail with timestamp above threshold', function() {
+    it('return false with timestamp above threshold', function() {
 
     });
-    it('will succeed with timestamp within threshold', function() {
+    it('return true with timestamp within threshold', function() {
 
+    });
+  });
+
+  describe('#checkNodeID', function() {
+    it('return false for invalid nodeID (nonhex)', function() {
+    });
+    it('return false for invalid nodeID (does not match pubkey)', function() {
+    });
+    it('return true for valid nodeID ', function() {
     });
   });
 
@@ -53,6 +64,13 @@ describe('Farmer Authentication Middleware', function() {
     });
     it('will verify that signature is incorrect', function() {
 
+    });
+  });
+
+  describe('#isHexaString', function() {
+    it('return false for nonhex string', function() {
+    });
+    it('return true for hex string', function() {
     });
   });
 
