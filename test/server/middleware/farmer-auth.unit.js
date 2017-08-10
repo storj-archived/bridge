@@ -71,10 +71,19 @@ describe('Farmer Authentication Middleware', function() {
 
   describe('#checkNodeID', function() {
     it('return false for invalid nodeID (nonhex)', function() {
+      const nodeID = 'somegarbage';
+      const pubkey = '038cdc0b987405176647449b7f727444d263101f74e2a593d76ecedf11230706dd';
+      expect(auth.checkNodeID(nodeID, pubkey)).to.equal(false);
     });
     it('return false for invalid nodeID (does not match pubkey)', function() {
+      const nodeID = 'e6a498de631c6f3eba57da0e416881f9d4a6fca1';
+      const pubkey = '038cdc0b987405176647449b7f727444d263101f74e2a593d76ecedf11230706dd';
+      expect(auth.checkNodeID(nodeID, pubkey)).to.equal(false);
     });
     it('return true for valid nodeID ', function() {
+      const nodeID = 'e6a498de631c6f3eba57da0e416881f9d4a6fca1';
+      const pubkey = '03f716a870a72aaa61a75f5b06381ea1771f49c3a9866636007affc4ac06ef54b8';
+      expect(auth.checkNodeID(nodeID, pubkey)).to.equal(true);
     });
   });
 
