@@ -88,11 +88,21 @@ describe('Farmer Authentication Middleware', function() {
   });
 
   describe('#checkPubkey', function() {
-    it('will fail if pubkey is an invalid format (nonhex)', function() {
-
+    it('will fail if pubkey is an invalid format (nonhex doubles)', function() {
+      const pubkey = '38cdc0b987405176647449b7f727444d263101f74e2a593d76ecedf11230706dd';
+      expect(auth.checkPubkey(pubkey)).to.equal(false);
     });
-    it('will fail if pubkey is an invalid format (length)', function() {
-
+    it('will fail if pubkey is an invalid format (nonhex)', function() {
+      const pubkey = 'z38cdc0b987405176647449b7f727444d263101f74e2a593d76ecedf11230706dd';
+      expect(auth.checkPubkey(pubkey)).to.equal(false);
+    });
+    it('return false if invalid pubkey (serialization)', function() {
+      const pubkey = '098cdc0b987405176647449b7f727444d263101f74e2a593d76ecedf11230706dd';
+      expect(auth.checkPubkey(pubkey)).to.equal(false);
+    });
+    it('return true for valid pubkey', function() {
+      const pubkey = '038cdc0b987405176647449b7f727444d263101f74e2a593d76ecedf11230706dd';
+      expect(auth.checkPubkey(pubkey)).to.equal(true);
     });
   });
 
