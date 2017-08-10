@@ -162,7 +162,7 @@ describe('POW Middleware', function() {
       });
     });
 
-    it('will not adjust the difficulty', function() {
+    it('will not adjust the difficulty', function(done) {
       const opts = {
         retargetPeriod: 1000,
         retargetCount: 500
