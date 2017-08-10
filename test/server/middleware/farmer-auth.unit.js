@@ -3,9 +3,11 @@
 const chai = require('chai');
 const expect = chai.expect;
 const sinon = require('sinon');
-const pow = require('../../../lib/server/middleware/farmer-auth');
+const auth = require('../../../lib/server/middleware/farmer-auth');
 
 describe('Farmer Authentication Middleware', function() {
+  const sandbox = sinon.sandbox.create();
+  afterEach(() => sandbox.restore());
 
   describe('#authFarmer', function() {
     it('will give error for invalid timestamp', function() {
@@ -30,13 +32,40 @@ describe('Farmer Authentication Middleware', function() {
 
   describe('#checkTimestamp', function() {
     it('return false with timestamp below threshold', function() {
-
+      const clock = sandbox.useFakeTimers();
+      clock.tick(1502390208007 + 300000);
+      let req = {
+        headers: function(key) {
+          if (key === 'timestamp') {
+            return 1502390208007 - 300000 - 1;
+          }
+        }
+      };
+      expect(auth.checkTimestamp(req)).to.equal(false);
     });
     it('return false with timestamp above threshold', function() {
-
+      const clock = sandbox.useFakeTimers();
+      clock.tick(1502390208007 + 300000);
+      let req = {
+        headers: function(key) {
+          if (key === 'timestamp') {
+            return 1502390208007 + 600000 + 1;
+          }
+        }
+      };
+      expect(auth.checkTimestamp(req)).to.equal(false);
     });
     it('return true with timestamp within threshold', function() {
-
+      const clock = sandbox.useFakeTimers();
+      clock.tick(1502390208007 + 300000);
+      let req = {
+        headers: function(key) {
+          if (key === 'timestamp') {
+            return 1502390208007 + 300000 + 1;
+          }
+        }
+      };
+      expect(auth.checkTimestamp(req)).to.equal(true);
     });
   });
 
