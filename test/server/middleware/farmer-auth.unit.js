@@ -3,6 +3,7 @@
 const chai = require('chai');
 const expect = chai.expect;
 const sinon = require('sinon');
+const errors = require('storj-service-error-types');
 const secp256k1 = require('secp256k1');
 const auth = require('../../../lib/server/middleware/farmer-auth');
 
@@ -11,17 +12,88 @@ describe('Farmer Authentication Middleware', function() {
   afterEach(() => sandbox.restore());
 
   describe('#authFarmer', function() {
-    it('will give error for invalid timestamp', function() {
+    const nodeID = 'e6a498de631c6f3eba57da0e416881f9d4a6fca1';
+    const pubkey = '03f716a870a72aaa61a75f5b06381ea1771f49c3a9866636007affc4ac06ef54b8';
+    const timestamp = '1502390208007';
+    const signature = 'signature';
+    const req = {
+      headers: function(key) {
+        if (key === 'x-node-id') {
+          return nodeID;
+        } else if (key === 'x-node-pubkey') {
+          return pubkey;
+        } else if (key === 'x-node-timestamp') {
+          return timestamp;
+        } else if (key === 'x-node-signature') {
+          return signature;
+        }
+      },
+      rawbody: Buffer.from('ffff', 'hex')
+    }
+    const res = {};
+    it('will give error for invalid timestamp', function(done) {
+      sandbox.stub(auth, 'checkTimestamp').returns(false);
+      auth.authFarmer(req, res, function(err) {
+        expect(err).to.be.instanceOf(errors.BadRequestError);
+        done();
+      });
     });
-    it('will give error for invalid pubkey', function() {
+    it('will give error for invalid pubkey', function(done) {
+      sandbox.stub(auth, 'checkTimestamp').returns(true);
+      sandbox.stub(auth, 'checkPubkey').returns(false);
+      auth.authFarmer(req, res, function(err) {
+        expect(err).to.be.instanceOf(errors.BadRequestError);
+        done();
+      });
     });
-    it('will give error for invalid nodeid', function() {
+    it('will give error for invalid nodeid', function(done) {
+      sandbox.stub(auth, 'checkTimestamp').returns(true);
+      sandbox.stub(auth, 'checkPubkey').returns(true);
+      sandbox.stub(auth, 'checkNodeID').returns(false);
+      auth.authFarmer(req, res, function(err) {
+        expect(err).to.be.instanceOf(errors.BadRequestError);
+        done();
+      });
     });
-    it('will give error if missing body', function() {
+    it('will give error if missing body', function(done) {
+      const reqNoBody = {
+        headers: function(key) {
+          if (key === 'x-node-id') {
+            return nodeID;
+          } else if (key === 'x-node-pubkey') {
+            return pubkey;
+          } else if (key === 'x-node-timestamp') {
+            return timestamp;
+          } else if (key === 'x-node-signature') {
+            return signature;
+          }
+        },
+        rawbody: null
+      }
+      sandbox.stub(auth, 'checkTimestamp').returns(true);
+      sandbox.stub(auth, 'checkPubkey').returns(true);
+      sandbox.stub(auth, 'checkNodeID').returns(true);
+      auth.authFarmer(reqNoBody, res, function(err) {
+        expect(err).to.be.instanceOf(errors.BadRequestError);
+        done();
+      });
     });
-    it('will give error for invalid signature', function() {
+    it('will give error for invalid signature', function(done) {
+      sandbox.stub(auth, 'checkTimestamp').returns(true);
+      sandbox.stub(auth, 'checkPubkey').returns(true);
+      sandbox.stub(auth, 'checkNodeID').returns(true);
+      sandbox.stub(auth, 'checkSig').returns(false);
+      auth.authFarmer(req, res, function(err) {
+        expect(err).to.be.instanceOf(errors.BadRequestError);
+        done();
+      });
     });
-    it('will continue without error', function() {
+    it('will continue without error', function(done) {
+      sandbox.stub(auth, 'checkTimestamp').returns(true);
+      sandbox.stub(auth, 'checkPubkey').returns(true);
+      sandbox.stub(auth, 'checkNodeID').returns(true);
+      sandbox.stub(auth, 'checkSig').returns(true);
+      auth.authFarmer(req, res, done);
     });
   });
 
