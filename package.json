@@ -61,6 +61,7 @@
     "async": "^2.1.4",
     "bn.js": "^4.11.8",
     "commander": "^2.9.0",
+    "concat-stream": "^1.6.0",
     "cors": "^2.7.1",
     "csv-write-stream": "^2.0.0",
     "elliptic": "^6.0.2",
