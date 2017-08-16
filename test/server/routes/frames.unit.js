@@ -2040,7 +2040,7 @@ describe('FramesRouter', function() {
         limit: sinon.stub().returns({
           exec: sinon.stub().callsArgWith(0, null, [frame1, frame2])
         })
-      })
+      });
       response.on('end', function() {
         _frameFind.restore();
         expect(response._getData()).to.have.lengthOf(2);
