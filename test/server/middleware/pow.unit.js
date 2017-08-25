@@ -31,12 +31,9 @@ describe('POW Middleware', function() {
       let middleware = pow.getPOWMiddleware(redis);
 
       let req = {
-        headers: function(key) {
-          if (key === 'x-challenge') {
-            return challenge;
-          } else if (key === 'x-challenge-nonce') {
-            return 'dd170bf2';
-          }
+        headers: {
+          'x-challenge': challenge,
+          'x-challenge-nonce': '0xdd170bf2'
         }
       };
       let res = {};
@@ -53,12 +50,9 @@ describe('POW Middleware', function() {
       let middleware = pow.getPOWMiddleware(redis);
 
       let req = {
-        headers: function(key) {
-          if (key === 'x-challenge') {
-            return unknownChallenge;
-          } else if (key === 'x-challenge-nonce') {
-            return 'dd170bf2';
-          }
+        headers: {
+          'x-challenge': unknownChallenge,
+          'x-challenge-nonce': '0xdd170bf2'
         }
       };
       let res = {};
@@ -75,12 +69,9 @@ describe('POW Middleware', function() {
       let middleware = pow.getPOWMiddleware(redis);
 
       let req = {
-        headers: function(key) {
-          if (key === 'x-challenge') {
-            return challenge2;
-          } else if (key === 'x-challenge-nonce') {
-            return 'dd170bf2';
-          }
+        headers: {
+          'x-challenge': challenge2,
+          'x-challenge-nonce': '0xdd170bf2'
         }
       };
       let res = {};

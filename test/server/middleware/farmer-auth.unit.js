@@ -17,16 +17,11 @@ describe('Farmer Authentication Middleware', function() {
     const timestamp = '1502390208007';
     const signature = 'signature';
     const req = {
-      headers: function(key) {
-        if (key === 'x-node-id') {
-          return nodeID;
-        } else if (key === 'x-node-pubkey') {
-          return pubkey;
-        } else if (key === 'x-node-timestamp') {
-          return timestamp;
-        } else if (key === 'x-node-signature') {
-          return signature;
-        }
+      headers: {
+        'x-node-id': nodeID,
+        'x-node-pubkey': pubkey,
+        'x-node-timestamp': timestamp,
+        'x-node-signature': signature
       },
       rawbody: Buffer.from('ffff', 'hex')
     }
@@ -57,16 +52,11 @@ describe('Farmer Authentication Middleware', function() {
     });
     it('will give error if missing body', function(done) {
       const reqNoBody = {
-        headers: function(key) {
-          if (key === 'x-node-id') {
-            return nodeID;
-          } else if (key === 'x-node-pubkey') {
-            return pubkey;
-          } else if (key === 'x-node-timestamp') {
-            return timestamp;
-          } else if (key === 'x-node-signature') {
-            return signature;
-          }
+        headers: {
+          'x-node-id': nodeID,
+          'x-node-pubkey': pubkey,
+          'x-node-timestamp': timestamp,
+          'x-node-signature': signature
         },
         rawbody: null
       }
@@ -102,38 +92,20 @@ describe('Farmer Authentication Middleware', function() {
     it('return false with timestamp below threshold', function() {
       const clock = sandbox.useFakeTimers();
       clock.tick(1502390208007 + 300000);
-      let req = {
-        headers: function(key) {
-          if (key === 'timestamp') {
-            return 1502390208007 - 300000 - 1;
-          }
-        }
-      };
-      expect(auth.checkTimestamp(req)).to.equal(false);
+      let timestamp = (1502390208007 - 300000 - 1).toString();
+      expect(auth.checkTimestamp(timestamp)).to.equal(false);
     });
     it('return false with timestamp above threshold', function() {
       const clock = sandbox.useFakeTimers();
       clock.tick(1502390208007 + 300000);
-      let req = {
-        headers: function(key) {
-          if (key === 'timestamp') {
-            return 1502390208007 + 600000 + 1;
-          }
-        }
-      };
-      expect(auth.checkTimestamp(req)).to.equal(false);
+      let timestamp = (1502390208007 + 600000 + 1).toString();
+      expect(auth.checkTimestamp(timestamp)).to.equal(false);
     });
     it('return true with timestamp within threshold', function() {
       const clock = sandbox.useFakeTimers();
       clock.tick(1502390208007 + 300000);
-      let req = {
-        headers: function(key) {
-          if (key === 'timestamp') {
-            return 1502390208007 + 300000 + 1;
-          }
-        }
-      };
-      expect(auth.checkTimestamp(req)).to.equal(true);
+      let timestamp = (1502390208007 + 300000 + 1).toString();
+      expect(auth.checkTimestamp(timestamp)).to.equal(true);
     });
   });
 
@@ -178,16 +150,10 @@ describe('Farmer Authentication Middleware', function() {
     it('will verify that signature is correct', function() {
       let privkey = '8e812246e61ea983efdd4d1c86e246832667a4e4b8fc2d9ff01c534c8a6d7681';
       let pubkey = '03ea58aff546b28bb748d560ad05bb78c0e1b9f5de8edc5021494833c73c224284';
-      let sig = null;
       let req = {
-        headers: function(key) {
-          if (key === 'x-node-timestamp') {
-            return '1502390208007';
-          } else if (key === 'x-node-pubkey') {
-            return pubkey;
-          } else if (key === 'x-node-signature') {
-            return sig;
-          }
+        headers: {
+          'x-node-timestamp': '1502390208007',
+          'x-node-pubkey': pubkey
         },
         method: 'POST',
         protocol: 'https',
@@ -201,7 +167,8 @@ describe('Farmer Authentication Middleware', function() {
       }
       const sighash = auth.getSigHash(req);
       const sigObj = secp256k1.sign(sighash, Buffer.from(privkey, 'hex'));
-      sig = secp256k1.signatureExport(sigObj.signature).toString('hex');
+      let sig = secp256k1.signatureExport(sigObj.signature).toString('hex');
+      req.headers['x-node-signature'] = sig;
       expect(auth.checkSig(req)).to.equal(true);
     });
     it('will verify that signature is incorrect', function() {
@@ -210,14 +177,10 @@ describe('Farmer Authentication Middleware', function() {
       let timestamp = '1502390208007';
       let sig = null;
       let req = {
-        headers: function(key) {
-          if (key === 'x-node-timestamp') {
-            return timestamp;
-          } else if (key === 'x-node-pubkey') {
-            return pubkey;
-          } else if (key === 'x-node-signature') {
-            return sig;
-          }
+        headers: {
+          'x-node-timestamp': timestamp,
+          'x-node-pubkey': pubkey,
+          'x-node-signature': sig
         },
         method: 'POST',
         protocol: 'https',
@@ -253,10 +216,8 @@ describe('Farmer Authentication Middleware', function() {
   describe('#getSigHash', function() {
     it('will get the expected hash from the request', function() {
       let req = {
-        headers: function(key) {
-          if (key === 'x-node-timestamp') {
-            return '1502390208007';
-          }
+        headers: {
+          'x-node-timestamp': '1502390208007'
         },
         method: 'POST',
         protocol: 'https',

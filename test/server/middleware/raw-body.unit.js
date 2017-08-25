@@ -35,7 +35,7 @@ describe('Raw Body Middleware', function() {
     var req = new Stream();
     req.get = sinon.stub();
     rawbody(req, res, function() {
-      expect(req.rawbody).to.equal('{"hello": "world"}');
+      expect(req.rawbody.toString()).to.equal('{"hello": "world"}');
       expect(req.body).to.deep.equal({hello: 'world'});
       done();
     });
@@ -54,7 +54,7 @@ describe('Raw Body Middleware', function() {
     var req = new Stream();
     req.get = sinon.stub();
     rawbody(req, res, function() {
-      expect(req.rawbody).to.equal('{"hello":');
+      expect(req.rawbody.toString()).to.equal('{"hello":');
       expect(req.body).to.deep.equal({});
       done();
     });
