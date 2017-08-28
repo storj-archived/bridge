@@ -185,16 +185,160 @@ describe('FramesRouter', function() {
     const sandbox = sinon.sandbox.create();
     afterEach(() => sandbox.restore());
 
-    it('will create item on error (e.g. no contract)', function() {
+    it('will create item on error (e.g. no contract)', function(done) {
+      let item = {
+        addContract: sandbox.stub(),
+        addAuditRecords: sandbox.stub()
+      };
+      let StorageItem = sandbox.stub(storj, 'StorageItem').returns(item);
+
+      let excluded = [];
+      let data = {
+        contact: {
+          address: '127.0.0.1',
+          port: 1001
+        },
+        contract: {}
+      };
+      // TODO remove this when complex is upgraded
+      if (!framesRouter.network.publishContract) {
+        framesRouter.network.publishContract = function() {};
+      }
+      sandbox.stub(framesRouter.network, 'publishContract').callsArgWith(2, null, data);
+      sandbox.stub(framesRouter.contracts, 'load').callsArgWith(1, new Error('Not found'));
+      sandbox.stub(framesRouter.contracts, 'save').callsArg(1);
+
+      let nodes = [];
+      let contract = {
+        get: function(key) {
+          if (key === 'data_hash') {
+            return 'data_hash';
+          }
+        }
+      };
+      let audit = {};
+      framesRouter._publishContract(nodes, contract, audit, (err) => {
+        if (err) {
+          return done(err);
+        }
+        expect(StorageItem.callCount).to.equal(1);
+        expect(item.addContract.callCount).to.equal(1);
+        expect(item.addAuditRecords.callCount).to.equal(1);
+        done();
+      });
     });
 
-    it('will call network client to publish contract', function() {
+    it('will handle error when publishing contract', function(done) {
+      let excluded = [];
+      // TODO remove this when complex is upgraded
+      if (!framesRouter.network.publishContract) {
+        framesRouter.network.publishContract = function() {};
+      }
+      sandbox.stub(framesRouter.network, 'publishContract').callsArgWith(2, new Error('test'));
+
+      let item = {
+        addContract: sandbox.stub(),
+        addAuditRecords: sandbox.stub()
+      };
+      sandbox.stub(framesRouter.contracts, 'load').callsArgWith(1, null, item);
+
+      let nodes = [];
+      let contract = {
+        get: function(key) {
+          if (key === 'data_hash') {
+            return 'data_hash';
+          }
+        }
+      };
+      let audit = {};
+      framesRouter._publishContract(nodes, contract, audit, (err) => {
+        expect(err).to.be.instanceOf(Error);
+        expect(err.message).to.equal('test');
+        done();
+      });
     });
 
-    it('will handle error when saving contract', function() {
+    it('will handle error when saving contract', function(done) {
+      let excluded = [];
+      let data = {
+        contact: {
+          address: '127.0.0.1',
+          port: 1001
+        },
+        contract: {}
+      };
+      // TODO remove this when complex is upgraded
+      if (!framesRouter.network.publishContract) {
+        framesRouter.network.publishContract = function() {};
+      }
+      sandbox.stub(framesRouter.network, 'publishContract').callsArgWith(2, null, data);
+
+      let item = {
+        addContract: sandbox.stub(),
+        addAuditRecords: sandbox.stub()
+      };
+      sandbox.stub(framesRouter.contracts, 'load').callsArgWith(1, null, item);
+      sandbox.stub(framesRouter.contracts, 'save').callsArgWith(1, new Error('test'));
+
+      let nodes = [];
+      let contract = {
+        get: function(key) {
+          if (key === 'data_hash') {
+            return 'data_hash';
+          }
+        }
+      };
+      let audit = {};
+      framesRouter._publishContract(nodes, contract, audit, (err) => {
+        expect(err).to.be.instanceOf(Error);
+        expect(err.message).to.equal('test');
+        done();
+      });
     });
 
-    it('save contract and return completed contract and farmer', function() {
+    it('save contract and return completed contract and farmer', function(done) {
+      let excluded = [];
+      let data = {
+        contact: {
+          address: '127.0.0.1',
+          port: 1001
+        },
+        contract: {},
+        token: 'token'
+      };
+      // TODO remove this when complex is upgraded
+      if (!framesRouter.network.publishContract) {
+        framesRouter.network.publishContract = function() {};
+      }
+      sandbox.stub(framesRouter.network, 'publishContract').callsArgWith(2, null, data);
+
+      let item = {
+        addContract: sandbox.stub(),
+        addAuditRecords: sandbox.stub()
+      };
+      sandbox.stub(framesRouter.contracts, 'load').callsArgWith(1, null, item);
+      sandbox.stub(framesRouter.contracts, 'save').callsArg(1);
+
+      let nodes = [];
+      let contract = {
+        get: function(key) {
+          if (key === 'data_hash') {
+            return 'data_hash';
+          }
+        }
+      };
+      let audit = {};
+      framesRouter._publishContract(nodes, contract, audit, (err, f, c, t) => {
+        if (err) {
+          return done(err);
+        }
+        expect(f).to.be.instanceOf(storj.Contact);
+        expect(f.port).to.equal(1001);
+        expect(f.address).to.equal('127.0.0.1');
+        expect(c).to.be.instanceOf(storj.Contract);
+        expect(t).to.equal('token');
+        done();
+      });
     });
 
   });
