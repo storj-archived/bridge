@@ -206,7 +206,7 @@ describe('POW Middleware', function() {
 
     it('will handle error from getTarget', function(done) {
       sandbox.stub(pow, 'getTarget').callsArgWith(2, new Error('test'));
-      pow.getChallenge(redis, opts, function(err, data) {
+      pow.getChallenge(redis, opts, function(err) {
         expect(err).to.be.instanceOf(Error);
         expect(err.message).to.equal('test');
         done();
@@ -215,7 +215,7 @@ describe('POW Middleware', function() {
 
     it('will handle error from db', function(done) {
       sandbox.stub(redis, 'set').callsArgWith(4, new Error('test'));
-      pow.getChallenge(redis, opts, function(err, data) {
+      pow.getChallenge(redis, opts, function(err) {
         expect(err).to.be.instanceOf(Error);
         expect(err.message).to.equal('test');
         done();

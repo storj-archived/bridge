@@ -25,7 +25,7 @@ describe('Raw Body Middleware', function() {
     var res = {};
     function Stream(options) {
       ReadableStream.call(this, options);
-    };
+    }
     util.inherits(Stream, ReadableStream);
     var data = '{"hello": "world"}';
     Stream.prototype._read = function() {
@@ -44,7 +44,7 @@ describe('Raw Body Middleware', function() {
     var res = {};
     function Stream(options) {
       ReadableStream.call(this, options);
-    };
+    }
     util.inherits(Stream, ReadableStream);
     var data = '{"hello":';
     Stream.prototype._read = function() {

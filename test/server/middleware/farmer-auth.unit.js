@@ -24,7 +24,7 @@ describe('Farmer Authentication Middleware', function() {
         'x-node-signature': signature
       },
       rawbody: Buffer.from('ffff', 'hex')
-    }
+    };
     const res = {};
     it('will give error for invalid timestamp', function(done) {
       sandbox.stub(auth, 'checkTimestamp').returns(false);
@@ -59,7 +59,7 @@ describe('Farmer Authentication Middleware', function() {
           'x-node-signature': signature
         },
         rawbody: null
-      }
+      };
       sandbox.stub(auth, 'checkTimestamp').returns(true);
       sandbox.stub(auth, 'checkPubkey').returns(true);
       sandbox.stub(auth, 'checkNodeID').returns(true);
@@ -164,7 +164,7 @@ describe('Farmer Authentication Middleware', function() {
           }
         },
         rawbody: Buffer.from('{"key": "value"}', 'utf8')
-      }
+      };
       const sighash = auth.getSigHash(req);
       const sigObj = secp256k1.sign(sighash, Buffer.from(privkey, 'hex'));
       let sig = secp256k1.signatureExport(sigObj.signature).toString('hex');
@@ -191,7 +191,7 @@ describe('Farmer Authentication Middleware', function() {
           }
         },
         rawbody: Buffer.from('{"key": "value"}', 'utf8')
-      }
+      };
       const sighash = auth.getSigHash(req);
       const sigObj = secp256k1.sign(sighash, Buffer.from(privkey, 'hex'));
       sig = secp256k1.signatureExport(sigObj.signature).toString('hex');
