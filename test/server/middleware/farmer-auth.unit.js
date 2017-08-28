@@ -228,7 +228,7 @@ describe('Farmer Authentication Middleware', function() {
           }
         },
         rawbody: Buffer.from('{"key": "value"}', 'utf8')
-      }
+      };
       const hash = auth.getSigHash(req);
       expect(hash.toString('hex')).to.equal('59146f00725c9c052ef5ec6acd63f3842728c9d191ac146668204de6ed4a648b');
     });
