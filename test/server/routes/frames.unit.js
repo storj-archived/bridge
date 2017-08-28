@@ -133,16 +133,57 @@ describe('FramesRouter', function() {
   });
 
   describe('#_selectFarmers', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
 
-    it('will handle error from contact query', function() {
+    it('will handle error from contact query', function(done) {
+      sandbox.stub(
+        framesRouter.storage.models.Contact,
+        'find'
+      ).returns({
+        sort: sandbox.stub().returns({
+          limit: sandbox.stub().returns({
+            exec: sandbox.stub().callsArgWith(0, new Error('test'))
+          })
+        })
+      });
+
+      let excluded = [];
+      framesRouter._selectFarmers(excluded, (err) => {
+        expect(err).to.be.instanceOf(Error);
+        expect(err.message).to.equal('test');
+        done();
+      });
     });
 
-    it('combine results from two queries', function() {
+    it('combine results from two queries', function(done) {
+      sandbox.stub(
+        framesRouter.storage.models.Contact,
+        'find'
+      ).returns({
+        sort: sandbox.stub().returns({
+          limit: sandbox.stub().returns({
+            exec: sandbox.stub().callsArgWith(0, null, ['a'])
+          })
+        })
+      });
+
+
+      let excluded = [];
+      framesRouter._selectFarmers(excluded, (err, results) => {
+        if (err) {
+          return done(err);
+        }
+        expect(results).to.eql(['a', 'a']);
+        done();
+      });
     });
 
   });
 
   describe('#_publishContract', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
 
     it('will create item on error (e.g. no contract)', function() {
     });
