@@ -192,7 +192,6 @@ describe('FramesRouter', function() {
       };
       let StorageItem = sandbox.stub(storj, 'StorageItem').returns(item);
 
-      let excluded = [];
       let data = {
         contact: {
           address: '127.0.0.1',
@@ -229,7 +228,6 @@ describe('FramesRouter', function() {
     });
 
     it('will handle error when publishing contract', function(done) {
-      let excluded = [];
       // TODO remove this when complex is upgraded
       if (!framesRouter.network.publishContract) {
         framesRouter.network.publishContract = function() {};
@@ -259,7 +257,6 @@ describe('FramesRouter', function() {
     });
 
     it('will handle error when saving contract', function(done) {
-      let excluded = [];
       let data = {
         contact: {
           address: '127.0.0.1',
@@ -297,7 +294,6 @@ describe('FramesRouter', function() {
     });
 
     it('save contract and return completed contract and farmer', function(done) {
-      let excluded = [];
       let data = {
         contact: {
           address: '127.0.0.1',
