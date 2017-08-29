@@ -134,7 +134,11 @@ describe('POW Middleware', function() {
           return done(err);
         }
         expect(target).to.equal(lessTarget);
-        done();
+        redis.hgetall('contact-stats', (err, stats) => {
+          expect(parseInt(parseInt(stats.timestamp))).to.equal(Date.now());
+          expect(parseInt(stats.count)).to.equal(0);
+          done();
+        });
       });
     });
 
@@ -149,7 +153,11 @@ describe('POW Middleware', function() {
           return done(err);
         }
         expect(target).to.equal(moreTarget);
-        done();
+        redis.hgetall('contact-stats', (err, stats) => {
+          expect(parseInt(parseInt(stats.timestamp))).to.equal(Date.now());
+          expect(parseInt(stats.count)).to.equal(0);
+          done();
+        });
       });
     });
 
@@ -164,7 +172,11 @@ describe('POW Middleware', function() {
           return done(err);
         }
         expect(target).to.equal(startTarget);
-        done();
+        redis.hgetall('contact-stats', (err, stats) => {
+          expect(parseInt(stats.timestamp)).to.equal(beginTime);
+          expect(parseInt(stats.count)).to.equal(count);
+          done();
+        });
       });
     });
   });
