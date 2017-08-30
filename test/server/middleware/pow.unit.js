@@ -100,6 +100,48 @@ describe('POW Middleware', function() {
     });
   });
 
+  describe('#checkInitTarget', function() {
+    const sandbox = sinon.sandbox.create();
+    beforeEach(function() {
+      redis.del('contact-stats');
+    });
+    afterEach(() => {
+      sandbox.restore();
+    });
+
+    it('will init target if not set', function(done) {
+      sandbox.stub(pow, 'initTarget').callsArg(1);
+      pow.checkInitTarget(redis, (err) => {
+        if (err) {
+          return done(err);
+        }
+        expect(pow.initTarget.callCount).to.equal(1);
+        done();
+      });
+    });
+  });
+
+  describe('#initTarget', function() {
+    it('will set target to initial values', function(done) {
+      const initialTarget = 'fffffffffffffffffffffffffffffff' +
+            'fffffffffffffffffffffffffffffffff';
+      pow.initTarget(redis, (err) => {
+        if (err) {
+          return done(err);
+        }
+        redis.hgetall('contact-stats', (err, stats) => {
+          if (err) {
+            return done(err);
+          }
+          expect(stats.count).to.equal('0');
+          expect(stats.timestamp).to.equal('0');
+          expect(stats.target).to.equal(initialTarget);
+          done();
+        });
+      });
+    });
+  });
+
   describe('#getTarget', function() {
     let beginTime = 0;
     let clock = null;
