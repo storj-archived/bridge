@@ -199,10 +199,6 @@ describe('FramesRouter', function() {
         },
         contract: {}
       };
-      // TODO remove this when complex is upgraded
-      if (!framesRouter.network.publishContract) {
-        framesRouter.network.publishContract = function() {};
-      }
       sandbox.stub(framesRouter.network, 'publishContract').callsArgWith(2, null, data);
       sandbox.stub(framesRouter.contracts, 'load').callsArgWith(1, new Error('Not found'));
       sandbox.stub(framesRouter.contracts, 'save').callsArg(1);
@@ -228,10 +224,6 @@ describe('FramesRouter', function() {
     });
 
     it('will handle error when publishing contract', function(done) {
-      // TODO remove this when complex is upgraded
-      if (!framesRouter.network.publishContract) {
-        framesRouter.network.publishContract = function() {};
-      }
       sandbox.stub(framesRouter.network, 'publishContract').callsArgWith(2, new Error('test'));
 
       let item = {
@@ -264,10 +256,6 @@ describe('FramesRouter', function() {
         },
         contract: {}
       };
-      // TODO remove this when complex is upgraded
-      if (!framesRouter.network.publishContract) {
-        framesRouter.network.publishContract = function() {};
-      }
       sandbox.stub(framesRouter.network, 'publishContract').callsArgWith(2, null, data);
 
       let item = {
@@ -302,10 +290,6 @@ describe('FramesRouter', function() {
         contract: {},
         token: 'token'
       };
-      // TODO remove this when complex is upgraded
-      if (!framesRouter.network.publishContract) {
-        framesRouter.network.publishContract = function() {};
-      }
       sandbox.stub(framesRouter.network, 'publishContract').callsArgWith(2, null, data);
 
       let item = {
