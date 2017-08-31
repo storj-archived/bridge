@@ -132,6 +132,197 @@ describe('FramesRouter', function() {
     });
   });
 
+  describe('#_selectFarmers', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
+
+    it('will handle error from contact query', function(done) {
+      sandbox.stub(
+        framesRouter.storage.models.Contact,
+        'find'
+      ).returns({
+        sort: sandbox.stub().returns({
+          limit: sandbox.stub().returns({
+            exec: sandbox.stub().callsArgWith(0, new Error('test'))
+          })
+        })
+      });
+
+      let excluded = [];
+      framesRouter._selectFarmers(excluded, (err) => {
+        expect(err).to.be.instanceOf(Error);
+        expect(err.message).to.equal('test');
+        done();
+      });
+    });
+
+    it('combine results from two queries', function(done) {
+      sandbox.stub(
+        framesRouter.storage.models.Contact,
+        'find'
+      ).returns({
+        sort: sandbox.stub().returns({
+          limit: sandbox.stub().returns({
+            exec: sandbox.stub().callsArgWith(0, null, ['a'])
+          })
+        })
+      });
+
+
+      let excluded = [];
+      framesRouter._selectFarmers(excluded, (err, results) => {
+        if (err) {
+          return done(err);
+        }
+        expect(results).to.eql(['a', 'a']);
+        done();
+      });
+    });
+
+  });
+
+  describe('#_publishContract', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
+
+    it('will create item on error (e.g. no contract)', function(done) {
+      let item = {
+        addContract: sandbox.stub(),
+        addAuditRecords: sandbox.stub()
+      };
+      let StorageItem = sandbox.stub(storj, 'StorageItem').returns(item);
+
+      let data = {
+        contact: {
+          address: '127.0.0.1',
+          port: 1001
+        },
+        contract: {}
+      };
+      sandbox.stub(framesRouter.network, 'publishContract').callsArgWith(2, null, data);
+      sandbox.stub(framesRouter.contracts, 'load').callsArgWith(1, new Error('Not found'));
+      sandbox.stub(framesRouter.contracts, 'save').callsArg(1);
+
+      let nodes = [];
+      let contract = {
+        get: function(key) {
+          if (key === 'data_hash') {
+            return 'data_hash';
+          }
+        }
+      };
+      let audit = {};
+      framesRouter._publishContract(nodes, contract, audit, (err) => {
+        if (err) {
+          return done(err);
+        }
+        expect(StorageItem.callCount).to.equal(1);
+        expect(item.addContract.callCount).to.equal(1);
+        expect(item.addAuditRecords.callCount).to.equal(1);
+        done();
+      });
+    });
+
+    it('will handle error when publishing contract', function(done) {
+      sandbox.stub(framesRouter.network, 'publishContract').callsArgWith(2, new Error('test'));
+
+      let item = {
+        addContract: sandbox.stub(),
+        addAuditRecords: sandbox.stub()
+      };
+      sandbox.stub(framesRouter.contracts, 'load').callsArgWith(1, null, item);
+
+      let nodes = [];
+      let contract = {
+        get: function(key) {
+          if (key === 'data_hash') {
+            return 'data_hash';
+          }
+        }
+      };
+      let audit = {};
+      framesRouter._publishContract(nodes, contract, audit, (err) => {
+        expect(err).to.be.instanceOf(Error);
+        expect(err.message).to.equal('test');
+        done();
+      });
+    });
+
+    it('will handle error when saving contract', function(done) {
+      let data = {
+        contact: {
+          address: '127.0.0.1',
+          port: 1001
+        },
+        contract: {}
+      };
+      sandbox.stub(framesRouter.network, 'publishContract').callsArgWith(2, null, data);
+
+      let item = {
+        addContract: sandbox.stub(),
+        addAuditRecords: sandbox.stub()
+      };
+      sandbox.stub(framesRouter.contracts, 'load').callsArgWith(1, null, item);
+      sandbox.stub(framesRouter.contracts, 'save').callsArgWith(1, new Error('test'));
+
+      let nodes = [];
+      let contract = {
+        get: function(key) {
+          if (key === 'data_hash') {
+            return 'data_hash';
+          }
+        }
+      };
+      let audit = {};
+      framesRouter._publishContract(nodes, contract, audit, (err) => {
+        expect(err).to.be.instanceOf(Error);
+        expect(err.message).to.equal('test');
+        done();
+      });
+    });
+
+    it('save contract and return completed contract and farmer', function(done) {
+      let data = {
+        contact: {
+          address: '127.0.0.1',
+          port: 1001
+        },
+        contract: {},
+        token: 'token'
+      };
+      sandbox.stub(framesRouter.network, 'publishContract').callsArgWith(2, null, data);
+
+      let item = {
+        addContract: sandbox.stub(),
+        addAuditRecords: sandbox.stub()
+      };
+      sandbox.stub(framesRouter.contracts, 'load').callsArgWith(1, null, item);
+      sandbox.stub(framesRouter.contracts, 'save').callsArg(1);
+
+      let nodes = [];
+      let contract = {
+        get: function(key) {
+          if (key === 'data_hash') {
+            return 'data_hash';
+          }
+        }
+      };
+      let audit = {};
+      framesRouter._publishContract(nodes, contract, audit, (err, f, c, t) => {
+        if (err) {
+          return done(err);
+        }
+        expect(f).to.be.instanceOf(storj.Contact);
+        expect(f.port).to.equal(1001);
+        expect(f.address).to.equal('127.0.0.1');
+        expect(c).to.be.instanceOf(storj.Contract);
+        expect(t).to.equal('token');
+        done();
+      });
+    });
+
+  });
+
   describe('#_getContractForShard', function() {
     const sandbox = sinon.sandbox.create();
     afterEach(() => sandbox.restore());
