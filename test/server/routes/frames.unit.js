@@ -2212,7 +2212,11 @@ describe('FramesRouter', function() {
       var _frameFind = sinon.stub(
         framesRouter.storage.models.Frame,
         'find'
-      ).callsArgWith(1, new Error('Panic!'));
+      ).returns({
+        limit: sinon.stub().returns({
+          exec: sinon.stub().callsArgWith(0, new Error('Panic!'))
+        })
+      });
       framesRouter.getFrames(request, response, function(err) {
         _frameFind.restore();
         expect(err.message).to.equal('Panic!');
@@ -2239,7 +2243,11 @@ describe('FramesRouter', function() {
       var _frameFind = sinon.stub(
         framesRouter.storage.models.Frame,
         'find'
-      ).callsArgWith(1, null, [frame1, frame2]);
+      ).returns({
+        limit: sinon.stub().returns({
+          exec: sinon.stub().callsArgWith(0, null, [frame1, frame2])
+        })
+      });
       response.on('end', function() {
         _frameFind.restore();
         expect(response._getData()).to.have.lengthOf(2);
