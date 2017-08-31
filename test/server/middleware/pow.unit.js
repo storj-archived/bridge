@@ -6,6 +6,8 @@ const sinon = require('sinon');
 const redis = require('redis').createClient();
 const pow = require('../../../lib/server/middleware/pow');
 
+const MAX = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+
 describe('POW Middleware', function() {
 
   after(function(done) {
@@ -221,6 +223,30 @@ describe('POW Middleware', function() {
         });
       });
     });
+
+    it('will adjust from init stats', function(done) {
+      redis.hset('contact-stats', 'timestamp', 0);
+      redis.hset('contact-stats', 'count', 0);
+      redis.hset('contact-stats', 'target', MAX);
+      const opts = {
+        retargetPeriod: 1000,
+        retargetCount: 500
+      };
+      clock.tick(1504182357109);
+      pow.getTarget(redis, opts, function(err, target) {
+        if (err) {
+          return done(err);
+        }
+        expect(target).to.equal('ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff');
+        redis.hgetall('contact-stats', (err, stats) => {
+          expect(stats.timestamp).to.equal('1504182357109');
+          expect(stats.count).to.equal('0');
+          done();
+        });
+      });
+
+    });
+
   });
 
   describe('#getChallenge', function() {
