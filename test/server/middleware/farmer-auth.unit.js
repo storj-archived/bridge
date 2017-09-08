@@ -232,5 +232,24 @@ describe('Farmer Authentication Middleware', function() {
       const hash = auth.getSigHash(req);
       expect(hash.toString('hex')).to.equal('59146f00725c9c052ef5ec6acd63f3842728c9d191ac146668204de6ed4a648b');
     });
+    it('will get the expected hash while behind https proxy', function() {
+      let req = {
+        headers: {
+          'x-node-timestamp': '1502390208007',
+          'x-forwarded-proto': 'https'
+        },
+        method: 'POST',
+        protocol: 'http',
+        originalUrl: '/contacts?someQueryArgument=value',
+        get: function(key) {
+          if (key === 'host') {
+            return 'api.storj.io';
+          }
+        },
+        rawbody: Buffer.from('{"key": "value"}', 'utf8')
+      };
+      const hash = auth.getSigHash(req);
+      expect(hash.toString('hex')).to.equal('59146f00725c9c052ef5ec6acd63f3842728c9d191ac146668204de6ed4a648b');
+    });
   });
 });
