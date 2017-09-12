@@ -1,6 +1,6 @@
 {
   "name": "storj-bridge",
-  "version": "6.0.2",
+  "version": "6.0.3",
   "description": "Access the Storj network using a simple REST API.",
   "main": "index.js",
   "directories": {
