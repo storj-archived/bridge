@@ -51,6 +51,31 @@ NODE_ENV=develop storj-bridge
 
 This will use the configuration file located at `~/.storj-bridge/config/develop.json`.
 
+
+Quick Start with docker-compose
+-------------------------------
+
+Install docker-compose:
+
+```
+sudo apt-get install -y docker-compose
+```
+
+Update `envoronment` for `bridge` container in `dockerfiles/docker-compose.yml` file.
+
+Build docker image of bridge:
+
+```
+./dockerfiles/build-bridge.sh storj-bridge:latest
+```
+
+Run docker-compose:
+
+```
+docker-compose -f dockerfiles/docler-compose.yml up
+```
+
+
 Windows
 -------
 
