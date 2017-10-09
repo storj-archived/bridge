@@ -244,6 +244,44 @@ describe('ReportsRouter', function() {
 
   });
 
+  describe('@_sortByTimeoutRate', function() {
+    it('will sort with the best timeout rate (0) at top', function() {
+      const mirrors = [{
+        contact: { timeoutRate: 0.99 }
+      }, {
+        contact: { timeoutRate: 0.03 }
+      }, {
+        contact: { }
+      }, {
+        contact: { timeoutRate: 0.98 }
+      }, {
+        contact: { timeoutRate: 0.98 }
+      }, {
+        contact: { timeoutRate: 1 }
+      }, {
+        contact: { timeoutRate: 0 }
+      }];
+
+      mirrors.sort(ReportsRouter._sortByTimeoutRate);
+
+      expect(mirrors).to.eql([{
+        contact: { }
+      }, {
+        contact: { timeoutRate: 0 }
+      }, {
+        contact: { timeoutRate: 0.03 }
+      }, {
+        contact: { timeoutRate: 0.98 }
+      }, {
+        contact: { timeoutRate: 0.98 }
+      }, {
+        contact: { timeoutRate: 0.99 }
+      }, {
+        contact: { timeoutRate: 1 }
+      }]);
+    });
+  });
+
   describe('@_sortByResponseTime', function() {
     it('will sort correctly with best response time at index 0', function() {
       var available = [
@@ -382,7 +420,7 @@ describe('ReportsRouter', function() {
         expect(err).to.equal(null);
         expect(Array.prototype.sort.callCount).to.equal(1);
         expect(Array.prototype.sort.args[0][0])
-          .to.equal(ReportsRouter._sortByResponseTime);
+          .to.equal(ReportsRouter._sortByTimeoutRate);
         done();
       });
     });
