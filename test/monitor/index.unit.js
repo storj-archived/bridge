@@ -108,19 +108,29 @@ describe('Monitor', function() {
         {},
         {
           contact: {
+            _id: '3cc349ea3b302fb953b4dde04f99af23fe4a849b',
             timeoutRate: 0.001
           },
           isEstablished: false
         },
         {
           contact: {
+            _id: '8e744f9ece61fbfc6a22061678f66eea76d67690',
             timeoutRate: 0.01
           },
           isEstablished: false
         },
         {
-          contact: {},
+          contact: {
+            _id: '1d66d28271270ee56d5914d9282756b3968592ee'
+          },
           isEstablished: true
+        },
+        {
+          contact: {
+            _id: '1f22ab4bddee4f7ba918277b346cf20df3592b4b'
+          },
+          isEstablished: false
         }
       ];
       const exec = sandbox.stub().callsArgWith(0, null, results);
@@ -134,7 +144,10 @@ describe('Monitor', function() {
         }
       };
       const shard = {
-        hash: '1aa3af35db376b56545d16155f1ceb49b3a4a7c3'
+        hash: '1aa3af35db376b56545d16155f1ceb49b3a4a7c3',
+        contracts: {
+          '1f22ab4bddee4f7ba918277b346cf20df3592b4b': {}
+        }
       };
       monitor._fetchDestinations(shard, (err, mirrors) => {
         if (err) {
@@ -164,7 +177,8 @@ describe('Monitor', function() {
         }
       };
       const shard = {
-        hash: '1aa3af35db376b56545d16155f1ceb49b3a4a7c3'
+        hash: '1aa3af35db376b56545d16155f1ceb49b3a4a7c3',
+        contracts: {}
       };
       monitor._fetchDestinations(shard, (err) => {
         expect(err).to.be.instanceOf(Error);
@@ -252,7 +266,7 @@ describe('Monitor', function() {
   });
 
   describe('#_saveShard', function() {
-    it('it will add contract, save shard and update mirror', function() {
+    it('it will add contract, save shard and update mirror', function(done) {
       sandbox.stub(log, 'error');
       const monitor = new Monitor(config);
       monitor.contracts = {
@@ -269,16 +283,21 @@ describe('Monitor', function() {
         },
         contract: {}
       };
-      monitor._saveShard(shard, destination);
-      expect(shard.addContract.callCount).to.equal(1);
-      expect(shard.addContract.args[0][0]).to.be.instanceOf(storj.Contact);
-      expect(shard.addContract.args[0][1]).to.be.instanceOf(storj.Contract);
-      expect(monitor.contracts.save.callCount).to.equal(1);
-      expect(destination.save.callCount).to.equal(1);
-      expect(log.error.callCount).to.equal(0);
-      expect(destination.isEstablished).to.equal(true);
+      monitor._saveShard(shard, destination, (err) => {
+        if (err) {
+          return done(err);
+        }
+        expect(shard.addContract.callCount).to.equal(1);
+        expect(shard.addContract.args[0][0]).to.be.instanceOf(storj.Contact);
+        expect(shard.addContract.args[0][1]).to.be.instanceOf(storj.Contract);
+        expect(monitor.contracts.save.callCount).to.equal(1);
+        expect(destination.save.callCount).to.equal(1);
+        expect(log.error.callCount).to.equal(0);
+        expect(destination.isEstablished).to.equal(true);
+        done();
+      });
     });
-    it('it will log error saving contract', function() {
+    it('it will give error while saving contract', function(done) {
       sandbox.stub(log, 'error');
       const monitor = new Monitor(config);
       monitor.contracts = {
@@ -295,12 +314,15 @@ describe('Monitor', function() {
         },
         contract: {}
       };
-      monitor._saveShard(shard, destination);
-      expect(monitor.contracts.save.callCount).to.equal(1);
-      expect(log.error.callCount).to.equal(1);
-      expect(destination.save.callCount).to.equal(0);
+      monitor._saveShard(shard, destination, (err) => {
+        expect(err).to.be.instanceOf(Error);
+        expect(monitor.contracts.save.callCount).to.equal(1);
+        expect(destination.save.callCount).to.equal(0);
+        done();
+      });
+
     });
-    it('it will log error saving mirror', function() {
+    it('it give error while saving mirror', function(done) {
       sandbox.stub(log, 'error');
       const monitor = new Monitor(config);
       monitor.contracts = {
@@ -317,10 +339,12 @@ describe('Monitor', function() {
         },
         contract: {}
       };
-      monitor._saveShard(shard, destination);
-      expect(monitor.contracts.save.callCount).to.equal(1);
-      expect(destination.save.callCount).to.equal(1);
-      expect(log.error.callCount).to.equal(1);
+      monitor._saveShard(shard, destination, (err) => {
+        expect(err).to.be.instanceOf(Error);
+        expect(monitor.contracts.save.callCount).to.equal(1);
+        expect(destination.save.callCount).to.equal(1);
+        done();
+      });
     });
   });
 
@@ -328,7 +352,7 @@ describe('Monitor', function() {
     const sandbox = sinon.sandbox.create();
     afterEach(() => sandbox.restore());
 
-    it('will handle an invalid contract', function() {
+    it('will handle an invalid contract', function(done) {
       sandbox.stub(log, 'error');
       sandbox.stub(log, 'warn');
       sandbox.stub(storj, 'Contract').throws(new Error('Invalid contract'));
@@ -350,13 +374,16 @@ describe('Monitor', function() {
         destinations: [mirror]
       };
       sandbox.spy(monitor, '_transferShard');
-      monitor._transferShard(shard, state);
-      expect(log.warn.callCount).to.equal(1);
-      expect(log.error.callCount).to.equal(1);
-      expect(monitor._transferShard.callCount).to.equal(2);
+      monitor._transferShard(shard, state, (err) => {
+        expect(log.warn.callCount).to.equal(1);
+        expect(err).to.be.instanceOf(Error);
+        expect(err.message).to.equal('Destinations exhausted');
+        expect(monitor._transferShard.callCount).to.equal(2);
+        done();
+      });
     });
 
-    it('will handle error pointer, shift source, and try again', function() {
+    it('will handle error pointer, shift source, and try again', function(done) {
       sandbox.stub(log, 'error');
       sandbox.stub(log, 'warn');
       const monitor = new Monitor(config);
@@ -364,7 +391,10 @@ describe('Monitor', function() {
       monitor.network = {
         getRetrievalPointer: sinon.stub().callsArgWith(2, new Error('test'))
       };
-      const shard = {};
+      const contract = new storj.Contract();
+      const shard = {
+        getContract: sandbox.stub().returns(contract)
+      };
       const contact = storj.Contact({
         address: '127.0.0.1',
         port: 100000
@@ -377,20 +407,25 @@ describe('Monitor', function() {
         destinations: [mirror]
       };
       sandbox.spy(monitor, '_transferShard');
-      monitor._transferShard(shard, state);
-      expect(monitor.network.getRetrievalPointer.callCount)
-        .to.equal(1);
-      expect(monitor.network.getRetrievalPointer.args[0][0])
-        .to.equal(contact);
-      expect(monitor.network.getRetrievalPointer.args[0][1])
-        .to.be.instanceOf(storj.Contract);
-      expect(log.error.callCount).to.equal(1);
-      expect(log.warn.callCount).to.equal(1);
-      expect(monitor._transferShard.callCount).to.equal(2);
-      expect(monitor._saveShard.callCount).to.equal(0);
+      monitor._transferShard(shard, state, (err) => {
+        expect(err).to.be.instanceOf(Error);
+        expect(err.message).to.equal('Sources exhausted');
+        expect(monitor.network.getRetrievalPointer.callCount)
+          .to.equal(1);
+        expect(monitor.network.getRetrievalPointer.args[0][0])
+          .to.equal(contact);
+        expect(monitor.network.getRetrievalPointer.args[0][1])
+          .to.be.instanceOf(storj.Contract);
+        expect(monitor.network.getRetrievalPointer.args[0][1])
+          .to.equal(contract);
+        expect(log.warn.callCount).to.equal(1);
+        expect(monitor._transferShard.callCount).to.equal(2);
+        expect(monitor._saveShard.callCount).to.equal(0);
+        done();
+      });
     });
 
-    it('will handle mirror error, shift dest., and try again', function() {
+    it('will handle mirror error, shift dest., and try again', function(done) {
       sandbox.stub(log, 'error');
       sandbox.stub(log, 'warn');
       const monitor = new Monitor(config);
@@ -400,7 +435,10 @@ describe('Monitor', function() {
         getRetrievalPointer: sinon.stub().callsArgWith(2, null, pointer),
         getMirrorNodes: sinon.stub().callsArgWith(2, new Error('timeout'))
       };
-      const shard = {};
+      const contract = new storj.Contract();
+      const shard = {
+        getContract: sandbox.stub().returns(contract)
+      };
       const contact = storj.Contact({
         address: '127.0.0.1',
         port: 100000
@@ -417,30 +455,37 @@ describe('Monitor', function() {
         destinations: [mirror]
       };
       sandbox.spy(monitor, '_transferShard');
-      monitor._transferShard(shard, state);
-      expect(monitor.network.getMirrorNodes.callCount)
-        .to.equal(1);
-      expect(monitor.network.getMirrorNodes.args[0][0][0])
-        .to.equal(pointer);
-      expect(monitor.network.getMirrorNodes.args[0][1][0])
-        .to.be.instanceOf(storj.Contact);
-      expect(log.error.callCount).to.equal(1);
-      expect(log.warn.callCount).to.equal(1);
-      expect(monitor._transferShard.callCount).to.equal(2);
-      expect(monitor._saveShard.callCount).to.equal(0);
+      monitor._transferShard(shard, state, (err) => {
+        expect(err).to.be.instanceOf(Error);
+        expect(err.message).to.equal('Destinations exhausted');
+        expect(monitor.network.getMirrorNodes.callCount)
+          .to.equal(1);
+        expect(monitor.network.getMirrorNodes.args[0][0][0])
+          .to.equal(pointer);
+        expect(monitor.network.getMirrorNodes.args[0][1][0])
+          .to.be.instanceOf(storj.Contact);
+        expect(log.warn.callCount).to.equal(1);
+        expect(monitor._transferShard.callCount).to.equal(2);
+        expect(monitor._saveShard.callCount).to.equal(0);
+        done();
+      });
+
     });
 
-    it('will save shard updated with new contract', function() {
+    it('will save shard updated with new contract', function(done) {
       sandbox.stub(log, 'error');
       sandbox.stub(log, 'warn');
       const monitor = new Monitor(config);
-      monitor._saveShard = sinon.stub();
+      monitor._saveShard = sinon.stub().callsArg(2);
       const pointer = {};
       monitor.network = {
         getRetrievalPointer: sinon.stub().callsArgWith(2, null, pointer),
         getMirrorNodes: sinon.stub().callsArgWith(2, null, {})
       };
-      const shard = {};
+      const contract = new storj.Contract();
+      const shard = {
+        getContract: sandbox.stub().returns(contract)
+      };
       const contact = storj.Contact({
         address: '127.0.0.1',
         port: 100000
@@ -457,13 +502,19 @@ describe('Monitor', function() {
         destinations: [mirror]
       };
       sandbox.spy(monitor, '_transferShard');
-      monitor._transferShard(shard, state);
-      expect(log.error.callCount).to.equal(0);
-      expect(log.warn.callCount).to.equal(0);
-      expect(monitor._transferShard.callCount).to.equal(1);
-      expect(monitor._saveShard.callCount).to.equal(1);
-      expect(monitor._saveShard.args[0][0]).to.equal(shard);
-      expect(monitor._saveShard.args[0][1]).to.equal(state.destinations[0]);
+      monitor._transferShard(shard, state, (err) => {
+        if (err) {
+          return done(err);
+        }
+        expect(log.error.callCount).to.equal(0);
+        expect(log.warn.callCount).to.equal(0);
+        expect(monitor._transferShard.callCount).to.equal(1);
+        expect(monitor._saveShard.callCount).to.equal(1);
+        expect(monitor._saveShard.args[0][0]).to.equal(shard);
+        expect(monitor._saveShard.args[0][1]).to.equal(state.destinations[0]);
+        done();
+      });
+
     });
 
   });
@@ -472,35 +523,43 @@ describe('Monitor', function() {
     const sandbox = sinon.sandbox.create();
     afterEach(() => sandbox.restore());
 
-    it('it will fetch sources and destinations', function() {
+    it('it will fetch sources and destinations', function(done) {
       const monitor = new Monitor(config);
-      monitor._transferShard = sinon.stub();
+      monitor._transferShard = sinon.stub().callsArg(2);
       const destinations = [];
       const sources = [];
       monitor._fetchDestinations = sinon.stub()
         .callsArgWith(1, null, destinations);
       monitor._fetchSources = sinon.stub().callsArgWith(1, null, sources);
       const shard = {};
-      monitor._replicateShard(shard);
-      expect(monitor._transferShard.callCount).to.equal(1);
-      expect(monitor._transferShard.args[0][0]).to.equal(shard);
-      expect(monitor._transferShard.args[0][1]).to.eql({
-        sources: [],
-        destinations: []
+      monitor._replicateShard(shard, (err) => {
+        if (err) {
+          return done(err);
+        }
+        expect(monitor._transferShard.callCount).to.equal(1);
+        expect(monitor._transferShard.args[0][0]).to.equal(shard);
+        expect(monitor._transferShard.args[0][1]).to.eql({
+          sources: [],
+          destinations: []
+        });
+        done();
       });
     });
 
-    it('it will handle error from queries', function() {
+    it('it will handle error from queries', function(done) {
       sandbox.stub(log, 'error');
       const monitor = new Monitor(config);
-      monitor._transferShard = sinon.stub();
+      monitor._transferShard = sinon.stub().callsArg(2);
       const destinations = [];
       monitor._fetchDestinations = sinon.stub()
         .callsArgWith(1, null, destinations);
       monitor._fetchSources = sinon.stub().callsArgWith(1, new Error('test'));
       const shard = {};
-      monitor._replicateShard(shard);
-      expect(log.error.callCount).to.equal(1);
+      monitor._replicateShard(shard, (err) => {
+        expect(err).to.be.instanceOf(Error);
+        expect(err.message).to.equal('test');
+        done();
+      });
     });
   });
 
@@ -541,6 +600,8 @@ describe('Monitor', function() {
       sandbox.stub(log, 'info');
       const monitor = new Monitor(config);
       const cursor = new EventEmitter();
+      cursor.pause = sandbox.stub();
+      cursor.resume = sandbox.stub();
       monitor.storage = {
         models: {
           Shard: {
@@ -558,7 +619,7 @@ describe('Monitor', function() {
       const contact = {
         nodeID: '353ba728e2d74826c2fcbf5ada2fe1c402e3eda1'
       };
-      monitor._replicateShard = sinon.stub();
+      monitor._replicateShard = sinon.stub().callsArg(1);
       monitor._replicateFarmer(contact);
       cursor.on('data', () => {
         expect(log.info.callCount).to.equal(2);
@@ -568,6 +629,54 @@ describe('Monitor', function() {
         expect(monitor._replicateShard.args[0][0].hash)
           .to.equal('03780c65a61ebe7334e9ff2a9267a9d725fc2d4b');
         expect(data.toObject.callCount).to.equal(1);
+        expect(cursor.pause.callCount).to.equal(1);
+        expect(cursor.resume.callCount).to.equal(1);
+        done();
+      });
+      cursor.emit('data', data);
+    });
+
+    it('will log error from replicate shard', function(done) {
+      sandbox.stub(log, 'info');
+      sandbox.stub(log, 'error');
+      const monitor = new Monitor(config);
+      const cursor = new EventEmitter();
+      cursor.pause = sandbox.stub();
+      cursor.resume = sandbox.stub();
+      monitor.storage = {
+        models: {
+          Shard: {
+            find: sandbox.stub().returns({
+              cursor: sandbox.stub().returns(cursor)
+            })
+          }
+        }
+      };
+      const data = {
+        toObject: sandbox.stub().returns({
+          hash: '03780c65a61ebe7334e9ff2a9267a9d725fc2d4b'
+        })
+      };
+      const contact = {
+        nodeID: '353ba728e2d74826c2fcbf5ada2fe1c402e3eda1'
+      };
+      monitor._replicateShard = sinon.stub().callsArgWith(1, new Error('test'));
+      monitor._replicateFarmer(contact);
+      cursor.on('data', () => {
+        expect(log.info.callCount).to.equal(2);
+        expect(monitor._replicateShard.callCount).to.equal(1);
+        expect(monitor._replicateShard.args[0][0])
+          .to.be.instanceOf(storj.StorageItem);
+        expect(monitor._replicateShard.args[0][0].hash)
+          .to.equal('03780c65a61ebe7334e9ff2a9267a9d725fc2d4b');
+        expect(data.toObject.callCount).to.equal(1);
+        expect(cursor.pause.callCount).to.equal(1);
+        expect(cursor.resume.callCount).to.equal(1);
+        expect(log.error.callCount).to.equal(1);
+        expect(log.error.args[0][1])
+          .to.equal('03780c65a61ebe7334e9ff2a9267a9d725fc2d4b');
+        expect(log.error.args[0][2])
+          .to.equal('test');
         done();
       });
       cursor.emit('data', data);

@@ -1,0 +1,9 @@
+{
+  "storage": {
+    "mongoUrl": "mongodb://127.0.0.1:27017/__storj-bridge-contract-renew-test",
+    "mongoOpts": {}
+  },
+  "complex": {
+    "rpcUrl": "http://localhost:65000"
+  }
+}

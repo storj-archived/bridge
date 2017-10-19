@@ -244,6 +244,44 @@ describe('ReportsRouter', function() {
 
   });
 
+  describe('@_sortByTimeoutRate', function() {
+    it('will sort with the best timeout rate (0) at top', function() {
+      const mirrors = [{
+        contact: { timeoutRate: 0.99 }
+      }, {
+        contact: { timeoutRate: 0.03 }
+      }, {
+        contact: { }
+      }, {
+        contact: { timeoutRate: 0.98 }
+      }, {
+        contact: { timeoutRate: 0.98 }
+      }, {
+        contact: { timeoutRate: 1 }
+      }, {
+        contact: { timeoutRate: 0 }
+      }];
+
+      mirrors.sort(ReportsRouter._sortByTimeoutRate);
+
+      expect(mirrors).to.eql([{
+        contact: { }
+      }, {
+        contact: { timeoutRate: 0 }
+      }, {
+        contact: { timeoutRate: 0.03 }
+      }, {
+        contact: { timeoutRate: 0.98 }
+      }, {
+        contact: { timeoutRate: 0.98 }
+      }, {
+        contact: { timeoutRate: 0.99 }
+      }, {
+        contact: { timeoutRate: 1 }
+      }]);
+    });
+  });
+
   describe('@_sortByResponseTime', function() {
     it('will sort correctly with best response time at index 0', function() {
       var available = [
@@ -315,6 +353,21 @@ describe('ReportsRouter', function() {
             data_hash: storj.utils.rmd160('shardhash')
           },
           isEstablished: false
+        }),
+        new reportsRouter.storage.models.Mirror({
+          shardHash: 'shardhash',
+          contact: new reportsRouter.storage.models.Contact({
+            _id: '28dd8e03bf86f7cf14ac7866c44628cebb21a2d3',
+            address: '0.0.0.0',
+            port: 1234,
+            protocol: '1.0.0',
+            lastSeen: Date.now(),
+            userAgent: 'test'
+          }),
+          contract: {
+            data_hash: storj.utils.rmd160('shardhash')
+          },
+          isEstablished: false
         })
       ];
       sandbox.stub(
@@ -332,7 +385,8 @@ describe('ReportsRouter', function() {
         contracts: {
           node3: {
             data_hash: storj.utils.rmd160('shardhash')
-          }
+          },
+          '28dd8e03bf86f7cf14ac7866c44628cebb21a2d3': {}
         }
       });
       sandbox.stub(
@@ -366,7 +420,7 @@ describe('ReportsRouter', function() {
         expect(err).to.equal(null);
         expect(Array.prototype.sort.callCount).to.equal(1);
         expect(Array.prototype.sort.args[0][0])
-          .to.equal(ReportsRouter._sortByResponseTime);
+          .to.equal(ReportsRouter._sortByTimeoutRate);
         done();
       });
     });
@@ -748,6 +802,21 @@ describe('ReportsRouter', function() {
                   data_hash: storj.utils.rmd160('shardhash')
                 },
                 isEstablished: false
+              }),
+              new reportsRouter.storage.models.Mirror({
+                shardHash: 'shardhash',
+                contact: new reportsRouter.storage.models.Contact({
+                  _id: storj.utils.rmd160('node3'),
+                  address: '0.0.0.0',
+                  port: 1234,
+                  protocol: '1.0.0',
+                  lastSeen: Date.now(),
+                  userAgent: 'test'
+                }),
+                contract: {
+                  data_hash: storj.utils.rmd160('shardhash3')
+                },
+                isEstablished: true
               })
             ])
           };
@@ -756,6 +825,7 @@ describe('ReportsRouter', function() {
       var item = storj.StorageItem({
         hash: storj.utils.rmd160('shardhash'),
         contracts: {
+          '2b6e0d0e45c1dcea62f701a31e4be1b507ab67d4': {},
           node3: {
             data_hash: storj.utils.rmd160('shardhash')
           }
@@ -788,7 +858,7 @@ describe('ReportsRouter', function() {
         reportsRouter.contracts,
         'save'
       ).callsArgWith(1, null);
-      reportsRouter._triggerMirrorEstablish(0, hash, function(err) {
+      reportsRouter._triggerMirrorEstablish(2, hash, function(err) {
         _mirrorFind.restore();
         _contractsLoad.restore();
         _getContactById.restore();

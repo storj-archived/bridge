@@ -208,6 +208,10 @@
                 "pubkey": {
                   "description": "ECDSA key to initially register",
                   "type": "string"
+                },
+                "referralPartner": {
+                  "description": "Referral partner name for attribution tracking and metering",
+                  "type": "string"
                 }
               }
             }
@@ -907,6 +911,15 @@
           { "ecdsa signature": [] }
         ],
         "summary": "Lists all of the buckets belonging to the user",
+        "parameters": [
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": false,
+            "type": "number",
+            "description": "The start date as unix millisecond timestamp or ISO date"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Buckets successfully returned",
@@ -1400,6 +1413,11 @@
                   "type": "number",
                   "example": 5071076
                 },
+                "created": {
+                  "type": "string",
+                  "description": "The date and time the file was created",
+                  "example": "2017-03-22T19:54:34.146Z"
+                },
                 "hmac": {
                   "type": "object",
                   "properties": {
@@ -1433,6 +1451,13 @@
             "name": "id",
             "description": "The unique bucket ID for the request",
             "required": true
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": false,
+            "type": "number",
+            "description": "The start date as unix millisecond timestamp or ISO date"
           }
         ],
         "responses": {
@@ -1689,6 +1714,11 @@
                 "size": {
                   "type": "number",
                   "example": 5071076
+                },
+                "created": {
+                  "type": "string",
+                  "description": "The date and time the file was created",
+                  "example": "2017-03-22T19:54:34.146Z"
                 },
                 "hmac": {
                   "type": "object",

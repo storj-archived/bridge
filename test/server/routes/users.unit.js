@@ -7,6 +7,7 @@ const storj = require('storj-lib');
 const expect = require('chai').expect;
 const EventEmitter = require('events').EventEmitter;
 const UsersRouter = require('../../../lib/server/routes/users');
+const analytics = require('storj-analytics');
 
 describe('UsersRouter', function() {
 
@@ -16,6 +17,10 @@ describe('UsersRouter', function() {
   var someUser = new usersRouter.storage.models.User({
     _id: 'gordon@storj.io',
     hashpass: storj.utils.sha256('password')
+  });
+  var somePartner = new usersRouter.storage.models.Partner({
+    _id: '5925ec5eee5642661d4a43a4',
+    name: 'fortune100partner'
   });
 
   describe('#_dispatchActivationEmail', function() {
@@ -59,6 +64,12 @@ describe('UsersRouter', function() {
   });
 
   describe('#createUser', function() {
+    const sandbox = sinon.sandbox.create();
+    beforeEach(function () {
+      sandbox.stub(analytics, 'track');
+      sandbox.stub(analytics, 'identify');
+    });
+    afterEach(() => sandbox.restore());
 
     it('should callback error if creation fails', function(done) {
       var request = httpMocks.createRequest({
@@ -109,6 +120,51 @@ describe('UsersRouter', function() {
         _userCreate.restore();
         _dispatchActivationEmail.restore();
         expect(response._getData().email).to.equal('gordon@storj.io');
+        done();
+      });
+      usersRouter.createUser(request, response);
+    });
+
+    it('should allow creation with opts object', function(done) {
+      var anotherUser = new usersRouter.storage.models.User({
+        _id: 'newuser@storj.io',
+        password: storj.utils.sha256('password'),
+        referralPartner: '5925ec5eee5642661d4a43a4'
+      });
+
+      var request = httpMocks.createRequest({
+        method: 'POST',
+        url: '/users',
+        body: {
+          email: 'newuser@storj.io',
+          password: storj.utils.sha256('password'),
+          referralPartner: 'fortune100partner'
+        }
+      });
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _partnerFindOne = sinon.stub(
+        usersRouter.storage.models.Partner,
+        'findOne'
+      ).callsArgWith(1, null, somePartner);
+      var _userCreate = sinon.stub(
+        usersRouter.storage.models.User,
+        'create'
+      ).callsArgWith(1, null, anotherUser);
+      var _dispatchActivationEmail = sinon.stub(
+        usersRouter,
+        '_dispatchActivationEmail'
+      );
+      response.on('end', function() {
+        _partnerFindOne.restore();
+        _userCreate.restore();
+        _dispatchActivationEmail.restore();
+        var result = response._getData();
+        expect(result.referralPartner.toString())
+          .to.equal(somePartner._id.toString());
+        expect(result.email).to.equal('newuser@storj.io');
         done();
       });
       usersRouter.createUser(request, response);
@@ -192,7 +248,72 @@ describe('UsersRouter', function() {
 
   });
 
+  describe('#_createUserWithOpts', function() {
+    it('should callback error if partner error', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'POST',
+        url: '/users',
+        body: {
+          email: 'newuser@storj.io',
+          password: storj.utils.sha256('password'),
+          referralPartner: 'fortune100partner'
+        }
+      });
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _partnerFindOne = sinon.stub(
+        usersRouter.storage.models.Partner,
+        'findOne'
+      ).callsArgWith(1, new Error('Omg error!'));
+
+      usersRouter.createUser(request, response, function(err) {
+        _partnerFindOne.restore();
+        expect(err.message).to.equal('Omg error!');
+        done();
+      });
+    });
+
+    it('should callback error if user create err', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'POST',
+        url: '/users',
+        body: {
+          email: 'newuser@storj.io',
+          password: storj.utils.sha256('password'),
+          referralPartner: 'fortune100partner'
+        }
+      });
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _partnerFindOne = sinon.stub(
+        usersRouter.storage.models.Partner,
+        'findOne'
+      ).callsArgWith(1, null, somePartner);
+      var _userCreate = sinon.stub(
+        usersRouter.storage.models.User,
+        'create'
+      ).callsArgWith(1, new Error('Omg error!'));
+
+      usersRouter.createUser(request, response, function(err) {
+        _partnerFindOne.restore();
+        _userCreate.restore();
+        expect(err.message).to.equal('Omg error!');
+        done();
+      });
+    });
+  });
+
   describe('#confirmActivateUser', function() {
+    const sandbox = sinon.sandbox.create();
+    beforeEach(function () {
+      sandbox.stub(analytics, 'track');
+      sandbox.stub(analytics, 'identify');
+    });
+    afterEach(() => sandbox.restore());
 
     it('should internal error if query fails', function(done) {
       var request = httpMocks.createRequest({
