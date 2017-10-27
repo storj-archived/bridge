@@ -677,7 +677,7 @@ describe('BucketsRouter', function() {
       bucketsRouter.destroyBucketById(request, response);
     });
 
-    it('should log warning if aggregation fails', function(done) {
+    it('should give error if remove fails', function(done) {
       sandbox.stub(log, 'warn');
       var request = httpMocks.createRequest({
         method: 'DELETE',
@@ -688,29 +688,28 @@ describe('BucketsRouter', function() {
         req: request,
         eventEmitter: EventEmitter
       });
-      var _bucketEntryAggregate = sinon.stub(
-        bucketsRouter.storage.models.BucketEntry,
-        'aggregate'
-      ).callsArgWith(1, new Error('Storage event aggregation failed'), [{}, {}]);
+      const hashes = ['hash'];
+      sandbox.stub(bucketsRouter, '_getShardHashesByBucketId')
+        .callsArgWith(2, null, hashes);
       var bucket = new bucketsRouter.storage.models.Bucket({
         user: someUser._id
       });
-      var _bucketFindOne = sinon.stub(
+      sandbox.stub(
         bucketsRouter.storage.models.Bucket,
         'findOne'
       ).callsArgWith(1, null, bucket);
-      var _bucketRemove = sinon.stub(bucket, 'remove').callsArg(0);
-      response.on('end', function() {
-        _bucketEntryAggregate.restore();
-        _bucketFindOne.restore();
-        _bucketRemove.restore();
-        expect(log.warn.callCount).to.equal(1);
+      sandbox.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'remove'
+      ).callsArgWith(1, new Error('test'));
+      bucketsRouter.destroyBucketById(request, response, function(err) {
+        expect(err).to.be.instanceOf(Error);
+        expect(err.message).to.equal('test');
         done();
       });
-      bucketsRouter.destroyBucketById(request, response);
     });
 
-    it('should log warning if storage events fail to save', function(done) {
+    it('should give error if bucket remove fails', function(done) {
       sandbox.stub(log, 'warn');
       var request = httpMocks.createRequest({
         method: 'DELETE',
@@ -721,36 +720,26 @@ describe('BucketsRouter', function() {
         req: request,
         eventEmitter: EventEmitter
       });
-      var _bucketEntryAggregate = sinon.stub(
-        bucketsRouter.storage.models.BucketEntry,
-        'aggregate'
-      ).callsArgWith(1, null, [{}, {}]);
+      const hashes = ['hash'];
+      sandbox.stub(bucketsRouter, '_getShardHashesByBucketId')
+        .callsArgWith(2, null, hashes);
       var bucket = new bucketsRouter.storage.models.Bucket({
         user: someUser._id
       });
-      var _bucketFindOne = sinon.stub(
+      sandbox.stub(
         bucketsRouter.storage.models.Bucket,
         'findOne'
       ).callsArgWith(1, null, bucket);
-      var _bucketRemove = sinon.stub(bucket, 'remove').callsArg(0, null);
-      var _bucketEntryRemove = sinon.stub(
-         bucketsRouter.storage.models.BucketEntry,
-         'remove'
-      ).callsArgWith(1, null);
-      var _storageEventInsert = sinon.stub(
-        bucketsRouter.storage.models.StorageEvent.collection,
-        'insert'
-      ).callsArgWith(1, new Error('Storage events failed to save'));
+      sandbox.stub(bucketsRouter.storage.models.BucketEntry, 'remove')
+        .callsArgWith(1, null);
+      sandbox.stub(bucket, 'remove').callsArgWith(0, new Error('test'));
       response.on('end', function() {
-        _bucketEntryAggregate.restore();
-        _bucketFindOne.restore();
-        _bucketRemove.restore();
-        _bucketEntryRemove.restore();
-        _storageEventInsert.restore();
-        expect(log.warn.callCount).to.equal(1);
         done();
       });
-      bucketsRouter.destroyBucketById(request, response);
+      bucketsRouter.destroyBucketById(request, response, function(err) {
+        expect(err).to.be.instanceOf(Error);
+        done();
+      });
     });
 
     it('should respond with 204 when storage events get saved', function(done) {
@@ -763,38 +752,31 @@ describe('BucketsRouter', function() {
         req: request,
         eventEmitter: EventEmitter
       });
-      var _bucketEntryAggregate = sinon.stub(
-        bucketsRouter.storage.models.BucketEntry,
-        'aggregate'
-      ).callsArgWith(1, null, [{}, {}]);
+      const hashes = ['hash'];
+      sandbox.stub(bucketsRouter, '_getShardHashesByBucketId')
+        .callsArgWith(2, null, hashes);
       var bucket = new bucketsRouter.storage.models.Bucket({
         user: someUser._id
       });
-      var _bucketFindOne = sinon.stub(
+      sandbox.stub(
         bucketsRouter.storage.models.Bucket,
         'findOne'
       ).callsArgWith(1, null, bucket);
-      var _bucketRemove = sinon.stub(bucket, 'remove').callsArg(0, null);
-      var _bucketEntryRemove = sinon.stub(
-         bucketsRouter.storage.models.BucketEntry,
-         'remove'
+      sandbox.stub(bucket, 'remove').callsArg(0, null);
+      sandbox.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'remove'
       ).callsArgWith(1, null);
-      var _storageEventInsert = sinon.stub(
+      sandbox.stub(
         bucketsRouter.storage.models.StorageEvent.collection,
         'insert'
       ).callsArgWith(1, null);
       response.on('end', function() {
-        _bucketEntryAggregate.restore();
-        _bucketFindOne.restore();
-        _bucketRemove.restore();
-        _bucketEntryRemove.restore();
-        _storageEventInsert.restore();
         expect(response.statusCode).to.equal(204);
         done();
       });
       bucketsRouter.destroyBucketById(request, response);
     });
-
   });
 
   describe('#updateBucketById', function() {
