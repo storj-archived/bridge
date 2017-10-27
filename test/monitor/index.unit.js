@@ -195,6 +195,39 @@ describe('Monitor', function() {
         save: sandbox.stub()
       };
       monitor._giveOfflinePenalty(contact);
+      expect(contact.recordPoints.callCount).to.equal(1);
+      expect(contact.recordPoints.args[0][0]).to.equal(-1000);
+      expect(contact.save.callCount).to.equal(1);
+    });
+  });
+
+  describe('#_markStorageEventsEnded', function() {
+    it('it will update events as ended', function() {
+      const monitor = new Monitor(config);
+      const update = sandbox.stub().callsArgWith(2, null);
+      monitor.storage = {
+        models: {
+          StorageEvent: {
+            update: update
+          }
+        }
+      };
+      const contact = {
+        _id: 'e211c3b8a710f50bd26644de5128b194be3904e1',
+      };
+      monitor._markStorageEventsEnded(contact);
+      expect(update.callCount).to.equal(1);
+      expect(update.args[0][0]).to.eql({
+        farmer: 'e211c3b8a710f50bd26644de5128b194be3904e1',
+        farmerEnd: {
+          $exists: false
+        }
+      });
+      expect(update.args[0][1]).to.eql({
+        $currentDate: {
+          farmerEnd: true
+        }
+      });
     });
   });
 
@@ -728,13 +761,11 @@ describe('Monitor', function() {
       expect(monitor.wait.callCount).to.equal(1);
     });
 
-
     it('will log error when querying contacts', function() {
       const monitor = new Monitor(config);
 
       sandbox.stub(log, 'error');
       sandbox.stub(log, 'info');
-
 
       const exec = sandbox.stub().callsArgWith(0, new Error('Mongo error'));
       const sort = sandbox.stub().returns({
@@ -855,6 +886,8 @@ describe('Monitor', function() {
       };
       monitor.wait = sandbox.stub();
       monitor._replicateFarmer = sinon.stub();
+      monitor._giveOfflinePenalty = sinon.stub();
+      monitor._markStorageEventsEnded = sinon.stub();
       monitor.run();
 
       expect(find.callCount).to.equal(1);
@@ -900,6 +933,14 @@ describe('Monitor', function() {
         .to.equal(0.05);
       expect(monitor._replicateFarmer.callCount).to.equal(1);
       expect(monitor._replicateFarmer.args[0][0])
+        .to.be.instanceOf(storj.Contact);
+
+      expect(monitor._giveOfflinePenalty.callCount).to.equal(1);
+      expect(monitor._giveOfflinePenalty.args[0][0])
+        .to.be.instanceOf(storj.Contact);
+
+      expect(monitor._markStorageEventsEnded.callCount).to.equal(1);
+      expect(monitor._markStorageEventsEnded.args[0][0])
         .to.be.instanceOf(storj.Contact);
 
       expect(monitor.network.ping.callCount).to.equal(3);
