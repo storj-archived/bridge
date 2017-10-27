@@ -392,6 +392,49 @@ describe('Monitor', function() {
     });
   });
 
+  describe('#_createStorageEvent', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
+
+    it('it will create event and save', function() {
+      function StorageEvent(options) {
+        expect(options).to.eql({
+          token: '527b83da713c30e56b3b0dd74a14152f24475909',
+          user: null,
+          client: 'cec5a2d61f4e82f6c73f44388b5798c64784d68f',
+          farmer: 'b0789385f486a0d0d07f32b0a96b313202cf4031',
+          timestamp: 1509141238388,
+          downloadBandwidth: 0,
+          storage: 1024,
+          shardHash: '88c99bf39dcc693fe1a2a232601a37fec8d466b3',
+          success: false
+        });
+      }
+      const save = sinon.stub();
+      StorageEvent.prototype.save = save;
+      const monitor = new Monitor(config);
+      monitor.storage = {
+        models: {
+          StorageEvent: StorageEvent
+        }
+      }
+      let token = '527b83da713c30e56b3b0dd74a14152f24475909';
+      let shardHash = '88c99bf39dcc693fe1a2a232601a37fec8d466b3';
+      let shardBytes = 1024;
+      let source = {
+        nodeID: 'cec5a2d61f4e82f6c73f44388b5798c64784d68f'
+      };
+      let destination = {
+        nodeID: 'b0789385f486a0d0d07f32b0a96b313202cf4031'
+      };
+      const clock = sandbox.useFakeTimers();
+      clock.tick(1509141238388);
+      monitor._createStorageEvent(token, shardHash,
+                                  shardBytes, source, destination);
+      expect(save.callCount).to.equal(1);
+    });
+  });
+
   describe('#_transferShard', function() {
     const sandbox = sinon.sandbox.create();
     afterEach(() => sandbox.restore());
