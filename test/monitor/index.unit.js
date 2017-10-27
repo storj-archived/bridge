@@ -574,7 +574,9 @@ describe('Monitor', function() {
         getMirrorNodes: sinon.stub().callsArgWith(2, null, {})
       };
       monitor._createStorageEvent = sinon.stub();
-      const contract = new storj.Contract();
+      const contract = new storj.Contract({
+        data_size: 1337
+      });
       const shard = {
         getContract: sandbox.stub().returns(contract),
         hash: 'hash'
@@ -605,9 +607,10 @@ describe('Monitor', function() {
         expect(monitor._createStorageEvent.callCount).to.equal(1);
         expect(monitor._createStorageEvent.args[0][0]).to.equal('token');
         expect(monitor._createStorageEvent.args[0][1]).to.equal('hash');
-        expect(monitor._createStorageEvent.args[0][2])
-          .to.equal(state.sources[0]);
+        expect(monitor._createStorageEvent.args[0][2]).to.equal(1337);
         expect(monitor._createStorageEvent.args[0][3])
+          .to.equal(state.sources[0]);
+        expect(monitor._createStorageEvent.args[0][4])
           .to.equal(state.destinations[0]);
         expect(monitor._saveShard.callCount).to.equal(1);
         expect(monitor._saveShard.args[0][0]).to.equal(shard);
