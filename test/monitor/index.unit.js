@@ -479,6 +479,7 @@ describe('Monitor', function() {
         getRetrievalPointer: sinon.stub().callsArgWith(2, null, pointer),
         getMirrorNodes: sinon.stub().callsArgWith(2, new Error('timeout'))
       };
+      monitor._createStorageEvent = sinon.stub();
       const contract = new storj.Contract();
       const shard = {
         getContract: sandbox.stub().returns(contract)
@@ -508,6 +509,7 @@ describe('Monitor', function() {
           .to.equal(pointer);
         expect(monitor.network.getMirrorNodes.args[0][1][0])
           .to.be.instanceOf(storj.Contact);
+        expect(monitor._createStorageEvent.callCount).to.equal(1);
         expect(log.warn.callCount).to.equal(1);
         expect(monitor._transferShard.callCount).to.equal(2);
         expect(monitor._saveShard.callCount).to.equal(0);
@@ -521,14 +523,18 @@ describe('Monitor', function() {
       sandbox.stub(log, 'warn');
       const monitor = new Monitor(config);
       monitor._saveShard = sinon.stub().callsArg(2);
-      const pointer = {};
+      const pointer = {
+        token: 'token'
+      };
       monitor.network = {
         getRetrievalPointer: sinon.stub().callsArgWith(2, null, pointer),
         getMirrorNodes: sinon.stub().callsArgWith(2, null, {})
       };
+      monitor._createStorageEvent = sinon.stub();
       const contract = new storj.Contract();
       const shard = {
-        getContract: sandbox.stub().returns(contract)
+        getContract: sandbox.stub().returns(contract),
+        hash: 'hash'
       };
       const contact = storj.Contact({
         address: '127.0.0.1',
@@ -553,14 +559,19 @@ describe('Monitor', function() {
         expect(log.error.callCount).to.equal(0);
         expect(log.warn.callCount).to.equal(0);
         expect(monitor._transferShard.callCount).to.equal(1);
+        expect(monitor._createStorageEvent.callCount).to.equal(1);
+        expect(monitor._createStorageEvent.args[0][0]).to.equal('token');
+        expect(monitor._createStorageEvent.args[0][1]).to.equal('hash');
+        expect(monitor._createStorageEvent.args[0][2])
+          .to.equal(state.sources[0]);
+        expect(monitor._createStorageEvent.args[0][3])
+          .to.equal(state.destinations[0]);
         expect(monitor._saveShard.callCount).to.equal(1);
         expect(monitor._saveShard.args[0][0]).to.equal(shard);
         expect(monitor._saveShard.args[0][1]).to.equal(state.destinations[0]);
         done();
       });
-
     });
-
   });
 
   describe('#_replicateShard', function() {
