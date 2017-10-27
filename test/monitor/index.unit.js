@@ -187,6 +187,17 @@ describe('Monitor', function() {
     });
   });
 
+  describe('#_giveOfflinePenalty', function() {
+    it('it will record offline points', function() {
+      const monitor = new Monitor(config);
+      const contact = {
+        recordPoints: sandbox.stub(),
+        save: sandbox.stub()
+      };
+      monitor._giveOfflinePenalty(contact);
+    });
+  });
+
   describe('#_fetchSources', function() {
     it('it will query and sort contacts', function(done) {
       sandbox.stub(log, 'error');
