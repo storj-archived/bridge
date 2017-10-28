@@ -324,7 +324,7 @@ describe('FramesRouter', function() {
   });
 
   describe('#_createStorageEvent', function() {
-    it('will create storage event', function(done) {
+    it('will create storage event', function() {
       const token = '688fedc83e7b0e9a5a7f68fa4e0098c7a40839c3';
       const user = {
         _id: 'userid'
@@ -358,13 +358,8 @@ describe('FramesRouter', function() {
           StorageEvent: StorageEvent
         }
       };
-      testFramesRouter._createStorageEvent(token, user, farmer, pointer, function(err) {
-        if (err) {
-          return done(err);
-        }
-        expect(StorageEvent.prototype.save.callCount).to.equal(1);
-        done();
-      });
+      testFramesRouter._createStorageEvent(token, user, farmer, pointer);
+      expect(StorageEvent.prototype.save.callCount).to.equal(1);
     });
   });
 
