@@ -324,7 +324,7 @@ describe('FramesRouter', function() {
   });
 
   describe('#_createStorageEvent', function() {
-    it('will create storage event', function() {
+    it('will create storage event', function(done) {
       const token = '688fedc83e7b0e9a5a7f68fa4e0098c7a40839c3';
       const user = {
         _id: 'userid'
@@ -351,13 +351,13 @@ describe('FramesRouter', function() {
           shardHash: '25c7fbb6d7f0429a0a31ed91bdf8ce2ec2b51f11',
           success: false
         });
-      };
+      }
       StorageEvent.prototype.save = sandbox.stub().callsArgWith(0, null);
       testFramesRouter.storage = {
         models: {
           StorageEvent: StorageEvent
         }
-      }
+      };
       testFramesRouter._createStorageEvent(token, user, farmer, pointer, function(err) {
         if (err) {
           return done(err);

@@ -417,7 +417,7 @@ describe('Monitor', function() {
         models: {
           StorageEvent: StorageEvent
         }
-      }
+      };
       let token = '527b83da713c30e56b3b0dd74a14152f24475909';
       let shardHash = '88c99bf39dcc693fe1a2a232601a37fec8d466b3';
       let shardBytes = 1024;

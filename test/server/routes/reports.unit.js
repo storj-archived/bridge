@@ -67,6 +67,9 @@ describe('ReportsRouter', function() {
       sandbox.stub(farmerMiddleware, 'authFarmer').callsArgWith(2, null);
       sandbox.stub(reportsRouter, 'farmerRawBodyMiddleware').callsArgWith(2, null);
       reportsRouter.authMiddleware(request, response, function(err) {
+        if (err) {
+          return done(err);
+        }
         expect(farmerMiddleware.authFarmer.callCount).to.equal(1);
         done();
       });
@@ -360,7 +363,7 @@ describe('ReportsRouter', function() {
         expect(response.statusCode).to.equal(201);
         done();
       });
-      reportsRouter.createExchangeReport(request, response)
+      reportsRouter.createExchangeReport(request, response);
     });
 
     it('will update storage event with client (failure)', function(done) {
@@ -401,7 +404,7 @@ describe('ReportsRouter', function() {
         expect(response.statusCode).to.equal(201);
         done();
       });
-      reportsRouter.createExchangeReport(request, response)
+      reportsRouter.createExchangeReport(request, response);
     });
 
     it('will update storage event with client (idempotence)', function(done) {
@@ -438,7 +441,7 @@ describe('ReportsRouter', function() {
         expect(response.statusCode).to.equal(200);
         done();
       });
-      reportsRouter.createExchangeReport(request, response)
+      reportsRouter.createExchangeReport(request, response);
     });
 
     it('will update storage event with farmer', function(done) {
@@ -472,7 +475,7 @@ describe('ReportsRouter', function() {
         expect(response.statusCode).to.equal(201);
         done();
       });
-      reportsRouter.createExchangeReport(request, response)
+      reportsRouter.createExchangeReport(request, response);
     });
 
     it('will update storage event with farmer (idempotence)', function(done) {
@@ -507,7 +510,7 @@ describe('ReportsRouter', function() {
         expect(response.statusCode).to.equal(200);
         done();
       });
-      reportsRouter.createExchangeReport(request, response)
+      reportsRouter.createExchangeReport(request, response);
     });
 
   });
@@ -747,7 +750,7 @@ describe('ReportsRouter', function() {
     });
 
     it('should error if net mirroring fails', function(done) {
-      var _mirrorFind = sandbox.stub(
+      sandbox.stub(
         reportsRouter.storage.models.Mirror,
         'find'
       ).returns({
@@ -796,11 +799,11 @@ describe('ReportsRouter', function() {
           }
         }
       });
-      var _contractsLoad = sandbox.stub(
+      sandbox.stub(
         reportsRouter.contracts,
         'load'
       ).callsArgWith(1, null, item);
-      var _getContactById = sandbox.stub(
+      sandbox.stub(
         reportsRouter,
         'getContactById'
       ).callsArgWith(1, null, new reportsRouter.storage.models.Contact({
@@ -811,15 +814,15 @@ describe('ReportsRouter', function() {
         lastSeen: Date.now(),
         userAgent: 'test'
       }));
-      var _getRetrievalPointer = sandbox.stub(
+      sandbox.stub(
         reportsRouter.network,
         'getRetrievalPointer'
       ).callsArgWith(2, null, { /* pointer */ });
-      var _getMirrorNodes = sandbox.stub(
+      sandbox.stub(
         reportsRouter.network,
         'getMirrorNodes'
       ).callsArgWith(2, new Error('Failed to mirror data'));
-      var _contractsSave = sandbox.stub(
+      sandbox.stub(
         reportsRouter.contracts,
         'save'
       ).callsArgWith(1, null);
@@ -832,7 +835,7 @@ describe('ReportsRouter', function() {
     });
 
     it('should error if no pointer can be retrieved', function(done) {
-      var _mirrorFind = sandbox.stub(
+      sandbox.stub(
         reportsRouter.storage.models.Mirror,
         'find'
       ).returns({
@@ -881,11 +884,11 @@ describe('ReportsRouter', function() {
           }
         }
       });
-      var _contractsLoad = sandbox.stub(
+      sandbox.stub(
         reportsRouter.contracts,
         'load'
       ).callsArgWith(1, null, item);
-      var _getContactById = sandbox.stub(
+      sandbox.stub(
         reportsRouter,
         'getContactById'
       ).callsArgWith(1, null, new reportsRouter.storage.models.Contact({
@@ -896,15 +899,15 @@ describe('ReportsRouter', function() {
         lastSeen: Date.now(),
         userAgent: 'test'
       }));
-      var _getRetrievalPointer = sandbox.stub(
+      sandbox.stub(
         reportsRouter.network,
         'getRetrievalPointer'
       ).callsArgWith(2, new Error('Failed to retrieve pointer'));
-      var _getMirrorNodes = sandbox.stub(
+      sandbox.stub(
         reportsRouter.network,
         'getMirrorNodes'
       ).callsArgWith(2, null);
-      var _contractsSave = sandbox.stub(
+      sandbox.stub(
         reportsRouter.contracts,
         'save'
       ).callsArgWith(1, null);
@@ -917,7 +920,7 @@ describe('ReportsRouter', function() {
     });
 
     it('should error if no pointer can be retrieved', function(done) {
-      var _mirrorFind = sandbox.stub(
+      sandbox.stub(
         reportsRouter.storage.models.Mirror,
         'find'
       ).returns({
@@ -966,23 +969,23 @@ describe('ReportsRouter', function() {
           }
         }
       });
-      var _contractsLoad = sandbox.stub(
+      sandbox.stub(
         reportsRouter.contracts,
         'load'
       ).callsArgWith(1, null, item);
-      var _getContactById = sandbox.stub(
+      sandbox.stub(
         reportsRouter,
         'getContactById'
       ).callsArgWith(1, new Error('Contact not found'));
-      var _getRetrievalPointer = sandbox.stub(
+      sandbox.stub(
         reportsRouter.network,
         'getRetrievalPointer'
       ).callsArgWith(2, null, { /* pointer */ });
-      var _getMirrorNodes = sandbox.stub(
+      sandbox.stub(
         reportsRouter.network,
         'getMirrorNodes'
       ).callsArgWith(2, null);
-      var _contractsSave = sandbox.stub(
+      sandbox.stub(
         reportsRouter.contracts,
         'save'
       ).callsArgWith(1, null);
@@ -994,7 +997,7 @@ describe('ReportsRouter', function() {
       });
     });
     it('should error if the contract cannot load', function(done) {
-      var _mirrorFind = sandbox.stub(
+      sandbox.stub(
         reportsRouter.storage.models.Mirror,
         'find'
       ).returns({
@@ -1035,11 +1038,11 @@ describe('ReportsRouter', function() {
           };
         }
       });
-      var _contractsLoad = sandbox.stub(
+      sandbox.stub(
         reportsRouter.contracts,
         'load'
       ).callsArgWith(1, new Error('Failed to load contract'));
-      var _getContactById = sandbox.stub(
+      sandbox.stub(
         reportsRouter,
         'getContactById'
       ).callsArgWith(1, null, new reportsRouter.storage.models.Contact({
@@ -1050,15 +1053,15 @@ describe('ReportsRouter', function() {
         lastSeen: Date.now(),
         userAgent: 'test'
       }));
-      var _getRetrievalPointer = sandbox.stub(
+      sandbox.stub(
         reportsRouter.network,
         'getRetrievalPointer'
       ).callsArgWith(2, null, { /* pointer */ });
-      var _getMirrorNodes = sandbox.stub(
+      sandbox.stub(
         reportsRouter.network,
         'getMirrorNodes'
       ).callsArgWith(2, null);
-      var _contractsSave = sandbox.stub(
+      sandbox.stub(
         reportsRouter.contracts,
         'save'
       ).callsArgWith(1, null);
@@ -1071,7 +1074,7 @@ describe('ReportsRouter', function() {
     });
 
     it('should error if the mirror limit is reached', function(done) {
-      var _mirrorFind = sandbox.stub(
+      sandbox.stub(
         reportsRouter.storage.models.Mirror,
         'find'
       ).returns({
@@ -1136,11 +1139,11 @@ describe('ReportsRouter', function() {
           }
         }
       });
-      var _contractsLoad = sandbox.stub(
+      sandbox.stub(
         reportsRouter.contracts,
         'load'
       ).callsArgWith(1, null, item);
-      var _getContactById = sandbox.stub(
+      sandbox.stub(
         reportsRouter,
         'getContactById'
       ).callsArgWith(1, null, new reportsRouter.storage.models.Contact({
@@ -1151,15 +1154,15 @@ describe('ReportsRouter', function() {
         lastSeen: Date.now(),
         userAgent: 'test'
       }));
-      var _getRetrievalPointer = sandbox.stub(
+      sandbox.stub(
         reportsRouter.network,
         'getRetrievalPointer'
       ).callsArgWith(2, null, { /* pointer */ });
-      var _getMirrorNodes = sandbox.stub(
+      sandbox.stub(
         reportsRouter.network,
         'getMirrorNodes'
       ).callsArgWith(2, null);
-      var _contractsSave = sandbox.stub(
+      sandbox.stub(
         reportsRouter.contracts,
         'save'
       ).callsArgWith(1, null);
@@ -1172,7 +1175,7 @@ describe('ReportsRouter', function() {
     });
 
     it('should error if no mirrors are available', function(done) {
-      var _mirrorFind = sandbox.stub(
+      sandbox.stub(
         reportsRouter.storage.models.Mirror,
         'find'
       ).returns({
@@ -1190,11 +1193,11 @@ describe('ReportsRouter', function() {
           }
         }
       });
-      var _contractsLoad = sandbox.stub(
+      sandbox.stub(
         reportsRouter.contracts,
         'load'
       ).callsArgWith(1, null, item);
-      var _getContactById = sandbox.stub(
+      sandbox.stub(
         reportsRouter,
         'getContactById'
       ).callsArgWith(1, null, new reportsRouter.storage.models.Contact({
@@ -1205,15 +1208,15 @@ describe('ReportsRouter', function() {
         lastSeen: Date.now(),
         userAgent: 'test'
       }));
-      var _getRetrievalPointer = sandbox.stub(
+      sandbox.stub(
         reportsRouter.network,
         'getRetrievalPointer'
       ).callsArgWith(2, null, { /* pointer */ });
-      var _getMirrorNodes = sandbox.stub(
+      sandbox.stub(
         reportsRouter.network,
         'getMirrorNodes'
       ).callsArgWith(2, null);
-      var _contractsSave = sandbox.stub(
+      sandbox.stub(
         reportsRouter.contracts,
         'save'
       ).callsArgWith(1, null);
