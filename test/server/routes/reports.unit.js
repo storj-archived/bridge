@@ -429,7 +429,9 @@ describe('ReportsRouter', function() {
       const event = {
         client: 'userid1',
         save: sandbox.stub().callsArgWith(0, null),
-        clientReport: {} // already has report
+        clientReport: {
+          exchangeResultCode: 1100 // already has report
+        }
       };
       sandbox.stub(reportsRouter, '_handleExchangeReport');
       sandbox.stub(
@@ -498,7 +500,9 @@ describe('ReportsRouter', function() {
       const event = {
         farmer: '4b449e6445daf4bfe0e7add6ca10bd66e27e1663',
         save: sandbox.stub().callsArgWith(0, null),
-        farmerReport: {} // already has report
+        farmerReport: {
+          exchangeResultCode: 1100 // already has report
+        }
       };
       sandbox.stub(reportsRouter, '_handleExchangeReport');
       sandbox.stub(

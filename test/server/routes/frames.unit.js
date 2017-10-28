@@ -324,6 +324,9 @@ describe('FramesRouter', function() {
   });
 
   describe('#_createStorageEvent', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
+
     it('will create storage event', function() {
       const token = '688fedc83e7b0e9a5a7f68fa4e0098c7a40839c3';
       const user = {
@@ -347,7 +350,7 @@ describe('FramesRouter', function() {
           farmer: 'c272cc90cf928328da80ba87c332bc97ed976118',
           downloadBandwidth: 0,
           storage: 1337,
-          timestamp: Date.now(),
+          timestamp: 1509178156367,
           shardHash: '25c7fbb6d7f0429a0a31ed91bdf8ce2ec2b51f11',
           success: false
         });
@@ -358,6 +361,8 @@ describe('FramesRouter', function() {
           StorageEvent: StorageEvent
         }
       };
+      const clock = sandbox.useFakeTimers();
+      clock.tick(1509178156367);
       testFramesRouter._createStorageEvent(token, user, farmer, pointer);
       expect(StorageEvent.prototype.save.callCount).to.equal(1);
     });
