@@ -9,12 +9,85 @@ const errors = require('storj-service-error-types');
 const EventEmitter = require('events').EventEmitter;
 const ReportsRouter = require('../../../lib/server/routes/reports');
 const utils = require('../../../lib/utils');
+const farmerMiddleware = require('../../../lib/server/middleware/farmer-auth');
 
 describe('ReportsRouter', function() {
-
   var reportsRouter = new ReportsRouter(
     require('../../_fixtures/router-opts')
   );
+
+  describe('#authMiddleware', function() {
+    var sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
+
+    it('it will auth user with user auth headers', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'POST',
+        url: '/reports/exchanges',
+        body: {},
+        headers: {
+          'authorization': 'base64authstring'
+        }
+      });
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var testReportsRouter = new ReportsRouter(
+        require('../../_fixtures/router-opts')
+      );
+      const bodyParser = sinon.stub().callsArgWith(2, null);
+      const userAuth = sinon.stub().callsArgWith(2, null);
+      testReportsRouter.userAuthMiddlewares = [
+        bodyParser,
+        userAuth
+      ];
+      testReportsRouter.authMiddleware(request, response, function(err) {
+        if (err) {
+          return done(err);
+        }
+        expect(bodyParser.callCount).to.equal(1);
+        expect(userAuth.callCount).to.equal(1);
+        done();
+      });
+    });
+    it('it will auth farmer with farmer auth headers', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'POST',
+        url: '/reports/exchanges',
+        body: {},
+        headers: {
+          'x-node-id': '14fe443f9bfe4936fb70dd97298cc6a34c88cfba'
+        }
+      });
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      sandbox.stub(farmerMiddleware, 'authFarmer').callsArgWith(2, null);
+      sandbox.stub(reportsRouter, 'farmerRawBodyMiddleware').callsArgWith(2, null);
+      reportsRouter.authMiddleware(request, response, function(err) {
+        expect(farmerMiddleware.authFarmer.callCount).to.equal(1);
+        done();
+      });
+    });
+    it('it will error if no auth', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'POST',
+        url: '/reports/exchanges',
+        body: {},
+        headers: {}
+      });
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      reportsRouter.authMiddleware(request, response, function(err) {
+        expect(err).to.be.instanceOf(errors.NotAuthorizedError);
+        done();
+      });
+    });
+  });
 
   describe('#validateExchangeReport', function() {
     var sandbox = sinon.sandbox.create();
