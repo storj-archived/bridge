@@ -3877,7 +3877,7 @@ describe('BucketsRouter', function() {
       });
     });
 
-    it('should internal error if bucket entry not found', function(done) {
+    it('should give error if bucket entry query fails', function(done) {
       var request = httpMocks.createRequest({
         method: 'DELETE',
         url: '/buckets/:bucket_id/files/:file_id',
@@ -3891,36 +3891,22 @@ describe('BucketsRouter', function() {
         req: request,
         eventEmitter: EventEmitter
       });
-      var _bucketFindOne = sinon.stub(
+      sandbox.stub(
         bucketsRouter.storage.models.Bucket,
         'findOne'
       ).callsArgWith(1, null, {});
-      var _bucketEntryFindOne = sinon.stub(
+      sandbox.stub(
         bucketsRouter.storage.models.BucketEntry,
         'findOne'
-      ).returns({
-        populate: function() {
-          return this;
-        },
-        exec: sinon.stub().callsArgWith(0, new Error('Failed to lookup bucket entry'))
-      });
-      function StorageEvent() {}
-      StorageEvent.prototype.save = sinon.stub().callsArgWith(0, null);
-      var _storageEvent = sinon.stub(
-        bucketsRouter.storage.models,
-        'StorageEvent',
-        StorageEvent
-        );
+      ).callsArgWith(1, new Error('test'))
       bucketsRouter.removeFile(request, response, function(err) {
-        _bucketFindOne.restore();
-        _bucketEntryFindOne.restore();
-        _storageEvent.restore();
-        expect(err.message).to.equal('Failed to lookup bucket entry');
+        expect(err).to.be.instanceOf(Error);
+        expect(err.message).to.equal('test');
         done();
       });
     });
 
-    it('should not found error if bucket entry not found', function(done) {
+    it('should give error if bucket entry not found', function(done) {
       var request = httpMocks.createRequest({
         method: 'DELETE',
         url: '/buckets/:bucket_id/files/:file_id',
@@ -3934,31 +3920,54 @@ describe('BucketsRouter', function() {
         req: request,
         eventEmitter: EventEmitter
       });
-      var _bucketFindOne = sinon.stub(
+      sandbox.stub(
         bucketsRouter.storage.models.Bucket,
         'findOne'
       ).callsArgWith(1, null, {});
-      var _bucketEntryFindOne = sinon.stub(
+      sandbox.stub(
         bucketsRouter.storage.models.BucketEntry,
         'findOne'
-      ).returns({
-        populate: function() {
-          return this;
-        },
-        exec: sinon.stub().callsArgWith(0, null, null)
-      });
-      function StorageEvent() {}
-      StorageEvent.prototype.save = sinon.stub().callsArgWith(0, null);
-      var _storageEvent = sinon.stub(
-        bucketsRouter.storage.models,
-        'StorageEvent',
-        StorageEvent
-        );
+      ).callsArgWith(1, null, null)
       bucketsRouter.removeFile(request, response, function(err) {
-        _bucketFindOne.restore();
-        _bucketEntryFindOne.restore();
-        _storageEvent.restore();
+        expect(err).to.be.instanceOf(errors.NotFoundError);
         expect(err.message).to.equal('File not found');
+        done();
+      });
+    });
+
+    it('should internal error if storage event deletion fails', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'DELETE',
+        url: '/buckets/:bucket_id/files/:file_id',
+        params: {
+          id: 'bucketid',
+          file: 'fileid'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      sandbox.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, {});
+      sandbox.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'findOne'
+      ).callsArgWith(1, null, {
+        remove: sandbox.stub().callsArgWith(0, null)
+      })
+      const hashes = ['hash'];
+      sandbox.stub(bucketsRouter, '_getShardHashesByBucketEntryId')
+        .callsArgWith(2, null, hashes);
+      sandbox.stub(
+        bucketsRouter.storage.models.StorageEvent,
+        'update'
+      ).callsArgWith(2, new Error('test'));
+      bucketsRouter.removeFile(request, response, function(err) {
+        expect(err.message).to.equal('test');
         done();
       });
     });
@@ -3977,32 +3986,25 @@ describe('BucketsRouter', function() {
         req: request,
         eventEmitter: EventEmitter
       });
-      var _bucketFindOne = sinon.stub(
+      sandbox.stub(
         bucketsRouter.storage.models.Bucket,
         'findOne'
       ).callsArgWith(1, null, {});
-      var _bucketEntryFindOne = sinon.stub(
+      sandbox.stub(
         bucketsRouter.storage.models.BucketEntry,
         'findOne'
-      ).returns({
-        populate: sinon.stub().returns({
-           exec: sinon.stub().callsArgWith(0, null, {
-            remove: sinon.stub().callsArgWith(0, new Error('Failed to delete'))
-          })
-        })
-      });
-      function StorageEvent() {}
-      StorageEvent.prototype.save = sinon.stub().callsArgWith(0, null);
-      var _storageEvent = sinon.stub(
-        bucketsRouter.storage.models,
-        'StorageEvent',
-        StorageEvent
-        );
+      ).callsArgWith(1, null, {
+        remove: sandbox.stub().callsArgWith(0, new Error('test'))
+      })
+      const hashes = ['hash'];
+      sandbox.stub(bucketsRouter, '_getShardHashesByBucketEntryId')
+        .callsArgWith(2, null, hashes);
+      sandbox.stub(
+        bucketsRouter.storage.models.StorageEvent,
+        'update'
+      ).callsArgWith(2, null);
       bucketsRouter.removeFile(request, response, function(err) {
-        _bucketFindOne.restore();
-        _bucketEntryFindOne.restore();
-        _storageEvent.restore();
-        expect(err.message).to.equal('Failed to delete');
+        expect(err.message).to.equal('test');
         done();
       });
     });
@@ -4021,41 +4023,30 @@ describe('BucketsRouter', function() {
         req: request,
         eventEmitter: EventEmitter
       });
-      var _bucketFindOne = sinon.stub(
+      sandbox.stub(
         bucketsRouter.storage.models.Bucket,
         'findOne'
       ).callsArgWith(1, null, {});
-      var _bucketEntryFindOne = sinon.stub(
+      sandbox.stub(
         bucketsRouter.storage.models.BucketEntry,
         'findOne'
-      ).returns({
-        populate: sinon.stub().returns({
-          exec: sinon.stub().callsArgWith(0, null, {
-            frame: {
-              size: 1000
-            },
-            remove: sinon.stub().callsArg(0)
-          })
-        })
-      });
-      function StorageEvent() {}
-      StorageEvent.prototype.save = sinon.stub().callsArgWith(0, null);
-      var _storageEvent = sinon.stub(
-        bucketsRouter.storage.models,
-        'StorageEvent',
-        StorageEvent
-        );
+      ).callsArgWith(1, null, {
+        frame: {
+          size: 1000
+        },
+        remove: sinon.stub().callsArg(0)
+      })
+      const hashes = ['hash'];
+      sandbox.stub(bucketsRouter, '_getShardHashesByBucketEntryId')
+        .callsArgWith(2, null, hashes);
       response.on('end', function() {
-        _bucketFindOne.restore();
-        _bucketEntryFindOne.restore();
-        _storageEvent.restore();
         expect(response.statusCode).to.equal(204);
         done();
       });
       bucketsRouter.removeFile(request, response);
     });
 
-it('should throw error on storage event save failure', function(done) {
+    it('should give error on storage event update failure', function(done) {
       sandbox.stub(log, 'warn');
       var request = httpMocks.createRequest({
         method: 'DELETE',
@@ -4070,40 +4061,32 @@ it('should throw error on storage event save failure', function(done) {
         req: request,
         eventEmitter: EventEmitter
       });
-      var _bucketFindOne = sinon.stub(
+      sandbox.stub(
         bucketsRouter.storage.models.Bucket,
         'findOne'
       ).callsArgWith(1, null, {});
-      var _bucketEntryFindOne = sinon.stub(
+      sandbox.stub(
         bucketsRouter.storage.models.BucketEntry,
         'findOne'
-      ).returns({
-        populate: sinon.stub().returns({
-          exec: sinon.stub().callsArgWith(0, null, {
-            frame: {
-              size: 1000
-            },
-            remove: sinon.stub().callsArg(0)
-          })
-        })
+      ).callsArgWith(1, null, {
+        frame: {
+          size: 1000
+        },
+        remove: sandbox.stub().callsArg(0)
       });
-      function StorageEvent() {}
-      StorageEvent.prototype.save = sinon.stub().callsArgWith(0, new Error('test'));
-      var _storageEvent = sinon.stub(
-        bucketsRouter.storage.models,
-        'StorageEvent',
-        StorageEvent
-        );
-      response.on('end', function() {
-        _bucketFindOne.restore();
-        _bucketEntryFindOne.restore();
-        _storageEvent.restore();
-        expect(log.warn.callCount).to.equal(1);
+      const hashes = ['hash'];
+      sandbox.stub(bucketsRouter, '_getShardHashesByBucketEntryId')
+        .callsArgWith(2, null, hashes);
+      sandbox.stub(
+        bucketsRouter.storage.models.StorageEvent,
+        'update'
+      ).callsArgWith(2, new Error('test'));
+      bucketsRouter.removeFile(request, response, function(err) {
+        expect(err).to.be.instanceOf(Error);
+        expect(err.message).to.equal('test');
         done();
       });
-      bucketsRouter.removeFile(request, response);
     });
-
   });
 
   describe('#getFileId', function() {
