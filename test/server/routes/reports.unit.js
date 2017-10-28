@@ -520,15 +520,16 @@ describe('ReportsRouter', function() {
       _triggerMirrorEstablish = sinon.stub(
         reportsRouter,
         '_triggerMirrorEstablish'
-      ).callsArg(2);
+      ).callsArg(3);
     });
     after(() => _triggerMirrorEstablish.restore());
 
     it('should callback error if not valid report type', function(done) {
+      const event = {};
       reportsRouter._handleExchangeReport({
         shardHash: 'hash',
         exchangeResultMessage: 'NOT_VALID'
-      }, (err) => {
+      }, event, (err) => {
         expect(err.message).to.equal(
           'Exchange result type will not trigger action'
         );
@@ -537,24 +538,27 @@ describe('ReportsRouter', function() {
     });
 
     it('should trigger a mirror on SHARD_UPLOADED', function(done) {
+      const event = {};
       reportsRouter._handleExchangeReport({
         shardHash: 'hash',
         exchangeResultMessage: 'SHARD_UPLOADED'
-      }, done);
+      }, event, done);
     });
 
     it('should trigger a mirror on MIRROR_SUCCESS', function(done) {
+      const event = {};
       reportsRouter._handleExchangeReport({
         shardHash: 'hash',
         exchangeResultMessage: 'MIRROR_SUCCESS'
-      }, done);
+      }, event, done);
     });
 
     it('should trigger a mirror on DOWNLOAD_ERROR', function(done) {
+      const event = {};
       reportsRouter._handleExchangeReport({
         shardHash: 'hash',
         exchangeResultMessage: 'DOWNLOAD_ERROR'
-      }, done);
+      }, event, done);
     });
 
   });
@@ -731,7 +735,9 @@ describe('ReportsRouter', function() {
         reportsRouter.contracts,
         'save'
       ).callsArgWith(1, null);
-      reportsRouter._triggerMirrorEstablish(n, hash, function(err) {
+      const event = {};
+      sandbox.stub(reportsRouter, '_createStorageEvent');
+      reportsRouter._triggerMirrorEstablish(n, hash, event, function(err) {
         expect(err).to.equal(null);
         expect(Array.prototype.sort.callCount).to.equal(1);
         expect(Array.prototype.sort.args[0][0])
@@ -741,7 +747,7 @@ describe('ReportsRouter', function() {
     });
 
     it('should error if net mirroring fails', function(done) {
-      var _mirrorFind = sinon.stub(
+      var _mirrorFind = sandbox.stub(
         reportsRouter.storage.models.Mirror,
         'find'
       ).returns({
@@ -790,11 +796,11 @@ describe('ReportsRouter', function() {
           }
         }
       });
-      var _contractsLoad = sinon.stub(
+      var _contractsLoad = sandbox.stub(
         reportsRouter.contracts,
         'load'
       ).callsArgWith(1, null, item);
-      var _getContactById = sinon.stub(
+      var _getContactById = sandbox.stub(
         reportsRouter,
         'getContactById'
       ).callsArgWith(1, null, new reportsRouter.storage.models.Contact({
@@ -805,32 +811,28 @@ describe('ReportsRouter', function() {
         lastSeen: Date.now(),
         userAgent: 'test'
       }));
-      var _getRetrievalPointer = sinon.stub(
+      var _getRetrievalPointer = sandbox.stub(
         reportsRouter.network,
         'getRetrievalPointer'
       ).callsArgWith(2, null, { /* pointer */ });
-      var _getMirrorNodes = sinon.stub(
+      var _getMirrorNodes = sandbox.stub(
         reportsRouter.network,
         'getMirrorNodes'
       ).callsArgWith(2, new Error('Failed to mirror data'));
-      var _contractsSave = sinon.stub(
+      var _contractsSave = sandbox.stub(
         reportsRouter.contracts,
         'save'
       ).callsArgWith(1, null);
-      reportsRouter._triggerMirrorEstablish(n, hash, function(err) {
-        _mirrorFind.restore();
-        _contractsLoad.restore();
-        _getContactById.restore();
-        _getRetrievalPointer.restore();
-        _getMirrorNodes.restore();
-        _contractsSave.restore();
+      const event = {};
+      sandbox.stub(reportsRouter, '_createStorageEvent');
+      reportsRouter._triggerMirrorEstablish(n, hash, event, function(err) {
         expect(err.message).to.equal('Failed to mirror data');
         done();
       });
     });
 
     it('should error if no pointer can be retrieved', function(done) {
-      var _mirrorFind = sinon.stub(
+      var _mirrorFind = sandbox.stub(
         reportsRouter.storage.models.Mirror,
         'find'
       ).returns({
@@ -879,11 +881,11 @@ describe('ReportsRouter', function() {
           }
         }
       });
-      var _contractsLoad = sinon.stub(
+      var _contractsLoad = sandbox.stub(
         reportsRouter.contracts,
         'load'
       ).callsArgWith(1, null, item);
-      var _getContactById = sinon.stub(
+      var _getContactById = sandbox.stub(
         reportsRouter,
         'getContactById'
       ).callsArgWith(1, null, new reportsRouter.storage.models.Contact({
@@ -894,32 +896,28 @@ describe('ReportsRouter', function() {
         lastSeen: Date.now(),
         userAgent: 'test'
       }));
-      var _getRetrievalPointer = sinon.stub(
+      var _getRetrievalPointer = sandbox.stub(
         reportsRouter.network,
         'getRetrievalPointer'
       ).callsArgWith(2, new Error('Failed to retrieve pointer'));
-      var _getMirrorNodes = sinon.stub(
+      var _getMirrorNodes = sandbox.stub(
         reportsRouter.network,
         'getMirrorNodes'
       ).callsArgWith(2, null);
-      var _contractsSave = sinon.stub(
+      var _contractsSave = sandbox.stub(
         reportsRouter.contracts,
         'save'
       ).callsArgWith(1, null);
-      reportsRouter._triggerMirrorEstablish(n, hash, function(err) {
-        _mirrorFind.restore();
-        _contractsLoad.restore();
-        _getContactById.restore();
-        _getRetrievalPointer.restore();
-        _getMirrorNodes.restore();
-        _contractsSave.restore();
+      const event = {};
+      sandbox.stub(reportsRouter, '_createStorageEvent');
+      reportsRouter._triggerMirrorEstablish(n, hash, event, function(err) {
         expect(err.message).to.equal('Failed to get pointer');
         done();
       });
     });
 
     it('should error if no pointer can be retrieved', function(done) {
-      var _mirrorFind = sinon.stub(
+      var _mirrorFind = sandbox.stub(
         reportsRouter.storage.models.Mirror,
         'find'
       ).returns({
@@ -968,39 +966,35 @@ describe('ReportsRouter', function() {
           }
         }
       });
-      var _contractsLoad = sinon.stub(
+      var _contractsLoad = sandbox.stub(
         reportsRouter.contracts,
         'load'
       ).callsArgWith(1, null, item);
-      var _getContactById = sinon.stub(
+      var _getContactById = sandbox.stub(
         reportsRouter,
         'getContactById'
       ).callsArgWith(1, new Error('Contact not found'));
-      var _getRetrievalPointer = sinon.stub(
+      var _getRetrievalPointer = sandbox.stub(
         reportsRouter.network,
         'getRetrievalPointer'
       ).callsArgWith(2, null, { /* pointer */ });
-      var _getMirrorNodes = sinon.stub(
+      var _getMirrorNodes = sandbox.stub(
         reportsRouter.network,
         'getMirrorNodes'
       ).callsArgWith(2, null);
-      var _contractsSave = sinon.stub(
+      var _contractsSave = sandbox.stub(
         reportsRouter.contracts,
         'save'
       ).callsArgWith(1, null);
-      reportsRouter._triggerMirrorEstablish(n, hash, function(err) {
-        _mirrorFind.restore();
-        _contractsLoad.restore();
-        _getContactById.restore();
-        _getRetrievalPointer.restore();
-        _getMirrorNodes.restore();
-        _contractsSave.restore();
+      const event = {};
+      sandbox.stub(reportsRouter, '_createStorageEvent');
+      reportsRouter._triggerMirrorEstablish(n, hash, event, function(err) {
         expect(err.message).to.equal('Failed to get pointer');
         done();
       });
     });
     it('should error if the contract cannot load', function(done) {
-      var _mirrorFind = sinon.stub(
+      var _mirrorFind = sandbox.stub(
         reportsRouter.storage.models.Mirror,
         'find'
       ).returns({
@@ -1041,11 +1035,11 @@ describe('ReportsRouter', function() {
           };
         }
       });
-      var _contractsLoad = sinon.stub(
+      var _contractsLoad = sandbox.stub(
         reportsRouter.contracts,
         'load'
       ).callsArgWith(1, new Error('Failed to load contract'));
-      var _getContactById = sinon.stub(
+      var _getContactById = sandbox.stub(
         reportsRouter,
         'getContactById'
       ).callsArgWith(1, null, new reportsRouter.storage.models.Contact({
@@ -1056,32 +1050,28 @@ describe('ReportsRouter', function() {
         lastSeen: Date.now(),
         userAgent: 'test'
       }));
-      var _getRetrievalPointer = sinon.stub(
+      var _getRetrievalPointer = sandbox.stub(
         reportsRouter.network,
         'getRetrievalPointer'
       ).callsArgWith(2, null, { /* pointer */ });
-      var _getMirrorNodes = sinon.stub(
+      var _getMirrorNodes = sandbox.stub(
         reportsRouter.network,
         'getMirrorNodes'
       ).callsArgWith(2, null);
-      var _contractsSave = sinon.stub(
+      var _contractsSave = sandbox.stub(
         reportsRouter.contracts,
         'save'
       ).callsArgWith(1, null);
-      reportsRouter._triggerMirrorEstablish(n, hash, function(err) {
-        _mirrorFind.restore();
-        _contractsLoad.restore();
-        _getContactById.restore();
-        _getRetrievalPointer.restore();
-        _getMirrorNodes.restore();
-        _contractsSave.restore();
+      const event = {};
+      sandbox.stub(reportsRouter, '_createStorageEvent');
+      reportsRouter._triggerMirrorEstablish(n, hash, event, function(err) {
         expect(err.message).to.equal('Failed to load contract');
         done();
       });
     });
 
     it('should error if the mirror limit is reached', function(done) {
-      var _mirrorFind = sinon.stub(
+      var _mirrorFind = sandbox.stub(
         reportsRouter.storage.models.Mirror,
         'find'
       ).returns({
@@ -1146,11 +1136,11 @@ describe('ReportsRouter', function() {
           }
         }
       });
-      var _contractsLoad = sinon.stub(
+      var _contractsLoad = sandbox.stub(
         reportsRouter.contracts,
         'load'
       ).callsArgWith(1, null, item);
-      var _getContactById = sinon.stub(
+      var _getContactById = sandbox.stub(
         reportsRouter,
         'getContactById'
       ).callsArgWith(1, null, new reportsRouter.storage.models.Contact({
@@ -1161,32 +1151,28 @@ describe('ReportsRouter', function() {
         lastSeen: Date.now(),
         userAgent: 'test'
       }));
-      var _getRetrievalPointer = sinon.stub(
+      var _getRetrievalPointer = sandbox.stub(
         reportsRouter.network,
         'getRetrievalPointer'
       ).callsArgWith(2, null, { /* pointer */ });
-      var _getMirrorNodes = sinon.stub(
+      var _getMirrorNodes = sandbox.stub(
         reportsRouter.network,
         'getMirrorNodes'
       ).callsArgWith(2, null);
-      var _contractsSave = sinon.stub(
+      var _contractsSave = sandbox.stub(
         reportsRouter.contracts,
         'save'
       ).callsArgWith(1, null);
-      reportsRouter._triggerMirrorEstablish(2, hash, function(err) {
-        _mirrorFind.restore();
-        _contractsLoad.restore();
-        _getContactById.restore();
-        _getRetrievalPointer.restore();
-        _getMirrorNodes.restore();
-        _contractsSave.restore();
+      const event = {};
+      sandbox.stub(reportsRouter, '_createStorageEvent');
+      reportsRouter._triggerMirrorEstablish(2, hash, event, function(err) {
         expect(err.message).to.equal('Auto mirroring limit is reached');
         done();
       });
     });
 
     it('should error if no mirrors are available', function(done) {
-      var _mirrorFind = sinon.stub(
+      var _mirrorFind = sandbox.stub(
         reportsRouter.storage.models.Mirror,
         'find'
       ).returns({
@@ -1204,11 +1190,11 @@ describe('ReportsRouter', function() {
           }
         }
       });
-      var _contractsLoad = sinon.stub(
+      var _contractsLoad = sandbox.stub(
         reportsRouter.contracts,
         'load'
       ).callsArgWith(1, null, item);
-      var _getContactById = sinon.stub(
+      var _getContactById = sandbox.stub(
         reportsRouter,
         'getContactById'
       ).callsArgWith(1, null, new reportsRouter.storage.models.Contact({
@@ -1219,25 +1205,21 @@ describe('ReportsRouter', function() {
         lastSeen: Date.now(),
         userAgent: 'test'
       }));
-      var _getRetrievalPointer = sinon.stub(
+      var _getRetrievalPointer = sandbox.stub(
         reportsRouter.network,
         'getRetrievalPointer'
       ).callsArgWith(2, null, { /* pointer */ });
-      var _getMirrorNodes = sinon.stub(
+      var _getMirrorNodes = sandbox.stub(
         reportsRouter.network,
         'getMirrorNodes'
       ).callsArgWith(2, null);
-      var _contractsSave = sinon.stub(
+      var _contractsSave = sandbox.stub(
         reportsRouter.contracts,
         'save'
       ).callsArgWith(1, null);
-      reportsRouter._triggerMirrorEstablish(n, hash, function(err) {
-        _mirrorFind.restore();
-        _contractsLoad.restore();
-        _getContactById.restore();
-        _getRetrievalPointer.restore();
-        _getMirrorNodes.restore();
-        _contractsSave.restore();
+      const event = {};
+      sandbox.stub(reportsRouter, '_createStorageEvent');
+      reportsRouter._triggerMirrorEstablish(n, hash, event, function(err) {
         expect(err.message).to.equal('No available mirrors');
         done();
       });
