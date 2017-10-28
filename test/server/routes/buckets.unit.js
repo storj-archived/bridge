@@ -1819,9 +1819,11 @@ describe('BucketsRouter', function() {
   });
 
   describe('#getBucketEntryById', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
 
     it('should internal error if query fails', function(done) {
-      var _bucketFindOne = sinon.stub(
+      sandbox.stub(
         bucketsRouter.storage.models.BucketEntry,
         'findOne'
       ).returns({
@@ -1831,14 +1833,13 @@ describe('BucketsRouter', function() {
         exec: sinon.stub().callsArgWith(0, new Error('Query failed'))
       });
       bucketsRouter.getBucketEntryById('bucketid', 'entryid', function(err) {
-        _bucketFindOne.restore();
         expect(err.message).to.equal('Query failed');
         done();
       });
     });
 
     it('should not found error if entry not found', function(done) {
-      var _bucketFindOne = sinon.stub(
+      sandbox.stub(
         bucketsRouter.storage.models.BucketEntry,
         'findOne'
       ).returns({
@@ -1848,17 +1849,14 @@ describe('BucketsRouter', function() {
         exec: sinon.stub().callsArgWith(0, null, null)
       });
       bucketsRouter.getBucketEntryById('bucketid', 'entryid', function(err) {
-        _bucketFindOne.restore();
         expect(err.message).to.equal('Entry not found');
         done();
       });
     });
 
     it('should return the bucket entry', function(done) {
-      var _bucketEntry = new bucketsRouter.storage.models.BucketEntry({
-
-      });
-      var _bucketFindOne = sinon.stub(
+      var _bucketEntry = new bucketsRouter.storage.models.BucketEntry({});
+      sandbox.stub(
         bucketsRouter.storage.models.BucketEntry,
         'findOne'
       ).returns({
@@ -1868,7 +1866,6 @@ describe('BucketsRouter', function() {
         exec: sinon.stub().callsArgWith(0, null, _bucketEntry)
       });
       bucketsRouter.getBucketEntryById('bucketid', 'entryid', function(e, be) {
-        _bucketFindOne.restore();
         expect(be).to.equal(_bucketEntry);
         done();
       });
@@ -1877,30 +1874,30 @@ describe('BucketsRouter', function() {
   });
 
   describe('#getPointersForEntry', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
 
     it('should internal error if query fails', function(done) {
-      var _pointerFind = sinon.stub(
+      sandbox.stub(
         bucketsRouter.storage.models.Pointer,
         'find'
       ).callsArgWith(1, new Error('Query failed'));
       bucketsRouter.getPointersForEntry({
         frame: { shards: [] }
       }, function(err) {
-        _pointerFind.restore();
         expect(err.message).to.equal('Query failed');
         done();
       });
     });
 
     it('should return pointers', function(done) {
-      var _pointerFind = sinon.stub(
+      sandbox.stub(
         bucketsRouter.storage.models.Pointer,
         'find'
       ).callsArgWith(1, null, []);
       bucketsRouter.getPointersForEntry({
         frame: { shards: [] }
       }, function(err, p) {
-        _pointerFind.restore();
         expect(Array.isArray(p)).to.equal(true);
         done();
       });
@@ -2547,6 +2544,9 @@ describe('BucketsRouter', function() {
     afterEach(() => sandbox.restore());
 
     it('will create storage event for each download pointer', function(done) {
+      const testBucketsRouter = new BucketsRouter(
+        require('../../_fixtures/router-opts')
+      );
       const clock = sandbox.useFakeTimers();
       clock.tick(1509149787342);
       const user = {
@@ -2575,12 +2575,12 @@ describe('BucketsRouter', function() {
       };
       const save = sandbox.stub().callsArg(0);
       StorageEvent.prototype.save = save;
-      bucketsRouter.storage = {
+      testBucketsRouter.storage = {
         models: {
           StorageEvent: StorageEvent
         }
       }
-      bucketsRouter._createStorageEvents(user, results, (err) => {
+      testBucketsRouter._createStorageEvents(user, results, (err) => {
         if (err) {
           return done(err);
         }
