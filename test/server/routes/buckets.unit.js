@@ -2542,6 +2542,54 @@ describe('BucketsRouter', function() {
 
   });
 
+  describe('#_createStorageEvents', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
+
+    it('will create storage event for each download pointer', function(done) {
+      const clock = sandbox.useFakeTimers();
+      clock.tick(1509149787342);
+      const user = {
+        _id: 'userid'
+      };
+      const results = [{
+        token: 'a359c0108d3c8f6b61cda41c931dc7bf556ef337',
+        farmer: {
+          nodeID: 'e7dc097f28fcc845a57b106c7bb98dafd9ac11b7',
+        },
+        hash: '523e34ca44d2ce9a2051578727b4793b1972ccca',
+        size: 1337
+      }];
+      function StorageEvent(options) {
+        expect(options).to.eql({
+          token: 'a359c0108d3c8f6b61cda41c931dc7bf556ef337',
+          user: 'userid',
+          client: 'userid',
+          farmer: 'e7dc097f28fcc845a57b106c7bb98dafd9ac11b7',
+          timestamp: Date.now(),
+          shardHash: '523e34ca44d2ce9a2051578727b4793b1972ccca',
+          downloadBandwidth: 1337,
+          storage: 0,
+          success: false
+        });
+      };
+      const save = sandbox.stub().callsArg(0);
+      StorageEvent.prototype.save = save;
+      bucketsRouter.storage = {
+        models: {
+          StorageEvent: StorageEvent
+        }
+      }
+      bucketsRouter._createStorageEvents(user, results, (err) => {
+        if (err) {
+          return done(err);
+        }
+        expect(save.callCount).to.equal(1);
+        done();
+      });
+    });
+  });
+
   describe('#_getPointersFromEntry', function() {
     const sandbox = sinon.sandbox.create();
     afterEach(() => sandbox.restore());
