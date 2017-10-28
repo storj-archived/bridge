@@ -323,6 +323,51 @@ describe('FramesRouter', function() {
 
   });
 
+  describe('#_createStorageEvent', function() {
+    it('will create storage event', function() {
+      const token = '688fedc83e7b0e9a5a7f68fa4e0098c7a40839c3';
+      const user = {
+        _id: 'userid'
+      };
+      const farmer = {
+        nodeID: 'c272cc90cf928328da80ba87c332bc97ed976118'
+      };
+      const pointer = {
+        size: 1337,
+        hash: '25c7fbb6d7f0429a0a31ed91bdf8ce2ec2b51f11'
+      };
+      var testFramesRouter = new FramesRouter(
+        require('../../_fixtures/router-opts')
+      );
+      function StorageEvent(options) {
+        expect(options).to.eql({
+          token: '688fedc83e7b0e9a5a7f68fa4e0098c7a40839c3',
+          user: 'userid',
+          client: 'userid',
+          farmer: 'c272cc90cf928328da80ba87c332bc97ed976118',
+          downloadBandwidth: 0,
+          storage: 1337,
+          timestamp: Date.now(),
+          shardHash: '25c7fbb6d7f0429a0a31ed91bdf8ce2ec2b51f11',
+          success: false
+        });
+      };
+      StorageEvent.prototype.save = sandbox.stub().callsArgWith(0, null);
+      testFramesRouter.storage = {
+        models: {
+          StorageEvent: StorageEvent
+        }
+      }
+      testFramesRouter._createStorageEvent(token, user, farmer, pointer, function(err) {
+        if (err) {
+          return done(err);
+        }
+        expect(StorageEvent.prototype.save.callCount).to.equal(1);
+        done();
+      });
+    });
+  });
+
   describe('#_getContractForShard', function() {
     const sandbox = sinon.sandbox.create();
     afterEach(() => sandbox.restore());
@@ -1185,6 +1230,8 @@ describe('FramesRouter', function() {
         'save'
       ).callsArgWith(0);
 
+      sandbox.stub(framesRouter, '_createStorageEvent');
+
       var frame1 = new framesRouter.storage.models.Frame({
         user: someUser._id
       });
@@ -1203,33 +1250,37 @@ describe('FramesRouter', function() {
         )
       });
 
-      var _pointerCreate = sandbox.stub(
-        framesRouter.storage.models.Pointer,
-        'create'
-      ).callsArgWith(1, null, new framesRouter.storage.models.Pointer({
+      const pointer = new framesRouter.storage.models.Pointer({
         index: 0,
         hash: storj.utils.rmd160('data'),
         size: 1024 * 1024 * 8,
         challenges: auditStream.getPrivateRecord().challenges,
         tree: auditStream.getPublicRecord()
-      }));
+      });
+      var _pointerCreate = sandbox.stub(
+        framesRouter.storage.models.Pointer,
+        'create'
+      ).callsArgWith(1, null, pointer);
+
+      const farmer = storj.Contact({
+        address: '127.0.0.1',
+        port: 1337,
+        nodeID: storj.utils.rmd160('farmer')
+      });
 
       sandbox.stub(
         framesRouter,
         '_getContractForShard',
         function(contract, audit, bl, res, callback) {
-          callback(null, storj.Contact({
-            address: '127.0.0.1',
-            port: 1337,
-            nodeID: storj.utils.rmd160('farmer')
-          }), contract);
+          callback(null, farmer, contract);
         }
       );
 
+      const token = '16d1f480b1a59875d3e11251a0adaadef7817e88';
       sandbox.stub(
         framesRouter.network,
         'getConsignmentPointer'
-      ).callsArgWith(3, null, { token: 'token' });
+      ).callsArgWith(3, null, { token: token });
 
       response.on('end', function() {
         var result = response._getData();
@@ -1245,9 +1296,15 @@ describe('FramesRouter', function() {
 
         expect(result.farmer.nodeID).to.equal(storj.utils.rmd160('farmer'));
         expect(result.hash).to.equal(storj.utils.rmd160('data'));
-        expect(result.token).to.equal('token');
+        expect(result.token).to.equal(token);
         expect(result.operation).to.equal('PUSH');
         expect(testUser.recordUploadBytes.callCount).to.equal(1);
+
+        expect(framesRouter._createStorageEvent.callCount).to.equal(1);
+        expect(framesRouter._createStorageEvent.args[0][0]).to.equal(token);
+        expect(framesRouter._createStorageEvent.args[0][1]).to.equal(testUser);
+        expect(framesRouter._createStorageEvent.args[0][2]).to.equal(farmer);
+        expect(framesRouter._createStorageEvent.args[0][3]).to.equal(pointer);
         done();
       });
       framesRouter.addShardToFrame(request, response);
@@ -1335,6 +1392,8 @@ describe('FramesRouter', function() {
           isEstablished: false
         }
       ];
+
+      sandbox.stub(framesRouter, '_createStorageEvent');
 
       sandbox.stub(
         framesRouter.storage.models.Mirror,
@@ -1496,6 +1555,8 @@ describe('FramesRouter', function() {
         }
       ];
 
+      sandbox.stub(framesRouter, '_createStorageEvent');
+
       sandbox.stub(
         framesRouter.storage.models.Mirror,
         'find'
@@ -1655,6 +1716,8 @@ describe('FramesRouter', function() {
           frame1
         )
       });
+
+      sandbox.stub(framesRouter, '_createStorageEvent');
 
       sandbox.stub(
         framesRouter.storage.models.Pointer,
@@ -1872,6 +1935,8 @@ describe('FramesRouter', function() {
         }),
       });
 
+      sandbox.stub(framesRouter, '_createStorageEvent');
+
       var frame1 = new framesRouter.storage.models.Frame({
         user: someUser._id
       });
@@ -1989,6 +2054,8 @@ describe('FramesRouter', function() {
           exec: sandbox.stub().callsArgWith(0, null, [])
         }),
       });
+
+      sandbox.stub(framesRouter, '_createStorageEvent');
 
       sandbox.stub(
         framesRouter.storage.models.Pointer,
