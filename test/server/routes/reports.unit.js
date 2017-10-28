@@ -16,6 +16,85 @@ describe('ReportsRouter', function() {
     require('../../_fixtures/router-opts')
   );
 
+  describe('#validateExchangeReport', function() {
+    var sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
+
+    const validReports = [{
+      token: '91e1fc2fd3a4c5244945e49c6f68ca1bd444d14c',
+      exchangeStart: 1509156812066,
+      exchangeEnd: 1509156822420,
+      exchangeResultCode: 1100,
+      exchangeResultMessage: 'FAILED_INTEGRITY'
+    }, {
+      token: 'fe081d837b4c6bbb0e416b8acd7b04ed29203f08',
+      exchangeStart: 1509156792819,
+      exchangeEnd: 1509156801731,
+      exchangeResultCode: 1000,
+      exchangeResultMessage: 'SHARD_DOWNLOADED'
+    }, {
+      token: 'a9d2c8cee65ad1b6ddb7cd574a18081f44ab8391',
+      exchangeStart: 1509156773796,
+      exchangeEnd: 1509156782011,
+      exchangeResultCode: 1100,
+      exchangeResultMessage: 'SHARD_UPLOADED'
+    }, {
+      token: 'b345adbe445452b6b451e4b8ca4beac2a548e22d',
+      exchangeStart: 1509156753155,
+      exchangeEnd: 1509156763347,
+      exchangeResultCode: 1000,
+      exchangeResultMessage: 'DOWNLOAD_ERROR'
+    }, {
+      token: '6563ac73bee62df44880da382cd352e3e2fe3374',
+      exchangeStart: 1509156731683,
+      exchangeEnd: 1509156742560,
+      exchangeResultCode: 1100,
+      exchangeResultMessage: 'TRANSFER_FAILED'
+    }];
+
+    const invalidReports = [{
+      token: '91e1fc2fd3a4c5244945e49c6f68ca1bd444d14c',
+      exchangeStart: 1509156812066,
+      exchangeEnd: 1509156822420,
+      exchangeResultCode: 1100,
+      exchangeResultMessage: 'NOT_A_VALID_MESSAGE' // invalid
+    }, {
+      token: 'fe081d837b4c6bbb0e416b8acd7b04ed29203f08',
+      exchangeStart: 'tuesday', // invalid
+      exchangeEnd: 1509156822421,
+      exchangeResultCode: 1000,
+      exchangeResultMessage: 'SHARD_DOWNLOADED'
+    }, {
+      token: 'fe081d837b4c6bbb0e416b8acd7b04ed29203f08',
+      exchangeStart: 1509156812068,
+      exchangeEnd: 'wednesday', // invalid
+      exchangeResultCode: 1000,
+      exchangeResultMessage: 'SHARD_DOWNLOADED'
+    }, {
+      token: 'a9d2c8cee65ad1b6ddb7cd574a18081f44ab8391',
+      exchangeStart: 1509156773796,
+      exchangeEnd: 1509156782011,
+      exchangeResultCode: 1234567890, // invalid
+      exchangeResultMessage: 'SHARD_UPLOADED'
+    }];
+
+    let i = 0;
+    validReports.forEach((report) => {
+      it('will validate report (' + i + ')', function() {
+        expect(reportsRouter.validateExchangeReport(report)).to.equal(true);
+      });
+      i++;
+    });
+
+    invalidReports.forEach((report) => {
+      it('will invalidate report (' + i + ')', function() {
+        expect(reportsRouter.validateExchangeReport(report)).to.equal(false);
+      });
+      i++;
+    });
+
+  });
+
   describe('#createExchangeReport', function() {
     var sandbox = sinon.sandbox.create();
     afterEach(function() {
