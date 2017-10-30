@@ -68,6 +68,7 @@
     "express": "^4.13.3",
     "handlebars": "^4.0.5",
     "hat": "0.0.3",
+    "helmet": "^3.9.0",
     "kad-logger-json": "^0.1.2",
     "knuth-shuffle": "^1.0.1",
     "merge": "^1.2.0",
