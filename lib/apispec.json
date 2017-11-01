@@ -852,8 +852,8 @@
                       "description": "ECDSA pubkeyhash identifier"
                     },
                     "lastSeen": {
-                      "type": "number",
-                      "example": "1487712850023",
+                      "type": "string",
+                      "example": "2016-05-24T15:16:01.139Z",
                       "description": "Timestamp when we last encountered this peer"
                     },
                     "address": {
@@ -1602,8 +1602,8 @@
                         "description": "ECDSA pubkeyhash identifier"
                       },
                       "lastSeen": {
-                        "type": "number",
-                        "example": "1487712850023",
+                        "type": "string",
+                        "example": "2016-05-24T15:16:01.139Z",
                         "description": "Timestamp when we last encountered this peer"
                       },
                       "address": {
