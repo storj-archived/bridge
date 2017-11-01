@@ -110,7 +110,7 @@
                   },
                   "port": {
                     "description": "Port number the contact is listening on",
-                    "type": "number",
+                    "type": "integer",
                     "example": 8443
                   },
                   "nodeID": {
@@ -161,7 +161,7 @@
                 },
                 "port": {
                   "description": "Port number the contact is listening on",
-                  "type": "number",
+                  "type": "integer",
                   "example": 8443
                 },
                 "nodeID": {
@@ -735,12 +735,12 @@
                         "example": "fde400fe0b6a5488e10d7317274a096aaa57914d"
                       },
                       "size": {
-                        "type": "number",
+                        "type": "integer",
                         "description": "The number of bytes in the shard",
                         "example": 4096
                       },
                       "index": {
-                        "type": "number",
+                        "type": "integer",
                         "description": "The order index of the shard in the file",
                         "example": 0
                       }
@@ -780,12 +780,12 @@
                   "example": "fde400fe0b6a5488e10d7317274a096aaa57914d"
                 },
                 "size": {
-                  "type": "number",
+                  "type": "integer",
                   "description": "The number of bytes in the shard",
                   "example": 4096
                 },
                 "index": {
-                  "type": "number",
+                  "type": "integer",
                   "description": "The order index of the shard in the file",
                   "example": 0
                 },
@@ -867,8 +867,8 @@
                       "description": "Storj user agent string for farming client"
                     },
                     "port": {
-                      "type": "number",
-                      "example": "8448",
+                      "type": "integer",
+                      "example": 8448,
                       "description": "Port number the farmer is listening on"
                     }
                   }
@@ -929,12 +929,12 @@
                 "type": "object",
                 "properties": {
                   "storage": {
-                    "type": "number",
+                    "type": "integer",
                     "description": "Amount of storage space in GB",
                     "example": 10
                   },
                   "transfer": {
-                    "type": "number",
+                    "type": "integer",
                     "description": "Amount of transfer in GB",
                     "example": 30
                   },
@@ -1017,12 +1017,12 @@
               "type": "object",
               "properties": {
                 "storage": {
-                  "type": "number",
+                  "type": "integer",
                   "description": "Amount of storage space in GB",
                   "example": 10
                 },
                 "transfer": {
-                  "type": "number",
+                  "type": "integer",
                   "description": "Amount of transfer in GB",
                   "example": 30
                 },
@@ -1090,12 +1090,12 @@
               "type": "object",
               "properties": {
                 "storage": {
-                  "type": "number",
+                  "type": "integer",
                   "description": "Amount of storage space in GB",
                   "example": 30
                 },
                 "transfer": {
-                  "type": "number",
+                  "type": "integer",
                   "description": "Amount of transfer in GB",
                   "example": 50
                 },
@@ -1183,12 +1183,12 @@
               "type": "object",
               "properties": {
                 "storage": {
-                  "type": "number",
+                  "type": "integer",
                   "description": "Amount of storage space in GB",
                   "example": 30
                 },
                 "transfer": {
-                  "type": "number",
+                  "type": "integer",
                   "description": "Amount of transfer in GB",
                   "example": 50
                 },
@@ -1410,7 +1410,7 @@
                   "example": "big_buck_bunny.mp4"
                 },
                 "size": {
-                  "type": "number",
+                  "type": "integer",
                   "example": 5071076
                 },
                 "created": {
@@ -1485,7 +1485,7 @@
                     "example": "big_buck_bunny.mp4"
                   },
                   "size": {
-                    "type": "number",
+                    "type": "integer",
                     "example": 5071076
                   },
                   "frame": {
@@ -1617,8 +1617,8 @@
                         "description": "Storj user agent string for farming client"
                       },
                       "port": {
-                        "type": "number",
-                        "example": "8448",
+                        "type": "integer",
+                        "example": 8448,
                         "description": "Port number the farmer is listening on"
                       }
                     }
@@ -1712,7 +1712,7 @@
                   "example": "507f1f77bcf86cd799430909"
                 },
                 "size": {
-                  "type": "number",
+                  "type": "integer",
                   "example": 5071076
                 },
                 "created": {
