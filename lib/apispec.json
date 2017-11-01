@@ -1316,7 +1316,7 @@
                   "description": "Bucket encryption key if the bucket is public"
                 },
                 "size": {
-                  "type": "string",
+                  "type": "integer",
                   "description": "Size of file if file ID is sent as argument"
                 },
                 "mimetype": {
