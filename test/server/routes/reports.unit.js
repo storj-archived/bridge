@@ -163,6 +163,12 @@ describe('ReportsRouter', function() {
       exchangeEnd: 1509156742560,
       exchangeResultCode: 1100,
       exchangeResultMessage: 'TRANSFER_FAILED'
+    }, {
+      token: '518252128d9eb93b717618558ac64cf0bb882b36',
+      exchangeStart: 1509156731883,
+      exchangeEnd: 1509156732883,
+      exchangeResultCode: 1100,
+      exchangeResultMessage: 'MIRROR_SUCCESS'
     }];
 
     const invalidReports = [{
