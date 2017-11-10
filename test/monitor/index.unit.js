@@ -204,7 +204,7 @@ describe('Monitor', function() {
   describe('#_markStorageEventsEnded', function() {
     it('it will update events as ended', function() {
       const monitor = new Monitor(config);
-      const update = sandbox.stub().callsArgWith(2, null);
+      const update = sandbox.stub().callsArgWith(3, null);
       monitor.storage = {
         models: {
           StorageEvent: {
@@ -421,12 +421,8 @@ describe('Monitor', function() {
       let token = '527b83da713c30e56b3b0dd74a14152f24475909';
       let shardHash = '88c99bf39dcc693fe1a2a232601a37fec8d466b3';
       let shardBytes = 1024;
-      let source = {
-        nodeID: 'cec5a2d61f4e82f6c73f44388b5798c64784d68f'
-      };
-      let destination = {
-        nodeID: 'b0789385f486a0d0d07f32b0a96b313202cf4031'
-      };
+      let source = 'cec5a2d61f4e82f6c73f44388b5798c64784d68f';
+      let destination = 'b0789385f486a0d0d07f32b0a96b313202cf4031';
       const clock = sandbox.useFakeTimers();
       clock.tick(1509141238388);
       monitor._createStorageEvent(token, shardHash,
@@ -582,12 +578,14 @@ describe('Monitor', function() {
         hash: 'hash'
       };
       const contact = storj.Contact({
+        nodeID: '27d71722a9843831b22964ebcf42e6bc5b8624de',
         address: '127.0.0.1',
         port: 100000
       });
       const mirror = {
         contract: {},
         contact: {
+          nodeID: '0c764f44017688a5ee54af195939260331341114',
           address: '128.0.0.1',
           port: 100000
         }
@@ -609,9 +607,9 @@ describe('Monitor', function() {
         expect(monitor._createStorageEvent.args[0][1]).to.equal('hash');
         expect(monitor._createStorageEvent.args[0][2]).to.equal(1337);
         expect(monitor._createStorageEvent.args[0][3])
-          .to.equal(state.sources[0]);
+          .to.equal(state.sources[0].nodeID);
         expect(monitor._createStorageEvent.args[0][4])
-          .to.equal(state.destinations[0]);
+          .to.equal(state.destinations[0].contact.nodeID);
         expect(monitor._saveShard.callCount).to.equal(1);
         expect(monitor._saveShard.args[0][0]).to.equal(shard);
         expect(monitor._saveShard.args[0][1]).to.equal(state.destinations[0]);
@@ -993,12 +991,10 @@ describe('Monitor', function() {
         .to.be.instanceOf(storj.Contact);
 
       expect(monitor._giveOfflinePenalty.callCount).to.equal(1);
-      expect(monitor._giveOfflinePenalty.args[0][0])
-        .to.be.instanceOf(storj.Contact);
+      expect(monitor._giveOfflinePenalty.args[0][0].recordPoints);
 
       expect(monitor._markStorageEventsEnded.callCount).to.equal(1);
-      expect(monitor._markStorageEventsEnded.args[0][0])
-        .to.be.instanceOf(storj.Contact);
+      expect(monitor._markStorageEventsEnded.args[0][0]._id);
 
       expect(monitor.network.ping.callCount).to.equal(3);
       expect(monitor.network.ping.args[0][0]).to.be.instanceOf(storj.Contact);
