@@ -637,7 +637,7 @@ describe('BucketsRouter', function() {
         'findOne'
       ).callsArgWith(1, null, bucket);
       sandbox.stub(bucketsRouter.storage.models.StorageEvent, 'update').callsArgWith(
-        2,
+        3,
         new Error('test')
       );
       bucketsRouter.destroyBucketById(request, response, function(err) {
@@ -666,7 +666,7 @@ describe('BucketsRouter', function() {
       sandbox.stub(bucketsRouter.storage.models.Bucket, 'findOne')
         .callsArgWith(1, null, bucket);
       sandbox.stub(bucketsRouter.storage.models.StorageEvent, 'update')
-        .callsArgWith(2, null);
+        .callsArgWith(3, null);
       sandbox.stub(bucketsRouter.storage.models.BucketEntry, 'remove')
         .callsArgWith(1, null);
       sandbox.stub(bucket, 'remove').callsArg(0);
@@ -3965,7 +3965,7 @@ describe('BucketsRouter', function() {
       sandbox.stub(
         bucketsRouter.storage.models.StorageEvent,
         'update'
-      ).callsArgWith(2, new Error('test'));
+      ).callsArgWith(3, new Error('test'));
       bucketsRouter.removeFile(request, response, function(err) {
         expect(err.message).to.equal('test');
         done();
@@ -4002,7 +4002,7 @@ describe('BucketsRouter', function() {
       sandbox.stub(
         bucketsRouter.storage.models.StorageEvent,
         'update'
-      ).callsArgWith(2, null);
+      ).callsArgWith(3, null);
       bucketsRouter.removeFile(request, response, function(err) {
         expect(err.message).to.equal('test');
         done();
@@ -4080,7 +4080,7 @@ describe('BucketsRouter', function() {
       sandbox.stub(
         bucketsRouter.storage.models.StorageEvent,
         'update'
-      ).callsArgWith(2, new Error('test'));
+      ).callsArgWith(3, new Error('test'));
       bucketsRouter.removeFile(request, response, function(err) {
         expect(err).to.be.instanceOf(Error);
         expect(err.message).to.equal('test');

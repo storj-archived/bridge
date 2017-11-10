@@ -739,7 +739,11 @@ describe('ReportsRouter', function() {
       sandbox.stub(
         reportsRouter.network,
         'getRetrievalPointer'
-      ).callsArgWith(2, null, { /* pointer */ });
+      ).callsArgWith(2, null, {
+        farmer: {
+          nodeID: '9fbe85050ecf276e3f47a979cb33bc55172ad241'
+        }
+      });
       sandbox.stub(
         reportsRouter.network,
         'getMirrorNodes'
@@ -827,7 +831,11 @@ describe('ReportsRouter', function() {
       sandbox.stub(
         reportsRouter.network,
         'getRetrievalPointer'
-      ).callsArgWith(2, null, { /* pointer */ });
+      ).callsArgWith(2, null, {
+        farmer: {
+          nodeID: '9fbe85050ecf276e3f47a979cb33bc55172ad241'
+        }
+      });
       sandbox.stub(
         reportsRouter.network,
         'getMirrorNodes'
