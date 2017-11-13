@@ -235,6 +235,13 @@ describe('ReportsRouter', function() {
       }, done);
     });
 
+    it('should trigger a mirror on MIRROR_FAILED', function(done) {
+      reportsRouter._handleExchangeReport({
+        shardHash: 'hash',
+        exchangeResultMessage: 'MIRROR_FAILED'
+      }, done);
+    });
+
     it('should trigger a mirror on DOWNLOAD_ERROR', function(done) {
       reportsRouter._handleExchangeReport({
         shardHash: 'hash',
