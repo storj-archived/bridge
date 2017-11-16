@@ -243,6 +243,7 @@ describe('ContractRenewalJob', function() {
       if (err) {
         return done(parseStderr(stderr));
       }
+      console.log('stdout', stdout);
       let { processed, errored, renewed } = JSON.parse(stdout);
       expect(processed).to.equal(6);
       expect(errored).to.equal(2);
