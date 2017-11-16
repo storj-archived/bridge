@@ -10,7 +10,7 @@ describe('StorageEventsCron', function() {
     it('will initialize', function() {
       var config = new Config('__tmptest');
       const cron = new StorageEventsCron(config);
-      expect(cron._config)
+      expect(cron._config);
     });
   });
 
@@ -21,40 +21,165 @@ describe('StorageEventsCron', function() {
   });
 
   describe('#_resolveCodes', function() {
+    var config = new Config('__tmptest');
     it('failed: farmer(false), client(unknown)', function() {
-
+      const cron = new StorageEventsCron(config);
+      const event = {
+        success: false,
+        clientReport: {},
+        farmerReport: {
+          exchangeResultCode: 1100
+        }
+      };
+      const user = {};
+      const {success, successModified, unknown} = cron._resolveCodes(event, user);
+      expect(success).to.equal(false);
+      expect(unknown).to.equal(false);
+      expect(successModified).to.equal(false);
     });
 
     it('failed: farmer(false), client(false)', function() {
-
+      const cron = new StorageEventsCron(config);
+      const event = {
+        success: false,
+        clientReport: {
+          exchangeResultCode: 1100
+        },
+        farmerReport: {
+          exchangeResultCode: 1100
+        }
+      };
+      const user = {};
+      const {success, successModified, unknown} = cron._resolveCodes(event, user);
+      expect(success).to.equal(false);
+      expect(unknown).to.equal(false);
+      expect(successModified).to.equal(false);
     });
 
     it('failed: farmer(unknown), client(false)', function() {
-
+      const cron = new StorageEventsCron(config);
+      const event = {
+        success: false,
+        clientReport: {
+          exchangeResultCode: 1100
+        },
+        farmerReport: {}
+      };
+      const user = {};
+      const {success, successModified, unknown} = cron._resolveCodes(event, user);
+      expect(success).to.equal(false);
+      expect(unknown).to.equal(false);
+      expect(successModified).to.equal(false);
     });
 
     it('success: farmer(true), client(false), > threshold', function() {
-
+      const cron = new StorageEventsCron(config);
+      const event = {
+        success: false,
+        clientReport: {
+          exchangeResultCode: 1100
+        },
+        farmerReport: {
+          exchangeResultCode: 1000
+        }
+      };
+      const user = {
+        exceedsUnknownReportsThreshold: sinon.stub().returns(true)
+      };
+      const {success, successModified, unknown} = cron._resolveCodes(event, user);
+      expect(success).to.equal(true);
+      expect(unknown).to.equal(true);
+      expect(successModified).to.equal(true);
     });
 
     it('success: farmer(unknown), client(unknown), > threshold', function() {
-
+      const cron = new StorageEventsCron(config);
+      const event = {
+        success: false,
+        clientReport: {},
+        farmerReport: {}
+      };
+      const user = {
+        exceedsUnknownReportsThreshold: sinon.stub().returns(true)
+      };
+      const {success, successModified, unknown} = cron._resolveCodes(event, user);
+      expect(success).to.equal(true);
+      expect(unknown).to.equal(true);
+      expect(successModified).to.equal(true);
     });
 
     it('success: farmer(true), client(false), > threshold', function() {
-
+      const cron = new StorageEventsCron(config);
+      const event = {
+        success: false,
+        clientReport: {
+          exchangeResultCode: 1100
+        },
+        farmerReport: {
+          exchangeResultCode: 1000
+        }
+      };
+      const user = {
+        exceedsUnknownReportsThreshold: sinon.stub().returns(true)
+      };
+      const {success, successModified, unknown} = cron._resolveCodes(event, user);
+      expect(success).to.equal(true);
+      expect(unknown).to.equal(true);
+      expect(successModified).to.equal(true);
     });
 
     it('failed: farmer(true), client(false), < threshold', function() {
-
+      const cron = new StorageEventsCron(config);
+      const event = {
+        success: false,
+        clientReport: {
+          exchangeResultCode: 1100
+        },
+        farmerReport: {
+          exchangeResultCode: 1000
+        }
+      };
+      const user = {
+        exceedsUnknownReportsThreshold: sinon.stub().returns(false)
+      };
+      const {success, successModified, unknown} = cron._resolveCodes(event, user);
+      expect(success).to.equal(false);
+      expect(unknown).to.equal(true);
+      expect(successModified).to.equal(false);
     });
 
     it('failed: farmer(unknown), client(unknown), < threshold', function() {
-
+      const cron = new StorageEventsCron(config);
+      const event = {
+        success: false,
+        clientReport: {},
+        farmerReport: {}
+      };
+      const user = {
+        exceedsUnknownReportsThreshold: sinon.stub().returns(false)
+      };
+      const {success, successModified, unknown} = cron._resolveCodes(event, user);
+      expect(success).to.equal(false);
+      expect(unknown).to.equal(true);
+      expect(successModified).to.equal(false);
     });
 
-    it('failed: farmer(true), client(false), < threshold', function() {
-
+    it('failed: farmer(true), client(unknown), < threshold', function() {
+      const cron = new StorageEventsCron(config);
+      const event = {
+        success: false,
+        clientReport: {},
+        farmerReport: {
+          exchangeResultCode: 1000
+        }
+      };
+      const user = {
+        exceedsUnknownReportsThreshold: sinon.stub().returns(false)
+      };
+      const {success, successModified, unknown} = cron._resolveCodes(event, user);
+      expect(success).to.equal(false);
+      expect(unknown).to.equal(true);
+      expect(successModified).to.equal(false);
     });
 
   });
@@ -108,7 +233,7 @@ describe('StorageEventsCron', function() {
 
     it('will log error from unlock', function() {
 
-    }):
+    });
 
   });
 
