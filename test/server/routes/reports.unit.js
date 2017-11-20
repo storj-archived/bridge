@@ -46,7 +46,7 @@ describe('ReportsRouter', function() {
         if (err) {
           return done(err);
         }
-        expect(bodyParser.callCount).to.equal(1);
+        expect(bodyParser.callCount).to.equal(0);
         expect(userAuth.callCount).to.equal(1);
         done();
       });
@@ -65,7 +65,6 @@ describe('ReportsRouter', function() {
         eventEmitter: EventEmitter
       });
       sandbox.stub(farmerMiddleware, 'authFarmer').callsArgWith(2, null);
-      sandbox.stub(reportsRouter, 'farmerRawBodyMiddleware').callsArgWith(2, null);
       reportsRouter.authMiddleware(request, response, function(err) {
         if (err) {
           return done(err);
