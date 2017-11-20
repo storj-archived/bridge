@@ -10,6 +10,7 @@
   "bin": {
     "storj-bridge": "bin/storj-bridge.js",
     "storj-monitor": "bin/storj-monitor.js",
+    "storj-cron": "bin/storj-cron.js",
     "storj-renew": "bin/storj-contract-renew.js"
   },
   "scripts": {
