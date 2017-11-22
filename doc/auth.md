@@ -54,7 +54,7 @@ In addition you must supply the public key for verifying the signature in the
 Bridge will first lookup the user account to which the supplied public key is
 registered and then use it to verify the signature.
 
-### OpenSSL example
+### OpenSSL Example
 
 Create ECDSA private key and print out public key
 
