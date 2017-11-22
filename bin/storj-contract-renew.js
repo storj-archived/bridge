@@ -167,7 +167,7 @@ function updateContractRecord(contact, contract, next) {
 }
 
 function renewContract([contact, contract], next) {
-  network.renewContract(contract, contact, (err) => {
+  network.renewContract(contact, contract, (err) => {
     if (err) {
       counter.errors.push({ contract, contact, error: err.message });
       counter.errored++;
