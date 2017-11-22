@@ -6,7 +6,7 @@
 [![NPM](https://img.shields.io/npm/v/storj-bridge.svg?style=flat-square)](https://www.npmjs.com/package/storj-bridge)
 [![GitHub license](https://img.shields.io/badge/license-AGPLv3-blue.svg?style=flat-square)](https://raw.githubusercontent.com/Storj/data-api/master/LICENSE)
 
-Access the [Storj](http://storj.io) network via simple REST API.
+Access the [Storj](https://storj.io) network via simple REST API.
 
 Running Your Own Bridge
 -----------------------
@@ -66,7 +66,7 @@ The default configuration can be modified as needed.  It is located at
 %USERPROFILE%\.storj-bridge\config
 ```
 
-Edit `production` in notepad/wordpad. For more information, see [the documentation](http://storj.github.io/bridge).
+Edit `production` in notepad/wordpad. For more information, see [the documentation](https://storj.github.io/bridge/).
 
 License
 -------
@@ -85,7 +85,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Affero General Public License for more details.
 
 You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see http://www.gnu.org/licenses/.
+along with this program.  If not, see https://www.gnu.org/licenses/.
 
 Terms
 -----
