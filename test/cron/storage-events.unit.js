@@ -226,7 +226,7 @@ describe('StorageEventsCron', function() {
     it('save update event status', function(done) {
       const cron = new StorageEventsCron(config);
       const user = {
-        updateUnknownReports: sandbox.stub().callsArgWith(2)
+        updateUnknownReports: sandbox.stub().callsArgWith(3)
       };
       cron.storage = {
         models: {
@@ -260,7 +260,7 @@ describe('StorageEventsCron', function() {
     it('will handle error from saving event status', function(done) {
       const cron = new StorageEventsCron(config);
       const user = {
-        updateUnknownReports: sandbox.stub().callsArgWith(2)
+        updateUnknownReports: sandbox.stub().callsArgWith(3)
       };
       cron.storage = {
         models: {
@@ -289,10 +289,10 @@ describe('StorageEventsCron', function() {
     });
     it.skip('will give reputation points', function() {
     });
-    it('will update user unknown report rates', function(done) {
+    it('will update user unknown report rates (with storage)', function(done) {
       const cron = new StorageEventsCron(config);
       const user = {
-        updateUnknownReports: sandbox.stub().callsArgWith(2)
+        updateUnknownReports: sandbox.stub().callsArgWith(3)
       };
       cron.storage = {
         models: {
@@ -312,12 +312,49 @@ describe('StorageEventsCron', function() {
         user: 'user@domain.tld',
         timestamp: now,
         success: false,
-        save: sandbox.stub().callsArgWith(0)
+        save: sandbox.stub().callsArgWith(0),
+        storage: 10000
       };
       cron._resolveEvent(event, (err, timestamp) => {
         expect(user.updateUnknownReports.callCount).to.equal(1);
         expect(user.updateUnknownReports.args[0][0]).to.equal(unknown);
         expect(user.updateUnknownReports.args[0][1]).to.equal(now);
+        expect(user.updateUnknownReports.args[0][2]).to.equal(10000);
+        expect(timestamp).to.equal(now);
+        done();
+      });
+    });
+    it('will update user unknown report rates (with bandwidth)', function(done) {
+      const cron = new StorageEventsCron(config);
+      const user = {
+        updateUnknownReports: sandbox.stub().callsArgWith(3)
+      };
+      cron.storage = {
+        models: {
+          User: {
+            findOne: sandbox.stub().callsArgWith(1, null, user)
+          }
+        }
+      };
+      const unknown = false;
+      cron._resolveCodes = sandbox.stub().returns({
+        success: true,
+        successModified: true,
+        unknown: unknown
+      });
+      const now = new Date();
+      const event = {
+        user: 'user@domain.tld',
+        timestamp: now,
+        success: false,
+        save: sandbox.stub().callsArgWith(0),
+        downloadBandwidth: 11000
+      };
+      cron._resolveEvent(event, (err, timestamp) => {
+        expect(user.updateUnknownReports.callCount).to.equal(1);
+        expect(user.updateUnknownReports.args[0][0]).to.equal(unknown);
+        expect(user.updateUnknownReports.args[0][1]).to.equal(now);
+        expect(user.updateUnknownReports.args[0][2]).to.equal(11000);
         expect(timestamp).to.equal(now);
         done();
       });
@@ -325,7 +362,7 @@ describe('StorageEventsCron', function() {
     it('will handle error from user unknown report update', function(done) {
       const cron = new StorageEventsCron(config);
       const user = {
-        updateUnknownReports: sandbox.stub().callsArgWith(2, new Error('test'))
+        updateUnknownReports: sandbox.stub().callsArgWith(3, new Error('test'))
       };
       cron.storage = {
         models: {
