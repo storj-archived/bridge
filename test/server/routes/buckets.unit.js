@@ -159,6 +159,7 @@ describe('BucketsRouter', function() {
         eventEmitter: EventEmitter
       });
       let chain = {};
+      chain.sort = sinon.stub().returns(chain);
       chain.limit = sinon.stub().returns(chain);
       chain.exec = sinon.stub().callsArgWith(0, new Error('Panic!'));
       var _bucketFind = sinon.stub(
@@ -183,6 +184,7 @@ describe('BucketsRouter', function() {
         eventEmitter: EventEmitter
       });
       let chain = {};
+      chain.sort = sinon.stub().returns(chain);
       chain.limit = sinon.stub().returns(chain);
       chain.exec = sinon.stub().callsArgWith(0, null, [
         new bucketsRouter.storage.models.Bucket({
@@ -217,6 +219,7 @@ describe('BucketsRouter', function() {
         eventEmitter: EventEmitter
       });
       let chain = {};
+      chain.sort = sinon.stub().returns(chain);
       chain.limit = sinon.stub().returns(chain);
       chain.exec = sinon.stub().callsArgWith(0, null, [
         new bucketsRouter.storage.models.Bucket({
@@ -3849,6 +3852,7 @@ describe('BucketsRouter', function() {
         objectMode: true
       });
       const find = {};
+      find.sort = sandbox.stub().returns(find);
       find.populate = sandbox.stub().returns(find);
       find.limit = sandbox.stub().returns(find);
       find.cursor = sandbox.stub().returns(cursor);
@@ -3901,6 +3905,7 @@ describe('BucketsRouter', function() {
         objectMode: true
       });
       const find = {};
+      find.sort = sandbox.stub().returns(find);
       find.populate = sandbox.stub().returns(find);
       find.limit = sandbox.stub().returns(find);
       find.cursor = sandbox.stub().returns(cursor);
