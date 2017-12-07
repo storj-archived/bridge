@@ -537,6 +537,40 @@ describe('FramesRouter', function() {
 
     });
 
+    it('it should reject shard sizes over the max', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'PUT',
+        url: '/frames/frameid',
+        params: {
+          frame: 'frameid'
+        },
+        body: {
+          index: 0,
+          hash: storj.utils.rmd160('data'),
+          size: 4294967297,
+          challenges: auditStream.getPrivateRecord().challenges,
+          tree: auditStream.getPublicRecord()
+        }
+      });
+      var testUser = new framesRouter.storage.models.User({
+        _id: 'testuser@storj.io',
+        hashpass: storj.utils.sha256('password')
+      });
+      testUser.recordUploadBytes = sandbox.stub().callsArg(1);
+      testUser.isUploadRateLimited = sandbox.stub().returns(false);
+      request.user = testUser;
+
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      framesRouter.addShardToFrame(request, response, function(err) {
+        expect(err.message).to.match(/Maximum shard size/);
+        expect(err).to.be.instanceOf(errors.BadRequestError);
+        done();
+      });
+    });
+
     it('should return internal error if frame query fails', function(done) {
       var request = httpMocks.createRequest({
         method: 'PUT',
