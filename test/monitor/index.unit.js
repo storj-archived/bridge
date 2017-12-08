@@ -907,19 +907,19 @@ describe('Monitor', function() {
         address: '127.0.0.1',
         port: 1337,
         recordTimeoutFailure: recordTimeoutFailure,
-        timeoutRate: 0.05
+        timeoutRate: 0.159
       }, {
         nodeID: 'dd985ca22f19858257b3328a56f8f4aabee1d4a1',
         address: '127.0.0.1',
         port: 1337,
         recordTimeoutFailure: recordTimeoutFailure,
-        timeoutRate: 0.02
+        timeoutRate: 0.12
       }, {
         nodeID: '6ae62b18fc9d20139c933e66f3b2fd2f8d04c20d',
         address: '127.0.0.1',
         port: 1337,
         recordTimeoutFailure: recordTimeoutFailure,
-        timeoutRate: 0.03
+        timeoutRate: 0.13
       }];
 
       const exec = sandbox.stub().callsArgWith(0, null, contacts);
@@ -948,7 +948,7 @@ describe('Monitor', function() {
       expect(find.callCount).to.equal(1);
       expect(find.args[0][0]).to.eql({
         $or: [
-          { timeoutRate: { $lt: 0.04 } },
+          { timeoutRate: { $lt: 0.1585 } },
           { timeoutRate: { $exists: false } }
         ]
       });
@@ -985,7 +985,7 @@ describe('Monitor', function() {
       expect(log.warn.args[0][1])
         .to.equal('7b8b30132e930c7827ee47efebfb197d6a3246d4');
       expect(log.warn.args[0][2])
-        .to.equal(0.05);
+        .to.equal(0.159);
       expect(monitor._replicateFarmer.callCount).to.equal(1);
       expect(monitor._replicateFarmer.args[0][0])
         .to.be.instanceOf(storj.Contact);
