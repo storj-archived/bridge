@@ -78,7 +78,7 @@ describe('Limiter', () => {
   });
 
   it('should log json with url and ip', function(done) {
-    sandbox.stub(log, 'info');
+    sandbox.stub(log, 'warn');
     const defaults = limiter.DEFAULTS();
     const req = {
       method: 'PUT',
@@ -94,11 +94,11 @@ describe('Limiter', () => {
     let t = '{"rate_limited": {"url": "%s", "method": "%s", "ip": "%s"}}';
     defaults.onRateLimited(req, res, (err) => {
       expect(err).to.be.instanceOf(errors.RateLimited);
-      expect(log.info.callCount).to.equal(1);
-      expect(log.info.args[0][0]).to.eql(t);
-      expect(log.info.args[0][1]).to.eql('/frames/:frame_id/');
-      expect(log.info.args[0][2]).to.eql('PUT');
-      expect(log.info.args[0][3]).to.eql('127.0.0.2');
+      expect(log.warn.callCount).to.equal(1);
+      expect(log.warn.args[0][0]).to.eql(t);
+      expect(log.warn.args[0][1]).to.eql('/frames/:frame_id/');
+      expect(log.warn.args[0][2]).to.eql('PUT');
+      expect(log.warn.args[0][3]).to.eql('127.0.0.2');
       done();
     });
   });
@@ -116,7 +116,7 @@ describe('Limiter', () => {
     const next = function() {
       return errors.RateLimited('Too Many Requests');
     };
-    const _log = sandbox.spy(log, 'info');
+    const _log = sandbox.spy(log, 'warn');
     const limit = limiter.DEFAULTS().onRateLimited(req, res, next);
 
     expect(limit.statusCode).to.equal(429);
