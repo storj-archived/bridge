@@ -910,7 +910,7 @@ describe('Monitor', function() {
       const monitor = new Monitor(config);
       expect(function() {
         monitor._randomTime(300000, 600000);
-      }).to.throw('Assertion');
+      }).to.throw('maxInterval is expected to be greater than minInterval');
     });
 
   });

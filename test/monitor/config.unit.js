@@ -103,7 +103,7 @@ describe('Monitor Config', function() {
     it('will throw if not an absolute config path', function() {
       expect(function() {
         MonitorConfig.getPaths('tmp/storj-monitor-test.json');
-      }).to.throw('Assertion');
+      }).to.throw('confpath is expected to be absolute');
     });
 
     it('will get the directory name from path', function() {
