@@ -1,4 +1,4 @@
-[![Storj Bridge](https://nodei.co/npm/storj-bridge.png?downloads=true)](http://storj.github.io/bridge)
+[![Storj Bridge](https://nodei.co/npm/storj-bridge.png?downloads=true)](https://storj.github.io/bridge)
 =======================================================================================================
 
 [![Build Status](https://img.shields.io/travis/Storj/bridge.svg?style=flat-square)](https://travis-ci.org/Storj/bridge)
