@@ -92,6 +92,64 @@ describe('ContactsRouter', function() {
 
   });
 
+  describe('#patchContactByNodeID', function() {
+    const sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
+
+    it('will send back a response on success', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'PATCH',
+        url: '/contacts/somenodeid',
+        body: {
+          address: '127.0.0.1',
+          port: 9000,
+          spaceAvailable: false
+        }
+      });
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      const contact = {
+        nodeID: '13a01f6d2cda65982e452c841690ee32e6f88fb6',
+        address: '127.0.0.1',
+        port: 9000,
+        spaceAvailable: false
+      };
+
+      const findOneAndUpdate = sandbox.stub(
+        contactsRouter.storage.models.Contact,
+        'findOneAndUpdate'
+      ).callsArgWith(3, null, contact);
+
+      sandbox.stub(contactsRouter, 'setDefaultResponseTime');
+      sandbox.stub(contactsRouter, 'setDefaultReputation');
+
+      response.on('end', function() {
+        var result = response._getData();
+        expect(result).to.eql({
+          nodeID: '13a01f6d2cda65982e452c841690ee32e6f88fb6',
+          address: '127.0.0.1',
+          port: 9000,
+          spaceAvailable: false
+        });
+        expect(findOneAndUpdate.callCount).to.equal(1);
+        expect(findOneAndUpdate.args[0][1]).to.eql({
+          $set: {
+            address: '127.0.0.1',
+            port: 9000,
+            spaceAvailable: false
+          }
+        });
+        expect(contactsRouter.setDefaultResponseTime.callCount).to.equal(1);
+        expect(contactsRouter.setDefaultReputation.callCount).to.equal(1);
+        done();
+      });
+
+      contactsRouter.patchContactByNodeID(request, response, function() {});
+    });
+  });
+
   describe('#getContactByNodeID', function() {
 
     it('should return internal error if query fails', function(done) {
