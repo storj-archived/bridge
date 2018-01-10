@@ -92,4 +92,38 @@ describe('module:utils', function() {
     });
   });
 
+  describe('@sortByReputation', function() {
+    it('will sort with best reputation at the top', function() {
+      const mirrors = [{
+        contact: { reputation: 100 },
+      }, {
+        contact: { reputation: 1287 },
+      }, {
+        contact: { reputation: 5000 },
+      }, {
+        contact: { reputation: 4500 },
+      }, {
+        contact: { },
+      }, {
+        contact: { reputation: 300 },
+      }];
+
+      mirrors.sort(utils.sortByReputation);
+
+      expect(mirrors).to.eql([{
+        contact: { reputation: 5000 },
+      }, {
+        contact: { reputation: 4500 },
+      }, {
+        contact: { reputation: 1287 },
+      }, {
+        contact: { reputation: 300 },
+      }, {
+        contact: { reputation: 100 },
+      }, {
+        contact: { },
+      }]);
+    });
+  });
+
 });

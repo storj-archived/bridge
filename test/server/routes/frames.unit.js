@@ -1296,7 +1296,7 @@ describe('FramesRouter', function() {
       ).callsArgWith(1, null, frame0);
 
       const farmer = {
-        responseTime: 100,
+        reputation: 5000,
         nodeID: storj.utils.rmd160('farmer'),
         address: '127.0.0.1',
         port: 8080
@@ -1308,7 +1308,7 @@ describe('FramesRouter', function() {
 
       const mirrors = [
         {
-          contact: { responseTime: 10100 },
+          contact: { reputation: 1000  },
           isEstablished: false
         },
         {
@@ -1323,15 +1323,15 @@ describe('FramesRouter', function() {
         },
         { },
         {
-          contact: { responseTime: 200 },
+          contact: { reputation: 4000 },
           isEstablished: true
         },
         {
-          contact: { responseTime: 4100 },
+          contact: { responseTime: 2000 },
           isEstablished: true
         },
         {
-          contact: { responseTime: 2100 },
+          contact: { reputation: 3000 },
           isEstablished: false
         }
       ];
