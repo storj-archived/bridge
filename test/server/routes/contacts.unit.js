@@ -111,6 +111,7 @@ describe('ContactsRouter', function() {
         eventEmitter: EventEmitter
       });
       const contact = {
+        nodeID: '13a01f6d2cda65982e452c841690ee32e6f88fb6',
         address: '127.0.0.1',
         port: 9000,
         spaceAvailable: false
@@ -126,6 +127,12 @@ describe('ContactsRouter', function() {
 
       response.on('end', function() {
         var result = response._getData();
+        expect(result).to.eql({
+          nodeID: '13a01f6d2cda65982e452c841690ee32e6f88fb6',
+          address: '127.0.0.1',
+          port: 9000,
+          spaceAvailable: false
+        });
         expect(findOneAndUpdate.callCount).to.equal(1);
         expect(findOneAndUpdate.args[0][1]).to.eql({
           $set: {
