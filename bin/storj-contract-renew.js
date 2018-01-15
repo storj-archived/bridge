@@ -146,9 +146,9 @@ function getParentBucketEntries(frames, next) {
   });
 }
 
-function updateContractRecord(contact, contract, next) {
+function updateContractRecord(contact, updatedContract, next) {
   storage.models.Shard.findOne({
-    hash: contract.get('data_hash')
+    hash: updatedContract.get('data_hash')
   }, function(err, shard) {
     if (err) {
       return next(err);
@@ -159,7 +159,7 @@ function updateContractRecord(contact, contract, next) {
         continue;
       }
 
-      contract.contract = contract.toObject();
+      contract.contract = updatedContract.toObject();
     }
 
     shard.save(next);
@@ -167,9 +167,9 @@ function updateContractRecord(contact, contract, next) {
 }
 
 function renewContract([contact, contract], next) {
-  network.renewContract(contract, contact, (err) => {
+  network.renewContract(contact, contract, (err) => {
     if (err) {
-      counter.errors.push({ contract, contact, error: err.message });
+      counter.errors.push({ contact, contract, error: err.message });
       counter.errored++;
       next();
     } else {
