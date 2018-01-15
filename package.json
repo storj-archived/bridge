@@ -1,6 +1,6 @@
 {
   "name": "storj-bridge",
-  "version": "7.4.0",
+  "version": "7.4.1",
   "description": "Access the Storj network using a simple REST API.",
   "main": "index.js",
   "directories": {
@@ -81,7 +81,7 @@
     "scrypt": "^6.0.3",
     "secp256k1": "^3.3.0",
     "storj-analytics": "^1.0.0",
-    "storj-complex": "^7.0.0",
+    "storj-complex": "^7.5.0",
     "storj-lib": "^8.0.0",
     "storj-mongodb-adapter": "^9.0.0",
     "storj-service-error-types": "^1.2.0",
