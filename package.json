@@ -73,7 +73,6 @@
     "knuth-shuffle": "^1.0.1",
     "merge": "^1.2.0",
     "mime-db": "^1.22.0",
-    "mongoose": "^5.0.0-rc2",
     "ms": "^0.7.1",
     "nodemailer": "^2.0.0",
     "rc": "^1.1.6",
