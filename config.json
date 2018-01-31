@@ -1,0 +1,11 @@
+{
+  "mailer": {
+    "host": "smtp.gmail.com",
+    "port": 465,
+    "auth": {
+      "user": "storjtestuser@gmail.com",
+      "pass": "test pass word"
+    },
+    "from": "storjtestuser@gmail.com"
+  }
+}
