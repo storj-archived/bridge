@@ -855,30 +855,6 @@ describe('UsersRouter', function() {
   });
 
   describe('#createPasswordResetToken', function() {
-
-    it('should bad request error if invalid password', function(done) {
-      var request = httpMocks.createRequest({
-        method: 'PATCH',
-        url: '/users/gordon@storj.io',
-        params: {
-          id: 'gordon@storj.io'
-        },
-        body: {
-          password: 'badpassword'
-        }
-      });
-      var response = httpMocks.createResponse({
-        req: request,
-        eventEmitter: EventEmitter
-      });
-      usersRouter.createPasswordResetToken(request, response, function(err) {
-        expect(err.message).to.equal(
-          'Password must be hex encoded SHA-256 hash'
-        );
-        done();
-      });
-    });
-
     it('should internal error if query fails', function(done) {
       var request = httpMocks.createRequest({
         method: 'PATCH',
@@ -962,7 +938,7 @@ describe('UsersRouter', function() {
       });
     });
 
-    it('should internal error if mailer fails', function(done) {
+    it.only('should internal error if mailer fails', function(done) {
       var request = httpMocks.createRequest({
         method: 'PATCH',
         url: '/users/gordon@storj.io',
