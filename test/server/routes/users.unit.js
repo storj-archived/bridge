@@ -855,30 +855,6 @@ describe('UsersRouter', function() {
   });
 
   describe('#createPasswordResetToken', function() {
-
-    it('should bad request error if invalid password', function(done) {
-      var request = httpMocks.createRequest({
-        method: 'PATCH',
-        url: '/users/gordon@storj.io',
-        params: {
-          id: 'gordon@storj.io'
-        },
-        body: {
-          password: 'badpassword'
-        }
-      });
-      var response = httpMocks.createResponse({
-        req: request,
-        eventEmitter: EventEmitter
-      });
-      usersRouter.createPasswordResetToken(request, response, function(err) {
-        expect(err.message).to.equal(
-          'Password must be hex encoded SHA-256 hash'
-        );
-        done();
-      });
-    });
-
     it('should internal error if query fails', function(done) {
       var request = httpMocks.createRequest({
         method: 'PATCH',
@@ -1034,11 +1010,12 @@ describe('UsersRouter', function() {
   describe('#confirmPasswordReset', function() {
 
     it('should return error if invalid token', function(done) {
+      const token = crypto.randomBytes(256).toString('hex');
       var request = httpMocks.createRequest({
-        method: 'GET',
-        url: '/resets/badtoken',
-        params: {
-          token: 'badtoken'
+        method: 'POST',
+        url: `/resets/${token}`,
+        body: {
+          password: storj.utils.sha256('password')
         }
       });
       var response = httpMocks.createResponse({
@@ -1068,46 +1045,16 @@ describe('UsersRouter', function() {
       });
     });
 
-    it('should internal error if query fails', function(done) {
-      var request = httpMocks.createRequest({
-        method: 'GET',
-        url: '/resets/badtoken',
-        params: {
-          token: crypto.randomBytes(256).toString('hex')
-        }
-      });
-      var response = httpMocks.createResponse({
-        req: request,
-        eventEmitter: EventEmitter
-      });
-      var _userCount = sinon.stub(
-        usersRouter.storage.models.User,
-        'count'
-      ).callsArgWith(1, null, 1);
-      var _userFindOne = sinon.stub(
-        usersRouter.storage.models.User,
-        'findOne'
-      ).returns({
-        skip: function() {
-          return this;
-        },
-        exec: sinon.stub().callsArg(0)
-      });
-      _userFindOne.onCall(0).callsArgWith(1, new Error('Panic!'));
-      usersRouter.confirmPasswordReset(request, response, function(err) {
-        _userCount.restore();
-        _userFindOne.restore();
-        expect(err.message).to.equal('Panic!');
-        done();
-      });
-    });
-
     it('should not found error if user not found', function(done) {
+      const token = crypto.randomBytes(256).toString('hex');
       var request = httpMocks.createRequest({
-        method: 'GET',
-        url: '/resets/badtoken',
+        method: 'POST',
+        url: `/resets/${token}`,
+        body: {
+          password: storj.utils.sha256('password')
+        },
         params: {
-          token: crypto.randomBytes(256).toString('hex')
+          token: token
         }
       });
       var response = httpMocks.createResponse({
@@ -1140,6 +1087,9 @@ describe('UsersRouter', function() {
       var request = httpMocks.createRequest({
         method: 'GET',
         url: '/resets/badtoken',
+        body: {
+          password: storj.utils.sha256('password')
+        },
         params: {
           token: crypto.randomBytes(256).toString('hex')
         }
@@ -1177,13 +1127,16 @@ describe('UsersRouter', function() {
 
     it('should redirect on success if specified', function(done) {
       var request = httpMocks.createRequest({
-        method: 'GET',
+        method: 'POST',
         url: '/resets/badtoken',
         params: {
           token: crypto.randomBytes(256).toString('hex')
         },
         query: {
           redirect: 'someredirecturl'
+        },
+        body: {
+          password: storj.utils.sha256('password')
         }
       });
       var response = httpMocks.createResponse({
@@ -1217,10 +1170,13 @@ describe('UsersRouter', function() {
 
     it('should send back user on success', function(done) {
       var request = httpMocks.createRequest({
-        method: 'GET',
+        method: 'POST',
         url: '/resets/badtoken',
         params: {
           token: crypto.randomBytes(256).toString('hex')
+        },
+        body: {
+          password: storj.utils.sha256('password')
         }
       });
       var response = httpMocks.createResponse({
