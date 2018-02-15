@@ -33,7 +33,11 @@ describe('ContractRenewalJob', function() {
   let storage, documents, landlord;
 
   before(function(done) {
-    landlord = http.createServer((req, res) => res.end('{}')).listen(
+    landlord = http.createServer((req, res) => {
+      return res.end(JSON.stringify({
+        result: [null]
+      }));
+    }).listen(
       url.parse(config.complex.rpcUrl).port
     );
     documents = [];
