@@ -490,8 +490,9 @@ describe('BucketsRouter', function() {
         req: request,
         eventEmitter: EventEmitter
       });
-      var error = new Error('Name already used by another bucket');
-      error.code = 11000;
+      var error = new errors.ConflictError(
+        'Name already used by another bucket'
+      );
       var _bucketCreate = sinon.stub(
         bucketsRouter.storage.models.Bucket,
         'create'
