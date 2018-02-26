@@ -479,6 +479,32 @@ describe('BucketsRouter', function() {
       });
     });
 
+    it('should conflict error if name exists', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'POST',
+        url: '/buckets',
+        body: {}
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var error = new errors.ConflictError(
+        'Name already used by another bucket'
+      );
+      var _bucketCreate = sinon.stub(
+        bucketsRouter.storage.models.Bucket,
+        'create'
+      ).callsArgWith(2, error);
+      bucketsRouter.createBucket(request, response, function(err) {
+        _bucketCreate.restore();
+        expect(err).to.be.instanceOf(errors.ConflictError);
+        expect(err.message).to.equal('Name already used by another bucket');
+        done();
+      });
+    });
+
     it('should return the created bucket', function(done) {
       var request = httpMocks.createRequest({
         method: 'POST',

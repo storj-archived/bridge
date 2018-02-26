@@ -1,6 +1,6 @@
 {
   "name": "storj-bridge",
-  "version": "7.4.1",
+  "version": "7.6.0",
   "description": "Access the Storj network using a simple REST API.",
   "main": "index.js",
   "directories": {
@@ -17,7 +17,7 @@
     "coverage": "STORJ_ALLOW_LOOPBACK=1 NODE_ENV=test ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- --recursive",
     "integration": "NODE_ENV=test _mocha --recursive test-integration/**",
     "linter": "./node_modules/.bin/jshint --config .jshintrc ./index.js ./lib ./test",
-    "test": "npm run testsuite && npm run linter",
+    "test": "npm run testsuite && npm run integration && npm run linter",
     "dev": "NODE_ENV=development nodemon bin/storj-bridge.js",
     "make-docs": "./node_modules/.bin/jsdoc index.js lib -r -R README.md -u ./doc -c .jsdoc.json --verbose -d ./jsdoc",
     "publish-docs": "gh-pages -d jsdoc --repo git@github.com:Storj/bridge.git",
@@ -84,10 +84,10 @@
     "storj-complex": "^7.5.0",
     "storj-lib": "^8.0.0",
     "storj-mongodb-adapter": "^9.0.0",
-    "storj-service-error-types": "^1.2.0",
+    "storj-service-error-types": "^1.4.0",
     "storj-service-mailer": "^1.0.0",
-    "storj-service-middleware": "^1.3.1",
-    "storj-service-storage-models": "^10.5.0",
+    "storj-service-middleware": "^1.3.3",
+    "storj-service-storage-models": "^10.6.0",
     "through": "^2.3.8"
   }
 }
