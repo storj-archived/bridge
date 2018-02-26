@@ -15,6 +15,9 @@ const ms = require('ms');
 
 describe('ContractRenewalJob', function() {
 
+  // Increase the timeout for these tests
+  this.timeout(20000);
+
   const NOW = Date.now();
 
   const testConfigPath = path.join(
