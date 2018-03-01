@@ -94,6 +94,7 @@ describe('ContactsRouter', function() {
 
   describe('#patchContactByNodeID', function() {
     const sandbox = sinon.sandbox.create();
+    sandbox.useFakeTimers(new Date(0).getTime());
     afterEach(() => sandbox.restore());
 
     it('will send back a response on success', function(done) {
@@ -137,6 +138,7 @@ describe('ContactsRouter', function() {
         expect(findOneAndUpdate.args[0][1]).to.eql({
           $set: {
             address: '127.0.0.1',
+            lastSeen: 0,
             port: 9000,
             spaceAvailable: false
           }
