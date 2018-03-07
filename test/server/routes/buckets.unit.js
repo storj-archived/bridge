@@ -828,6 +828,7 @@ describe('BucketsRouter', function() {
       ).callsArgWith(1, new Error('Failed to lookup bucket'));
       bucketsRouter.updateBucketById(request, response, function(err) {
         _bucketFindOne.restore();
+        expect(err).to.be.instanceOf(errors.InternalError);
         expect(err.message).to.equal('Failed to lookup bucket');
         done();
       });
@@ -852,7 +853,40 @@ describe('BucketsRouter', function() {
       ).callsArgWith(1, null, null);
       bucketsRouter.updateBucketById(request, response, function(err) {
         _bucketFindOne.restore();
+        expect(err).to.be.instanceOf(errors.NotFoundError);
         expect(err.message).to.equal('Bucket not found');
+        done();
+      });
+    });
+
+    it('should conflict error if bucket name exists', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'PATCH',
+        url: '/buckets/:bucket_id',
+        body: {
+          name: 'Some Bucket'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var bucket = new bucketsRouter.storage.models.Bucket({
+        user: someUser._id
+      });
+      var _bucketFindOne = sinon.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, bucket);
+      var error = new Error('Duplicated bucket name');
+      error.code = 11000;
+      var _bucketSave = sinon.stub(bucket, 'save').callsArgWith(0, error);
+      bucketsRouter.updateBucketById(request, response, function(err) {
+        _bucketFindOne.restore();
+        _bucketSave.restore();
+        expect(err).to.be.instanceOf(errors.ConflictError);
+        expect(err.message).to.equal('Name already used by another bucket');
         done();
       });
     });
@@ -911,6 +945,7 @@ describe('BucketsRouter', function() {
       bucketsRouter.updateBucketById(request, response, function(err) {
         _bucketFindOne.restore();
         _bucketSave.restore();
+        expect(err).to.be.instanceOf(errors.InternalError);
         expect(err.message).to.equal('Failed to save bucket');
         done();
       });
@@ -4547,6 +4582,290 @@ it('should throw error on storage event save failure', function(done) {
         done();
       });
       bucketsRouter.getFileInfo(request, response);
+    });
+
+  });
+
+  describe('#updateFileById', function() {
+
+    it('should internal error if bucket query fails', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'PATCH',
+        url: '/buckets/:bucket_id/files/:file_id',
+        body: {
+          filename: 'Some File'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _bucketFindOne = sinon.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, new Error('Failed to lookup bucket'));
+      bucketsRouter.updateFileById(request, response, function(err) {
+        _bucketFindOne.restore();
+        expect(err).to.be.instanceOf(errors.InternalError);
+        expect(err.message).to.equal('Failed to lookup bucket');
+        done();
+      });
+    });
+    
+    it('should not found error if bucket not found', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'PATCH',
+        url: '/buckets/:bucket_id/files/:file_id',
+        body: {
+          filename: 'Some File'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _bucketFindOne = sinon.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, null);
+      bucketsRouter.updateFileById(request, response, function(err) {
+        _bucketFindOne.restore();
+        expect(err).to.be.instanceOf(errors.NotFoundError);
+        expect(err.message).to.equal('Bucket not found');
+        done();
+      });
+    });
+    
+    it('should internal error if bucket entry query fails', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'PATCH',
+        url: '/buckets/:bucket_id/files/:file_id',
+        body: {
+          filename: 'Some File'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _bucketFindOne = sinon.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, {});
+      var _bucketEntryFindOne = sinon.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'findOne'
+      ).returns({
+        populate: function() {
+          return this;
+        },
+        exec: sinon.stub().callsArgWith(0, new Error('Failed to lookup bucket entry'))
+      });
+      bucketsRouter.updateFileById(request, response, function(err) {
+        _bucketFindOne.restore();
+        _bucketEntryFindOne.restore();
+        expect(err).to.be.instanceOf(errors.InternalError);
+        expect(err.message).to.equal('Failed to lookup bucket entry');
+        done();
+      });
+    });
+
+    it('should not found error if bucket entry not found', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'PATCH',
+        url: '/buckets/:bucket_id/files/:file_id',
+        body: {
+          filename: 'Some File'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _bucketFindOne = sinon.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, {});
+      var _bucketEntryFindOne = sinon.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'findOne'
+      ).returns({
+        populate: function() {
+          return this;
+        },
+        exec: sinon.stub().callsArgWith(0, null, null)
+      });
+      bucketsRouter.updateFileById(request, response, function(err) {
+        _bucketFindOne.restore();
+        _bucketEntryFindOne.restore();
+        expect(err).to.be.instanceOf(errors.NotFoundError);
+        expect(err.message).to.equal('File not found');
+        done();
+      });
+    });
+
+    it('should conflict error if bucket entry name exists', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'PATCH',
+        url: '/buckets/:bucket_id/files/:file_id',
+        body: {
+          filename: 'Some File'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _bucketFindOne = sinon.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, {});
+      var entry = new bucketsRouter.storage.models.BucketEntry({
+        index: 'some-valid-index'
+      });
+      var _bucketEntryFindOne = sinon.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'findOne'
+      ).returns({
+        populate: function() {
+          return this;
+        },
+        exec: sinon.stub().callsArgWith(0, null, entry)
+      });
+      var error = new Error('Duplicated bucket entry name');
+      error.code = 11000;
+      var _entrySave = sinon.stub(entry, 'save').callsArgWith(0, error);
+      bucketsRouter.updateFileById(request, response, function(err) {
+        _bucketFindOne.restore();
+        _bucketEntryFindOne.restore();
+        _entrySave.restore();
+        expect(err).to.be.instanceOf(errors.ConflictError);
+        expect(err.message).to.equal('Name already used by another file');
+        done();
+      });
+    });
+
+    it('should internal error if save fails', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'PATCH',
+        url: '/buckets/:bucket_id/files/:file_id',
+        body: {
+          filename: 'Some File'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _bucketFindOne = sinon.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, {});
+      var entry = new bucketsRouter.storage.models.BucketEntry({
+        index: 'some-valid-index'
+      });
+      var _bucketEntryFindOne = sinon.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'findOne'
+      ).returns({
+        populate: function() {
+          return this;
+        },
+        exec: sinon.stub().callsArgWith(0, null, entry)
+      });
+      var _entrySave = sinon.stub(entry, 'save').callsArgWith(
+        0,
+        new Error('Failed to save bucket entry')
+      );
+      bucketsRouter.updateFileById(request, response, function(err) {
+        _bucketFindOne.restore();
+        _bucketEntryFindOne.restore();
+        _entrySave.restore();
+        expect(err).to.be.instanceOf(errors.InternalError);
+        expect(err.message).to.equal('Failed to save bucket entry');
+        done();
+      });
+    });
+
+    it('should unprocessable entity error if no index', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'PATCH',
+        url: '/buckets/:bucket_id/files/:file_id',
+        body: {
+          filename: 'Some File'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _bucketFindOne = sinon.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, {});
+      var _bucketEntryFindOne = sinon.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'findOne'
+      ).returns({
+        populate: function() {
+          return this;
+        },
+        exec: sinon.stub().callsArgWith(0, null, {})
+      });
+      bucketsRouter.updateFileById(request, response, function(err) {
+        _bucketFindOne.restore();
+        _bucketEntryFindOne.restore();
+        expect(err).to.be.instanceOf(errors.UnprocessableEntityError);
+        expect(err.message).to.equal('Cannot rename files with no index');
+        done();
+      });
+    });
+
+    it('should return bucket entry if success', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'PATCH',
+        url: '/buckets/:bucket_id/files/:file_id',
+        body: {
+          filename: 'Some File'
+        }
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var _bucketFindOne = sinon.stub(
+        bucketsRouter.storage.models.Bucket,
+        'findOne'
+      ).callsArgWith(1, null, {});
+      var entry = new bucketsRouter.storage.models.BucketEntry({
+        index: 'some-valid-index'
+      });
+      var _bucketEntryFindOne = sinon.stub(
+        bucketsRouter.storage.models.BucketEntry,
+        'findOne'
+      ).returns({
+        populate: function() {
+          return this;
+        },
+        exec: sinon.stub().callsArgWith(0, null, entry)
+      });
+      var _entrySave = sinon.stub(entry, 'save').callsArgWith(0);
+      response.on('end', function() {
+        _bucketFindOne.restore();
+        _bucketEntryFindOne.restore();
+        _entrySave.restore();
+        expect(response._getData().filename).to.equal('Some File');
+        done();
+      });
+      bucketsRouter.updateFileById(request, response);
     });
 
   });
