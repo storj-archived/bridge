@@ -1629,6 +1629,97 @@
           }
         }
       },
+      "patch": {
+        "tags": ["buckets"],
+        "security": [
+          { "basic": [] },
+          { "ecdsa public key": [] },
+          { "ecdsa signature": [] }
+        ],
+        "summary": "Updates the file with the given properties",
+        "parameters": [
+          {
+            "name": "id",
+            "type": "string",
+            "in": "path",
+            "description": "Unique ID of the bucket for the request",
+            "required": true
+          },
+          {
+            "name": "file_id",
+            "type": "string",
+            "in": "path",
+            "description": "Unique ID of the file to update",
+            "required": true
+          },
+          {
+            "name": "file",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Name of the bucket",
+                  "default": "New Bucket"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File successfully updated",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "bucket": {
+                  "type": "string",
+                  "example": "507f1f77bcf86cd799439011"
+                },
+                "mimetype": {
+                  "type": "string",
+                  "example": "video/mpeg"
+                },
+                "filename": {
+                  "type": "string",
+                  "example": "big_buck_bunny.mp4"
+                },
+                "frame": {
+                  "type": "string",
+                  "example": "507f1f77bcf86cd799439191"
+                },
+                "id": {
+                  "type": "string",
+                  "example": "507f1f77bcf86cd799430909"
+                },
+                "size": {
+                  "type": "integer",
+                  "example": 5071076
+                },
+                "created": {
+                  "type": "string",
+                  "description": "The date and time the file was created",
+                  "example": "2017-03-22T19:54:34.146Z"
+                },
+                "hmac": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "example": "sha512"
+                    },
+                    "value": {
+                      "type": "string",
+                      "example": "76573119f4b4ca48272e7399529ddda6aade9be5cb5b4b5060a9972efd50da81c3465ba25791db48e835fda0f0c946362b1d2b9e1f6a878fd04f1ce49e353113"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "delete": {
         "tags": ["buckets"],
         "security": [
