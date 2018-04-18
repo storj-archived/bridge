@@ -240,9 +240,6 @@ describe('ContractRenewalJob', function() {
       );
     }
     exec(command, (err, stdout, stderr) => {
-      console.log('****** ERR: ', err);
-      console.log('****** STDERR: ', stderr);
-      console.log('****** STDOUT: ', stdout);
       if (err) {
         return done(parseStderr(stderr));
       }
