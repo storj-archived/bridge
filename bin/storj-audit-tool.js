@@ -16,11 +16,12 @@ const levelup = require('levelup');
 const leveldown = require('leveldown');
 const logger = require('../lib/logger');
 const readline = require('readline');
+const assert = require('assert');
 
 program
   .version('0.0.1')
 	.option('-c, --config <path_to_config_file>', 'path to the config file')
-	.option('-d, --datadir <path_to_datadir>', 'path to the data directory')
+	.option('-o, --outputdir <path_to_outputdir>', 'path to where shards are saved')
 	.parse(process.argv);
 
 process.stdin.setEncoding('utf8');
@@ -41,7 +42,8 @@ const SHARD_CONCURRENCY = 10;
 const CONTACT_CONCURRENCY = 10;
 const contacts = ['8046d7daaa9f9c18c0dd12ddfa2a0f88edf1b17d'];
 
-const DOWNLOAD_DIR = '/tmp';
+const DOWNLOAD_DIR = program.outputdir;
+assert(path.isAbsolute(DOWNLOAD_DIR), 'outputdir is expected to be absolute path');
 
 const db = levelup(leveldown(path.resolve(DOWNLOAD_DIR, 'statedb')));
 
