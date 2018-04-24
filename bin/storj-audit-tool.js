@@ -14,13 +14,16 @@ const path = require('path');
 const through = require('through');
 const levelup = require('levelup');
 const leveldown = require('leveldown');
+const logger = require('../logger');
 
 program
   .version('0.0.1')
-	.command('command <req> [optional]','command description')
 	.option('-c, --config <path_to_config_file>', 'path to the config file');
 	.option('-d, --datadir <path_to_datadir>', 'path to the data directory');
 	.parse(process.argv);
+
+process.stdin.setEncoding('utf8');
+
 
 const config = new Config(process.env.NODE_ENV || 'develop', program.config,
                             program.datadir);
@@ -30,11 +33,9 @@ const storage = new Storage(mongoUrl, mongoOpts, { logger });
 
 // TODO:
 // - grab contacts from stdin or something; generate set of nodeIDs
-// - add logging
 
 const SHARD_CONCURRENCY = 10;
 const CONTACT_CONCURRENCY = 10;
-const MAX_SHARDS = 10;
 const contacts = ['8046d7daaa9f9c18c0dd12ddfa2a0f88edf1b17d'];
 
 const DOWNLOAD_DIR = '/tmp';
@@ -61,7 +62,7 @@ async.eachLimit(contacts, CONTACT_CONCURRENCY, function(nodeID, done) {
       });
     },
     (next) => {
-      storage.models.Shard.find({
+      const cursor = storage.models.Shard.find({
         'contracts.nodeID': nodeID,
         'contracts.contract.store_end': {
           $gte: Date.now()
@@ -69,48 +70,53 @@ async.eachLimit(contacts, CONTACT_CONCURRENCY, function(nodeID, done) {
         'hash': {
           $gte: crypto.randomBytes(20).toString('hex');
         }
-      }).limit(MAX_SHARDS)
-        .exec( function(err, shards){
-          if (err) {
-            return next(err)
-          }
-          if (!shards || !shards.length) {
-            return next(new Error('no shards found'));
-          }
-          return next(null, shards);
-        });
+      }).cursor()
+      next(null, cursor)
     },
-    (shards, next) => {
+    (cursor, next) => {
       storj.models.Contact.findOne('_id': nodeID, function(err, contact) {
         if (err) {
           return next(err);
         }
         if (!contact) {
-          // add log here - contact not found
           return next(new Error('contact not found'));
         }
         // creating instance of storj.Contact and storj.Contract
         contact = storj.Contact(contact);
         const contract = storj.Contract(shard.contract.filter((contract) => {
-          return contracts.nodeID == nodeID
+          return contracts.nodeID == nodeID;
         })[0]);
-        next(null, shards, contact);
+        next(null, cursor, contact);
       });
     },
-    (shards, contact, next) => {
-      async.eachLimit(shards, SHARD_CONCURRENCY, function(shard, shardDone) {
+    (cursor, contact, next) => {
+      let count = 0;
+      cursor.on('error', next);
+      cursor.on('end', next);
+      cursor.on('data', function(shard) {
+        count++;
+        if (count >= SHARD_CONCURRENCY) {
+          cursor.pause();
+        };
+        function finish(err) {
+          count--;
+          console.error(err);
+          if (count < SHARD_CONCURRENCY) {
+            cursor.resume();
+          }
+        };
         network.getRetrievalPointer(contact, contract, function(err, pointer) {
           if (err || !pointer || !pointer.token) {
-            // log here
+            logger.warn('no token for contact %j and contract %j', contact, contract);
             shardResults[shard.hash] = false;
-            return next();
+            return finish();
           }
           // worry about later:
           // contact that we give to complex client needs to be an instance of storj.contact
           const file = fs.open(getPath(shard.hash), 'w');
           const hash = crypto.createHash('sha256');
           const hasher = through( function(data) {
-            hash.update(data)
+            hash.update(data);
           });
           // piping to hasher then to file as shard data is downloaded
           const shardStream = storj.utils.createShardDownloader(contact, shard.hash, pointer.token).pipe(hasher).pipe(file);
@@ -120,9 +126,9 @@ async.eachLimit(contacts, CONTACT_CONCURRENCY, function(nodeID, done) {
             } else {
               shardResults[shard.hash] = false;
             }
-            next();
+            finish();
           });
-          shardStream.on('error', next);
+          shardStream.on('error', finish);
         });
       }, next);
     },
@@ -131,7 +137,7 @@ async.eachLimit(contacts, CONTACT_CONCURRENCY, function(nodeID, done) {
     }
   ], (err) => {
     if (err) {
-      console.error(err);
+      logger.error(err);
     }
   })
 });
