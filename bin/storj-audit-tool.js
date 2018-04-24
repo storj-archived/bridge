@@ -40,7 +40,6 @@ const storage = new Storage(mongoUrl, mongoOpts, { logger });
 
 const SHARD_CONCURRENCY = 10;
 const CONTACT_CONCURRENCY = 10;
-const contacts = ['8046d7daaa9f9c18c0dd12ddfa2a0f88edf1b17d'];
 
 const DOWNLOAD_DIR = program.outputdir;
 assert(path.isAbsolute(DOWNLOAD_DIR), 'outputdir is expected to be absolute path');
@@ -88,9 +87,11 @@ rl.on('line', function(nodeID) {
           $gte: Date.now()
         },
         'hash': {
+          // querying mongo for a shard hash greater than (but close to) random generated crypto value
           $gte: crypto.randomBytes(20).toString('hex')
         }
-      }).cursor()
+      // for auditing: add `.limit(10)`, or however many,  before `.cursor()`
+      }).limit(10).cursor()
       next(null, cursor)
     },
     (cursor, next) => {
@@ -131,11 +132,9 @@ rl.on('line', function(nodeID) {
             shardResults[shard.hash] = false;
             return finish();
           }
-          // worry about later:
-          // contact that we give to complex client needs to be an instance of storj.contact
           const file = fs.open(getPath(shard.hash), 'w');
           const hash = crypto.createHash('sha256');
-          const hasher = through( function(data) {
+          const hasher = through(function(data) {
             hash.update(data);
           });
           // piping to hasher then to file as shard data is downloaded
