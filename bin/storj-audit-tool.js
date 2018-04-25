@@ -11,7 +11,7 @@ const Storage = require('storj-service-storage-models');
 const complex = require('storj-complex');
 const mkdirp = require('mkdirp');
 const path = require('path');
-const through = require('through');
+const through2 = require('through2');
 const levelup = require('levelup');
 const leveldown = require('leveldown');
 const logger = require('../lib/logger');
@@ -46,30 +46,41 @@ assert(path.isAbsolute(DOWNLOAD_DIR), 'outputdir is expected to be absolute path
 
 const db = levelup(leveldown(path.resolve(DOWNLOAD_DIR, 'statedb')));
 
-function getPath(shardHash) {
+function getDirectoryPath(shardHash) {
   // creating two directories based on first two bytes
-  return path.resolve(DOWNLOAD_DIR, shardHash.slice(0, 2), shardHash.slice(2, 4), shardHash)
+  return path.resolve(DOWNLOAD_DIR, shardHash.slice(0, 2), shardHash.slice(2, 4))
 }
 
+rl.on('close', function () {
+  logger.info('ended reading input of node ids');
+});
+
+let contactCount = 0;
 rl.on('line', function (nodeID) {
-  logger.info('starting on a contact: %s', nodeID);
-  let contactCount = 0;
   contactCount++;
+  logger.info('starting on a contact: %s, running count: %d', nodeID, contactCount);
   if (contactCount >= CONTACT_CONCURRENCY) {
     rl.pause();
   };
   function contactFinish(err) {
     contactCount--;
+    logger.info('finished work on contact %s, running count: %d', nodeID, contactCount);
     if (err) {
       logger.error(err.message);
     }
-    if (contactCount < CONTACT_CONCURRENCY) {
+    if (rl.closed && !rl.paused && contactCount == 0) {
+
+      // TODO: Once we've finished going through and downloading all shards for every
+      // contact we can close the database, which should exit the process.
+      logger.info('finished running all contacts');
+    }
+    if (rl.paused && contactCount < CONTACT_CONCURRENCY) {
       rl.resume();
     }
   };
 
   const shardResults = {};
-  async.waterfall([
+  async.series([
     (next) => {
       db.get(nodeID, function (err) {
         if (err && err.notFound) {
@@ -92,26 +103,43 @@ rl.on('line', function (nodeID) {
           $gte: crypto.randomBytes(20).toString('hex')
         }
         // for auditing: add `.limit(10)`, or however many,  before `.cursor()`
-      }).limit(10).cursor()
-      next(null, cursor)
-    },
-    (cursor, next) => {
-      let count = 0;
-      cursor.on('error', next);
-      cursor.on('end', next);
+      }).cursor();
+
+      let shardCount = 0;
+
+      cursor.on('error', (err) => {
+        logger.error('cursor error for contact %s', err.message);
+        next(err);
+      });
+
+      cursor.on('end', () => {
+        // TODO: This will happen too early. This needs to be called once all the
+        // shards have been downloaded for the farmer, this way the state for the
+        // farmer is saved at the correct time, will a record of all the shards
+        // that have been checked.
+        next();
+      });
+
       cursor.on('data', function (shard) {
-        logger.info('starting on shard %s for contact %s', shard.hash, nodeID)
-        count++;
-        if (count >= SHARD_CONCURRENCY) {
+        shardCount++;
+        logger.info('contact %s shard %s started, running shards: %d',
+          nodeID, shard.hash, shardCount)
+        if (shardCount >= SHARD_CONCURRENCY) {
           cursor.pause();
         };
+
         function finish(err) {
-          count--;
-          console.error(err);
-          if (count < SHARD_CONCURRENCY) {
+          shardCount--;
+          logger.info('contact %s shard %s finished, running shards: %d',
+            nodeID, shard.hash, shardCount)
+          if (err) {
+            logger.error(err.message);
+          }
+          if (shardCount < SHARD_CONCURRENCY) {
             cursor.resume();
           }
         };
+
         storage.models.Contact.findOne({ '_id': nodeID }, function (err, contact) {
           if (err) {
             return finish(err);
@@ -119,49 +147,77 @@ rl.on('line', function (nodeID) {
           if (!contact) {
             return finish(new Error('contact not found: ' + nodeID));
           }
+
           // creating instance of storj.Contact and storj.Contract
           contact = storj.Contact(contact);
           const contractData = shard.contracts.filter((contract) => {
-            logger.info('contract farmer_id: %s', contract.get('farmer_id'));
-            return contract.farmer_id == nodeID;
+            return contract.nodeID == nodeID;
           })[0];
-          if (!contractData) {
+
+          if (!contractData || !contractData.contract) {
             logger.error('contract not found node %s shard %s', nodeID, shard.hash)
             return finish(new Error('contract not found'));
           }
-          const contract = storj.Contract(contractData);
+
+          const contract = storj.Contract.fromObject(contractData.contract);
+
           network.getRetrievalPointer(contact, contract, function (err, pointer) {
             if (err || !pointer || !pointer.token) {
               logger.warn('no token for contact %j and contract %j', contact, contract);
               shardResults[shard.hash] = false;
               return finish();
             }
-            const file = fs.open(getPath(shard.hash), 'w');
-            const hash = crypto.createHash('sha256');
-            const hasher = through(function (data) {
-              hash.update(data);
-            });
-            // piping to hasher then to file as shard data is downloaded
-            logger.info('starting to download shard %s with token %s for contact %s', shard.hash, pointer.token, nodeID)
-            const shardStream = storj.utils.createShardDownloader(contact, shard.hash, pointer.token).pipe(hasher).pipe(file);
-            shardStream.on('close', function () {
-              if (hasher.digest('hex') == shard.hash) {
-                shardResults[shard.hash] = true;
-                logger.info('shard %s successfully downloaded', shard.hash);
-              } else {
-                shardResults[shard.hash] = false;
-                logger.info('shard %s failed to download', shard.hash);
+
+            const filedir = getDirectoryPath(shard.hash);
+
+            mkdirp(filedir, function (err) {
+              if (err) {
+                return finish(err);
               }
-              finish();
-            });
-            shardStream.on('error', finish);
+              const file = fs.createWriteStream(path.resolve(filedir, shard.hash));
+              file.on('close', function () {
+                logger.info('file closed for shard %s', shard.hash);
+              });
+
+              const hash = crypto.createHash('sha256');
+              const hasher = through2(function (data, enc, callback) {
+                hash.update(data);
+                this.push(data);
+                callback()
+              });
+
+              // piping to hasher then to file as shard data is downloaded
+              logger.info('starting to download shard %s with token %s for contact %s', shard.hash, pointer.token, nodeID)
+              const shardStream = storj.utils.createShardDownloader(contact, shard.hash, pointer.token).pipe(hasher).pipe(file);
+
+              shardStream.on('close', function () {
+                const actual = storj.utils.rmd160b(hash.digest()).toString('hex');
+                if (actual == shard.hash) {
+                  shardResults[shard.hash] = true;
+                  logger.info('shard %s successfully downloaded', shard.hash);
+                } else {
+                  shardResults[shard.hash] = false;
+                  logger.info('shard %s failed to download, actual: %s', shard.hash, actual);
+                }
+                finish();
+              });
+
+              shardStream.on('error', finish);
+            })
+
           });
         });
-      }, next);
+      });
     },
     (next) => {
-      logger.info('saving state for node %s', nodeID)
-      db.put(nodeID, shardResults, next);
+      logger.info('saving state for node %s', nodeID);
+      db.put(nodeID, shardResults, (err) => {
+        logger.info('saved state for %s', nodeID);
+        if (err) {
+          return next(err);
+        }
+        next();
+      });
     }
   ], contactFinish)
 });
