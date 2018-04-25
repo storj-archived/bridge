@@ -777,6 +777,36 @@ describe('BucketsRouter', function() {
       });
       bucketsRouter.destroyBucketById(request, response);
     });
+
+    it('should respond with 204 if no shards found (empty bucket)', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'DELETE',
+        url: '/buckets/:bucket_id'
+      });
+      request.user = someUser;
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      var bucket = new bucketsRouter.storage.models.Bucket({
+        user: someUser._id
+      });
+      const hashes = [];
+      sandbox.stub(bucketsRouter, '_getShardHashesByBucketId')
+        .callsArgWith(2, null, hashes);
+      sandbox.stub(bucketsRouter.storage.models.Bucket, 'findOne')
+        .callsArgWith(1, null, bucket);
+      sandbox.stub(bucketsRouter.storage.models.StorageEvent, 'update')
+        .callsArgWith(3, null);
+      sandbox.stub(bucketsRouter.storage.models.BucketEntry, 'remove')
+        .callsArgWith(1, null);
+      sandbox.stub(bucket, 'remove').callsArg(0);
+      response.on('end', function() {
+        expect(response.statusCode).to.equal(204);
+        done();
+      });
+      bucketsRouter.destroyBucketById(request, response);
+    });
   });
 
   describe('#updateBucketById', function() {
