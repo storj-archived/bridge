@@ -45,6 +45,11 @@ assert(path.isAbsolute(DOWNLOAD_DIR), 'outputdir is expected to be absolute path
 
 const db = levelup(leveldown(path.resolve(DOWNLOAD_DIR, 'statedb')));
 
+function closeProgram() {
+  storage.connection.close();
+  db.close();
+}
+
 function getDirectoryPath(shardHash) {
   // creating two directories based on first two bytes
   return path.resolve(DOWNLOAD_DIR, shardHash.slice(0, 2), shardHash.slice(2, 4))
@@ -67,13 +72,11 @@ rl.on('line', function (nodeID) {
     if (err) {
       logger.error(err.message);
     }
-    if (rl.closed && !rl.paused && contactCount == 0) {
-
-      // TODO: Once we've finished going through and downloading all shards for every
-      // contact we can close the database, which should exit the process.
-      logger.info('finished running all contacts');
-    }
-    if (rl.paused && contactCount < CONTACT_CONCURRENCY) {
+    if (rl.closed && contactCount == 0) {
+      // THE END all contacts finished
+      logger.info('done! finished running all contacts');
+      closeProgram();
+    } else if (rl.paused && contactCount < CONTACT_CONCURRENCY) {
       rl.resume();
     }
   };
@@ -105,6 +108,7 @@ rl.on('line', function (nodeID) {
       }).cursor();
 
       let shardCount = 0;
+      let shardCursorEnded = false;
 
       cursor.on('error', (err) => {
         logger.error('cursor error for contact %s', err.message);
@@ -112,11 +116,11 @@ rl.on('line', function (nodeID) {
       });
 
       cursor.on('end', () => {
-        // TODO: This will happen too early. This needs to be called once all the
-        // shards have been downloaded for the farmer, this way the state for the
-        // farmer is saved at the correct time, will a record of all the shards
-        // that have been checked.
-        next();
+        shardCursorEnded = true;
+        if (shardCount == 0) {
+          // THE END there were no shards
+          next();
+        }
       });
 
       cursor.on('data', function (shard) {
@@ -134,7 +138,12 @@ rl.on('line', function (nodeID) {
           if (err) {
             logger.error(err.message);
           }
-          if (shardCount < SHARD_CONCURRENCY) {
+          console.log('contact %s, shardCount: %d, shardCursorEnded: %s', nodeID, shardCount, shardCursorEnded);
+          if (shardCount === 0 && shardCursorEnded) {
+            // THE END all shards have been downloaded
+            logger.info('all shards downloaded for contact %s', nodeID)
+            next();
+          } else if (shardCount < SHARD_CONCURRENCY) {
             cursor.resume();
           }
         };
@@ -173,6 +182,7 @@ rl.on('line', function (nodeID) {
               if (err) {
                 return finish(err);
               }
+              logger.info('creating open file for shard %s', shard.hash);
               const file = fs.createWriteStream(path.resolve(filedir, shard.hash));
               file.on('close', function () {
                 logger.info('file closed for shard %s', shard.hash);
@@ -186,8 +196,10 @@ rl.on('line', function (nodeID) {
               });
 
               // piping to hasher then to file as shard data is downloaded
-              logger.info('starting to download shard %s with token %s for contact %s', shard.hash, pointer.token, nodeID)
-              const shardStream = storj.utils.createShardDownloader(contact, shard.hash, pointer.token).pipe(hasher).pipe(file);
+              logger.info('starting to download shard %s with token %s for contact %s',
+                shard.hash, pointer.token, nodeID)
+              const shardStream = storj.utils.createShardDownloader(
+                contact, shard.hash, pointer.token).pipe(hasher).pipe(file);
 
               shardStream.on('close', function () {
                 const actual = storj.utils.rmd160b(hash.digest()).toString('hex');
