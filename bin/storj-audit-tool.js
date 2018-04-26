@@ -18,6 +18,14 @@ const logger = require('../lib/logger');
 const readline = require('readline');
 const assert = require('assert');
 
+// SHARD STATUS ERROR STATUS
+const ERROR_STREAM = 5;
+const ERROR_HASH = 4;
+const ERROR_TOKEN = 3;
+const ERROR_CONTRACT = 2;
+const ERROR_CONTACT = 1;
+const SUCCESS = 0;
+
 program
   .version('0.0.1')
   .option('-c, --config <path_to_config_file>', 'path to the config file')
@@ -114,7 +122,7 @@ rl.on('line', function (nodeID) {
           $gte: crypto.randomBytes(20).toString('hex')
         }
         // for auditing: add `.limit(10)`, or however many,  before `.cursor()`
-      }).cursor();
+      }).limit(10).cursor();
 
       let shardCount = 0;
       let shardCursorEnded = false;
@@ -162,6 +170,7 @@ rl.on('line', function (nodeID) {
             return finish(err);
           }
           if (!contact) {
+            shardResults[sanitizeNodeID(shard.hash)] = ERROR_CONTACT;
             return finish(new Error('contact not found: ' + nodeID));
           }
 
@@ -172,7 +181,8 @@ rl.on('line', function (nodeID) {
           })[0];
 
           if (!contractData || !contractData.contract) {
-            logger.error('contract not found node %s shard %s', nodeID, shard.hash)
+            logger.error('contract not found node %s shard %s', nodeID, shard.hash);
+            shardResults[sanitizeNodeID(shard.hash)] = ERROR_CONTRACT;
             return finish(new Error('contract not found'));
           }
 
@@ -181,7 +191,7 @@ rl.on('line', function (nodeID) {
           network.getRetrievalPointer(contact, contract, function (err, pointer) {
             if (err || !pointer || !pointer.token) {
               logger.warn('no token for contact %j and contract %j', contact, contract);
-              shardResults[sanitizeNodeID(shard.hash)] = false;
+              shardResults[sanitizeNodeID(shard.hash)] = ERROR_TOKEN;
               return finish();
             }
 
@@ -213,16 +223,19 @@ rl.on('line', function (nodeID) {
               shardStream.on('close', function () {
                 const actual = storj.utils.rmd160b(hash.digest()).toString('hex');
                 if (actual == shard.hash) {
-                  shardResults[sanitizeNodeID(shard.hash)] = true;
+                  shardResults[sanitizeNodeID(shard.hash)] = SUCCESS;
                   logger.info('shard %s successfully downloaded', shard.hash);
                 } else {
-                  shardResults[sanitizeNodeID(shard.hash)] = false;
+                  shardResults[sanitizeNodeID(shard.hash)] = ERROR_HASH;
                   logger.info('shard %s failed to download, actual: %s', shard.hash, actual);
                 }
                 finish();
               });
 
-              shardStream.on('error', finish);
+              shardStream.on('error', (err) => {
+                shardResults[sanatizeNodeID(shard.hash)] = ERROR_STREAM;
+                finish(err);
+              });
             })
 
           });
@@ -241,4 +254,3 @@ rl.on('line', function (nodeID) {
     }
   ], contactFinish)
 });
-
