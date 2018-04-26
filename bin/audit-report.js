@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 'use strict';
 
-// usage: node storj-audit-report -o /tmp/storj -c /path/to/config.json
-
 const fs = require('fs');
 const async = require('async');
 const crypto = require('crypto');
@@ -18,14 +16,6 @@ const levelup = require('levelup');
 const leveldown = require('leveldown');
 const logger = require('../lib/logger');
 const assert = require('assert');
-
-// SHARD STATUS ERROR STATUS
-const ERROR_STREAM = 5;
-const ERROR_HASH = 4;
-const ERROR_TOKEN = 3;
-const ERROR_CONTRACT = 2;
-const ERROR_CONTACT = 1;
-const SUCCESS = 0;
 
 program
   .version('0.0.1')
@@ -49,59 +39,34 @@ const stream = db.createReadStream({
   lte: MAX_KEY
 });
 
-console.log('NodeID, Audit Success Percentage, Audit Success Shards, Audit Total Shards, Fail Stream, Fail Hash, Fail Token, Fail Contract, Fail Contact, Bytes Transferred');
+console.log('NodeID, Audit Success Percentage, Audit Success Shards, Audit Total Shards, Cheater');
 
-stream.on('data', function (data) {
+stream.on('data', function(data) {
   const nodeID = data.key.toString('hex');
   const results = JSON.parse(data.value.toString('utf8'));
 
   let total = 0;
   let success = 0;
-  let hash = 0;
-  let token = 0;
-  let contract = 0;
-  let contact = 0;
-  let stream = 0;
-
-  let totalBytes = 0;
 
   for (var shardHash in results) {
     total++;
-    const item = results[shardHash];
-    switch (item.status) {
-      case SUCCESS:
-        totalBytes += item.contract.data_size;
-        success++;
-        break;
-      case ERROR_HASH:
-        hash++;
-        break;
-      case ERROR_TOKEN:
-        token++;
-        break;
-      case ERROR_CONTRACT:
-        contract++;
-        break;
-      case ERROR_CONTACT:
-        contact++;
-        break;
-      case ERROR_STREAM:
-        stream++;
-        break;
+    if (results[shardHash]) {
+      success++;
     }
   }
   let percentage = 0;
   if (total > 0) {
     percentage = success / total * 100;
   }
-  console.log('%s, %s, %s, %s, %s, %s, %s, %s, %s, %s', nodeID, percentage.toFixed(0), success, total, stream, hash, token, contract, contact, totalBytes);
+  const cheater = (percentage < 50 && total > 0);
+  console.log('%s, %s, %s, %s, %s', nodeID, percentage.toFixed(0), success, total, cheater);
 })
 
 stream.on('error', function (err) {
   console.error(err);
 })
 
-stream.on('close', function () { })
+stream.on('close', function () {})
 stream.on('end', function () {
   closeProgram();
 })
