@@ -232,7 +232,7 @@ rl.on('line', function (nodeID) {
               });
 
               shardStream.on('error', (err) => {
-                shardResults[sanatizeNodeID(shard.hash)] = ERROR_STREAM;
+                shardResults[sanitizeNodeID(shard.hash)] = ERROR_STREAM;
                 finish(err);
               });
             })
