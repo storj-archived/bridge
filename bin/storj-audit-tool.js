@@ -46,6 +46,14 @@ assert(path.isAbsolute(DOWNLOAD_DIR), 'outputdir is expected to be absolute path
 
 const db = levelup(leveldown(path.resolve(DOWNLOAD_DIR, 'statedb')));
 
+function sanitizeNodeID(a) {
+  return a.replace(/'/g, '');
+}
+
+function toHexBuffer(a) {
+  return Buffer.from(a, 'hex')
+}
+
 function closeProgram() {
   storage.connection.close();
   db.close();
@@ -85,7 +93,7 @@ rl.on('line', function (nodeID) {
   const shardResults = {};
   async.series([
     (next) => {
-      db.get(nodeID, function (err) {
+      db.get(toHexBuffer(nodeID), function (err) {
         if (err && err.notFound) {
           next();
         } else if (err) {
@@ -173,7 +181,7 @@ rl.on('line', function (nodeID) {
           network.getRetrievalPointer(contact, contract, function (err, pointer) {
             if (err || !pointer || !pointer.token) {
               logger.warn('no token for contact %j and contract %j', contact, contract);
-              shardResults[shard.hash] = false;
+              shardResults[sanitizeNodeID(shard.hash)] = false;
               return finish();
             }
 
@@ -205,10 +213,10 @@ rl.on('line', function (nodeID) {
               shardStream.on('close', function () {
                 const actual = storj.utils.rmd160b(hash.digest()).toString('hex');
                 if (actual == shard.hash) {
-                  shardResults[shard.hash] = true;
+                  shardResults[sanitizeNodeID(shard.hash)] = true;
                   logger.info('shard %s successfully downloaded', shard.hash);
                 } else {
-                  shardResults[shard.hash] = false;
+                  shardResults[sanitizeNodeID(shard.hash)] = false;
                   logger.info('shard %s failed to download, actual: %s', shard.hash, actual);
                 }
                 finish();
@@ -223,7 +231,7 @@ rl.on('line', function (nodeID) {
     },
     (next) => {
       logger.info('saving state for node %s', nodeID);
-      db.put(nodeID, shardResults, (err) => {
+      db.put(toHexBuffer(nodeID), JSON.stringify(shardResults), (err) => {
         logger.info('saved state for %s', nodeID);
         if (err) {
           return next(err);
@@ -233,3 +241,4 @@ rl.on('line', function (nodeID) {
     }
   ], contactFinish)
 });
+
