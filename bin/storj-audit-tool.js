@@ -1,5 +1,7 @@
 e strict';
 
+// usage: cat contacts.csv | node storj-audit-tool.js -o /tmp/storj -c /path/to/config.json
+
 const fs = require('fs');
 const async = require('async');
 const crypto = require('crypto');
@@ -25,6 +27,35 @@ const ERROR_CONTRACT = 2;
 const ERROR_CONTACT = 1;
 const SUCCESS = 0;
 
+// AUDIT SETTINGS
+const AUDIT_SAMPLE_RATIO = 0.02;
+const AUDIT_SAMPLE_MIN = 10;
+const AUDIT_SAMPLE_MAX = 100;
+
+// CSV SETTINGS
+let firstLine = true;
+const nodeIDColumnIndex = 0;
+const contractsColumnIndex = 6;
+
+function handleLine(fn) {
+  return function(line) {
+    if (firstLine) {
+      firstLine = false;
+    } else {
+      const items = line.split(',').map(x => x.trim());
+      const totalContracts = parseInt(items[contractsColumnIndex]);
+      const size = Math.round(AUDIT_SAMPLE_RATIO * totalContracts, 0);
+      const limit = Math.min(Math.max(size, AUDIT_SAMPLE_MIN), AUDIT_SAMPLE_MAX)
+      const contractLimit = Number.isInteger(limit) ? limit : AUDIT_SAMPLE_MIN;
+      fn({
+        nodeID: items[nodeIDColumnIndex],
+        totalContracts: totalContracts,
+        contractLimit: contractLimit
+      });
+    }
+  }
+}
+
 program
   .version('0.0.1')
   .option('-c, --config <path_to_config_file>', 'path to the config file')
@@ -33,6 +64,7 @@ program
 
 process.stdin.setEncoding('utf8');
 
+let rlClosed = false;
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
@@ -72,23 +104,29 @@ function getDirectoryPath(shardHash) {
 }
 
 rl.on('close', function () {
+  rlClosed = true;
   logger.info('ended reading input of node ids');
 });
 
 let contactCount = 0;
-rl.on('line', function (nodeID) {
+rl.on('line', handleLine(function(line) {
+  // expand line to local variables
+  const {nodeID, totalContracts, contractLimit} = line;
+
   contactCount++;
-  logger.info('starting on a contact: %s, running count: %d', nodeID, contactCount);
+  logger.info('starting on a contact: %s, contractLimit: %s, running count: %d', nodeID, contractLimit, contactCount);
+
   if (contactCount >= CONTACT_CONCURRENCY) {
     rl.pause();
   };
+
   function contactFinish(err) {
     contactCount--;
-    logger.info('finished work on contact %s, running count: %d', nodeID, contactCount);
+    logger.info('finished work on contact %s, running count: %d, readline.closed: %s', nodeID, contactCount, rlClosed);
     if (err) {
       logger.error(err.message);
     }
-    if (rl.closed && contactCount == 0) {
+    if (rlClosed && contactCount == 0) {
       // THE END all contacts finished
       logger.info('done! finished running all contacts');
       closeProgram();
@@ -121,7 +159,7 @@ rl.on('line', function (nodeID) {
           $gte: crypto.randomBytes(20).toString('hex')
         }
         // for auditing: add `.limit(10)`, or however many,  before `.cursor()`
-      }).limit(10).cursor();
+      }).limit(contractLimit).cursor();
 
       let shardCount = 0;
       let shardCursorEnded = false;
@@ -154,7 +192,6 @@ rl.on('line', function (nodeID) {
           if (err) {
             logger.error(err.message);
           }
-          console.log('contact %s, shardCount: %d, shardCursorEnded: %s', nodeID, shardCount, shardCursorEnded);
           if (shardCount === 0 && shardCursorEnded) {
             // THE END all shards have been downloaded
             logger.info('all shards downloaded for contact %s', nodeID)
@@ -179,6 +216,7 @@ rl.on('line', function (nodeID) {
             return contract.nodeID == nodeID;
           })[0];
 
+
           if (!contractData || !contractData.contract) {
             logger.error('contract not found node %s shard %s', nodeID, shard.hash);
             shardResults[sanitizeNodeID(shard.hash)] = ERROR_CONTRACT;
@@ -189,7 +227,7 @@ rl.on('line', function (nodeID) {
 
           network.getRetrievalPointer(contact, contract, function (err, pointer) {
             if (err || !pointer || !pointer.token) {
-              logger.warn('no token for contact %j and contract %j', contact, contract);
+              logger.warn('no token for node %s shard %s', contact, shard.hash);
               shardResults[sanitizeNodeID(shard.hash)] = ERROR_TOKEN;
               return finish();
             }
@@ -200,10 +238,10 @@ rl.on('line', function (nodeID) {
               if (err) {
                 return finish(err);
               }
-              logger.info('creating open file for shard %s', shard.hash);
+              logger.debug('creating open file for shard %s', shard.hash);
               const file = fs.createWriteStream(path.resolve(filedir, shard.hash));
               file.on('close', function () {
-                logger.info('file closed for shard %s', shard.hash);
+                logger.debug('file closed for shard %s', shard.hash);
               });
 
               const hash = crypto.createHash('sha256');
@@ -244,12 +282,12 @@ rl.on('line', function (nodeID) {
     (next) => {
       logger.info('saving state for node %s', nodeID);
       db.put(toHexBuffer(nodeID), JSON.stringify(shardResults), (err) => {
-        logger.info('saved state for %s', nodeID);
         if (err) {
           return next(err);
         }
+        logger.info('saved state for %s', nodeID);
         next();
       });
     }
   ], contactFinish)
-});
+}));

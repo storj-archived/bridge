@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 'use strict';
 
+// usage: node storj-audit-report -o /tmp/storj -c /path/to/config.json
+
 const fs = require('fs');
 const async = require('async');
 const crypto = require('crypto');
