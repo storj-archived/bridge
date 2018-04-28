@@ -49,7 +49,7 @@ const stream = db.createReadStream({
   lte: MAX_KEY
 });
 
-console.log('NodeID, Audit Success Percentage, Audit Success Shards, Audit Total Shards, Fail Stream, Fail Hash, Fail Token, Fail Contract, Fail Contact');
+console.log('NodeID, Audit Success Percentage, Audit Success Shards, Audit Total Shards, Fail Stream, Fail Hash, Fail Token, Fail Contract, Fail Contact, Bytes Transferred');
 
 stream.on('data', function (data) {
   const nodeID = data.key.toString('hex');
@@ -63,10 +63,14 @@ stream.on('data', function (data) {
   let contact = 0;
   let stream = 0;
 
+  let totalBytes = 0;
+
   for (var shardHash in results) {
     total++;
-    switch (results[shardHash]) {
+    const item = results[shardHash];
+    switch (item.status) {
       case SUCCESS:
+        totalBytes += item.contract.data_size;
         success++;
         break;
       case ERROR_HASH:
@@ -90,7 +94,7 @@ stream.on('data', function (data) {
   if (total > 0) {
     percentage = success / total * 100;
   }
-  console.log('%s, %s, %s, %s, %s, %s, %s, %s, %s', nodeID, percentage.toFixed(0), success, total, stream, hash, token, contract, contact);
+  console.log('%s, %s, %s, %s, %s, %s, %s, %s, %s, %s', nodeID, percentage.toFixed(0), success, total, stream, hash, token, contract, contact, totalBytes);
 })
 
 stream.on('error', function (err) {
