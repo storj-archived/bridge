@@ -3,6 +3,7 @@ e strict';
 // usage: cat contacts.csv | node storj-audit-tool.js -o /tmp/storj -c /path/to/config.json
 
 const fs = require('fs');
+const http = require('http');
 const async = require('async');
 const crypto = require('crypto');
 const Config = require('../lib/config');
@@ -39,14 +40,18 @@ const nodeIDColumnIndex = 0;
 const contractsColumnIndex = 6;
 
 // CONCURRENCY LIMITS
-const SHARD_CONCURRENCY = 10;
-const CONTACT_CONCURRENCY = 20;
+const SHARD_CONCURRENCY = 20;
+const CONTACT_CONCURRENCY = 100;
 
 // CONCURRENCY TRACKING
 let contactCount = 0;
 let shardCount = {};
 let contactFinished = 0;
 let shardFinished = 0;
+
+// OTHER SETTINGS
+const SHARD_SOCKET_TIMEOUT = 90 * 1000 // milliseconds
+const SHARD_TRANSFER_MAXTIME = 20 * 60 * 1000 // milliseconds
 
 program
   .version('0.0.1')
@@ -219,7 +224,17 @@ stream.on('data', function(line) {
           cursor.pause();
         };
 
-        function finish(err) {
+        let shardFinishedCalled = false;
+        let shardTransferTimeout = null;
+
+        function shardFinish(err) {
+          // prevent double callback
+          if (shardFinishedCalled) {
+            shardFinishedCalled = true;
+            return;
+          }
+          // make sure that the timeout callback isn't called
+          clearTimeout(shardTransferTimeout);
           shardCount[nodeID]--;
           shardFinished++;
           logger.info('contact %s shard %s finished, running shards: %d',
@@ -238,14 +253,14 @@ stream.on('data', function(line) {
 
         storage.models.Contact.findOne({ '_id': nodeID }, function (err, contact) {
           if (err) {
-            return finish(err);
+            return shardFinish(err);
           }
           if (!contact) {
             shardResults[sanitizeNodeID(shard.hash)] = {
               status: ERROR_CONTACT,
               contract: null
             }
-            return finish(new Error('contact not found: ' + nodeID));
+            return shardFinish(new Error('contact not found: ' + nodeID));
           }
 
           // creating instance of storj.Contact and storj.Contract
@@ -261,7 +276,7 @@ stream.on('data', function(line) {
               status: ERROR_CONTRACT,
               contract: null
             }
-            return finish(new Error('contract not found'));
+            return shardFinish(new Error('contract not found'));
           }
 
           const contract = storj.Contract.fromObject(contractData.contract);
@@ -273,59 +288,100 @@ stream.on('data', function(line) {
                 status: ERROR_TOKEN,
                 contract: contract.toObject()
               }
-              return finish();
+              return shardFinish();
             }
 
             const filedir = getDirectoryPath(shard.hash);
 
             mkdirp(filedir, function (err) {
               if (err) {
-                return finish(err);
+                return shardFinish(err);
               }
               logger.debug('creating open file for shard %s', shard.hash);
-              const file = fs.createWriteStream(path.resolve(filedir, shard.hash));
+
+              //const file = fs.createWriteStream(path.resolve(filedir, shard.hash));
+              const file = fs.createWriteStream('/dev/null');
               file.on('close', function () {
                 logger.debug('file closed for shard %s', shard.hash);
               });
 
-              const hash = crypto.createHash('sha256');
-              const hasher = through2(function (data, enc, callback) {
-                hash.update(data);
-                this.push(data);
-                callback()
-              });
-
-              // piping to hasher then to file as shard data is downloaded
               logger.info('starting to download shard %s with token %s for contact %s',
                           shard.hash, pointer.token, nodeID)
-              const shardStream = storj.utils.createShardDownloader(
-                contact, shard.hash, pointer.token).pipe(hasher).pipe(file);
 
-              shardStream.on('close', function () {
-                const actual = storj.utils.rmd160b(hash.digest()).toString('hex');
-                if (actual == shard.hash) {
-                  shardResults[sanitizeNodeID(shard.hash)] = {
-                    status: SUCCESS,
-                    contract: contract.toObject()
-                  };
-                  logger.info('shard %s successfully downloaded', shard.hash);
-                } else {
-                  shardResults[sanitizeNodeID(shard.hash)] = {
-                    status: ERROR_HASH,
-                    contract: contract.toObject()
-                  }
-                  logger.info('shard %s failed to download, actual: %s', shard.hash, actual);
+              const hasher = crypto.createHash('sha256');
+
+              const shardRequest = http.get({
+                protocol: 'http:',
+                hostname: contact.address,
+                port: contact.port,
+                path: `/shards/${shard.hash}?token=${pointer.token}`,
+                timeout: SHARD_SOCKET_TIMEOUT,
+                headers: {
+                  'content-type': 'application/octet-stream',
+                  'x-storj-node-id': contact.nodeID
                 }
-                finish();
-              });
+              }, (res) => {
 
-              shardStream.on('error', (err) => {
+                const statusCode = res.statusCode;
+                const contentType = res.headers['content-type'];
+
+                let error;
+                if (statusCode !== 200) {
+                  error = new Error('unexpected status code: ' + statusCode);
+                } else if (!/^application\/octet\-stream/.test(contentType)) {
+                  error = new Error('unexpected content type: ' + contentType);
+                }
+
+                if (error) {
+                  // consume response data to free up memory
+                  // https://nodejs.org/docs/v6.9.5/doc/api/http.html#http_http_get_options_callback
+                  res.resume();
+
+                  shardResults[sanitizeNodeID(shard.hash)] = {
+                    status: ERROR_STREAM,
+                    contract: null
+                  };
+                  return shardFinish(error);
+                }
+
+                res.on('data', (chunk) => {
+                  hasher.update(chunk);
+                  file.write(chunk);
+                });
+
+                res.on('end', () => {
+                  const actual = storj.utils.rmd160b(hasher.digest()).toString('hex');
+                  if (actual == shard.hash) {
+                    shardResults[sanitizeNodeID(shard.hash)] = {
+                      status: SUCCESS,
+                      contract: contract.toObject()
+                    };
+                    logger.info('shard %s successfully downloaded', shard.hash);
+                    shardFinish();
+                  } else {
+                    shardResults[sanitizeNodeID(shard.hash)] = {
+                      status: ERROR_HASH,
+                      contract: contract.toObject()
+                    }
+                    logger.info('shard %s failed to download, actual: %s', shard.hash, actual);
+                    shardFinish(new Error('unexpected data'))
+                  }
+                });
+
+              }).on('error', (err) => {
                 shardResults[sanitizeNodeID(shard.hash)] = {
                   status: ERROR_STREAM,
-                  contract: contact.toObject()
+                  contract: contract.toObject()
                 };
-                finish(err);
+                shardFinish(err);
               });
+
+              shardTransferTimeout = setTimeout(() => {
+                // https://nodejs.org/docs/latest-v6.x/api/http.html#http_request_abort
+                // this will fire the res end event for the request and request error
+                shardRequest.abort();
+              }, SHARD_TRANSFER_MAXTIME);
+
             })
 
           });
