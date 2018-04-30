@@ -10,6 +10,7 @@
   "bin": {
     "storj-bridge": "bin/storj-bridge.js",
     "storj-monitor": "bin/storj-monitor.js",
+    "storj-cron": "bin/storj-cron.js",
     "storj-renew": "bin/storj-contract-renew.js"
   },
   "scripts": {
@@ -63,6 +64,7 @@
     "commander": "^2.9.0",
     "concat-stream": "^1.6.0",
     "cors": "^2.7.1",
+    "cron": "^1.3.0",
     "csv-write-stream": "^2.0.0",
     "elliptic": "^6.0.2",
     "express": "^4.13.3",
