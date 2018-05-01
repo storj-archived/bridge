@@ -311,7 +311,7 @@ describe('ReportsRouter', function() {
         }
       });
       request.user = {
-        id: 'userid1'
+        _id: 'userid1'
       };
       var response = httpMocks.createResponse({
         req: request,
@@ -343,7 +343,7 @@ describe('ReportsRouter', function() {
         }
       });
       request.user = {
-        id: 'userid1'
+        _id: 'userid1'
       };
       var response = httpMocks.createResponse({
         req: request,
@@ -384,7 +384,7 @@ describe('ReportsRouter', function() {
         }
       });
       request.user = {
-        id: 'userid1'
+        _id: 'userid1'
       };
       var response = httpMocks.createResponse({
         req: request,
@@ -425,7 +425,7 @@ describe('ReportsRouter', function() {
         }
       });
       request.user = {
-        id: 'userid1'
+        _id: 'userid1'
       };
       var response = httpMocks.createResponse({
         req: request,
