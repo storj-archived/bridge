@@ -1,4 +1,5 @@
-e strict';
+#!/usr/bin/env node
+'use strict';
 
 // usage: cat contacts.csv | node storj-audit-tool.js -o /tmp/storj -c /path/to/config.json
 
