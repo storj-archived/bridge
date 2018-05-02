@@ -36,6 +36,56 @@ describe('StorageEventsCron', function() {
     });
   });
 
+  describe('#updateReputation', function() {
+    var config = new Config('__tmptest');
+    var sandbox = sinon.sandbox.create();
+    afterEach(() => sandbox.restore());
+
+    it('will record points and save', function() {
+      const cron = new StorageEventsCron(config);
+      const contact = {
+        recordPoints: sandbox.stub().returns({
+          save: sandbox.stub().callsArgWith(0, null)
+        })
+      };
+      cron.storage = {
+        models: {
+          Contact: {
+            findOne: sandbox.stub().callsArgWith(1, null, contact)
+          }
+        }
+      };
+      const nodeID = '2c5ae6807e9179cb2174d0265867c63abce48dfb';
+      const points = 10;
+      cron._updateReputation(nodeID, points);
+      expect(cron.storage.models.Contact.findOne.callCount)
+        .to.equal(1);
+      expect(cron.storage.models.Contact.findOne.args[0][0])
+        .to.eql({_id: nodeID});
+      expect(contact.recordPoints.callCount).to.equal(1);
+    });
+
+    it('will return if contact not found', function() {
+      const cron = new StorageEventsCron(config);
+      const contact = {
+        recordPoints: sandbox.stub().returns({
+          save: sandbox.stub().callsArgWith(0, null)
+        })
+      };
+      cron.storage = {
+        models: {
+          Contact: {
+            findOne: sandbox.stub().callsArgWith(1, null, null)
+          }
+        }
+      };
+      const nodeID = '2c5ae6807e9179cb2174d0265867c63abce48dfb';
+      const points = 10;
+      cron._updateReputation(nodeID, points);
+      expect(contact.recordPoints.callCount).to.equal(0);
+    });
+  });
+
   describe('#_resolveCodes', function() {
     var config = new Config('__tmptest');
     it('failed: farmer(false), client(unknown)', function() {
@@ -214,8 +264,9 @@ describe('StorageEventsCron', function() {
         done();
       });
     });
-    it('save update event status', function(done) {
+    it('save and record reputation points (success)', function(done) {
       const cron = new StorageEventsCron(config);
+      sandbox.stub(cron, '_updateReputation');
       const user = {
         updateUnknownReports: sandbox.stub().callsArgWith(3)
       };
@@ -231,11 +282,13 @@ describe('StorageEventsCron', function() {
         unknown: false
       });
       const now = new Date();
+      const farmerID = '359b6436d4fd934b55cff8c55388e529e4f09f0c';
       const event = {
         user: 'user@domain.tld',
         timestamp: now,
         success: false,
-        save: sandbox.stub().callsArgWith(0)
+        save: sandbox.stub().callsArgWith(0),
+        farmer: farmerID
       };
       cron._resolveEvent(event, (err, timestamp) => {
         if (err) {
@@ -243,6 +296,49 @@ describe('StorageEventsCron', function() {
         }
         expect(event.save.callCount).to.equal(1);
         expect(event.success).to.equal(true);
+        expect(cron._updateReputation.callCount).to.equal(1);
+        expect(cron._updateReputation.args[0][0]).to.equal(farmerID);
+        expect(cron._updateReputation.args[0][1]).to.equal(10);
+        expect(timestamp).to.equal(now);
+        expect(event.processed).to.equal(true);
+        done();
+      });
+    });
+    it('save and record reputation points (failure)', function(done) {
+      const cron = new StorageEventsCron(config);
+      sandbox.stub(cron, '_updateReputation');
+      const user = {
+        updateUnknownReports: sandbox.stub().callsArgWith(3)
+      };
+      cron.storage = {
+        models: {
+          User: {
+            findOne: sandbox.stub().callsArgWith(1, null, user)
+          }
+        }
+      };
+      cron._resolveCodes = sandbox.stub().returns({
+        success: false,
+        unknown: false
+      });
+      const now = new Date();
+      const farmerID = '359b6436d4fd934b55cff8c55388e529e4f09f0c';
+      const event = {
+        user: 'user@domain.tld',
+        timestamp: now,
+        success: false,
+        save: sandbox.stub().callsArgWith(0),
+        farmer: farmerID
+      };
+      cron._resolveEvent(event, (err, timestamp) => {
+        if (err) {
+          return done(err);
+        }
+        expect(event.save.callCount).to.equal(1);
+        expect(event.success).to.equal(false);
+        expect(cron._updateReputation.callCount).to.equal(1);
+        expect(cron._updateReputation.args[0][0]).to.equal(farmerID);
+        expect(cron._updateReputation.args[0][1]).to.equal(-10);
         expect(timestamp).to.equal(now);
         expect(event.processed).to.equal(true);
         done();
@@ -250,6 +346,7 @@ describe('StorageEventsCron', function() {
     });
     it('will handle error from saving event status', function(done) {
       const cron = new StorageEventsCron(config);
+      sandbox.stub(cron, '_updateReputation');
       const user = {
         updateUnknownReports: sandbox.stub().callsArgWith(3)
       };
@@ -281,6 +378,7 @@ describe('StorageEventsCron', function() {
     });
     it('will update user unknown report rates (with storage)', function(done) {
       const cron = new StorageEventsCron(config);
+      sandbox.stub(cron, '_updateReputation');
       const user = {
         updateUnknownReports: sandbox.stub().callsArgWith(3)
       };
@@ -315,6 +413,7 @@ describe('StorageEventsCron', function() {
     });
     it('will update user unknown report rates (with bandwidth)', function(done) {
       const cron = new StorageEventsCron(config);
+      sandbox.stub(cron, '_updateReputation');
       const user = {
         updateUnknownReports: sandbox.stub().callsArgWith(3)
       };
@@ -349,6 +448,7 @@ describe('StorageEventsCron', function() {
     });
     it('will handle error from user unknown report update', function(done) {
       const cron = new StorageEventsCron(config);
+      sandbox.stub(cron, '_updateReputation');
       const user = {
         updateUnknownReports: sandbox.stub().callsArgWith(3, new Error('test'))
       };

@@ -91,43 +91,6 @@ describe('ReportsRouter', function() {
     });
   });
 
-  describe('#updateReputation', function() {
-    var sandbox = sinon.sandbox.create();
-    afterEach(() => sandbox.restore());
-
-    it('will record points and save', function() {
-      const contact = {
-        recordPoints: sandbox.stub().returns({
-          save: sandbox.stub().callsArgWith(0, null)
-        })
-      };
-      sandbox.stub(reportsRouter.storage.models.Contact, 'findOne')
-        .callsArgWith(1, null, contact);
-      const nodeID = '2c5ae6807e9179cb2174d0265867c63abce48dfb';
-      const points = 10;
-      reportsRouter.updateReputation(nodeID, points);
-      expect(reportsRouter.storage.models.Contact.findOne.callCount)
-        .to.equal(1);
-      expect(reportsRouter.storage.models.Contact.findOne.args[0][0])
-        .to.eql({_id: nodeID});
-      expect(contact.recordPoints.callCount).to.equal(1);
-    });
-
-    it('will return if contact not found', function() {
-      const contact = {
-        recordPoints: sandbox.stub().returns({
-          save: sandbox.stub().callsArgWith(0, null)
-        })
-      };
-      sandbox.stub(reportsRouter.storage.models.Contact, 'findOne')
-        .callsArgWith(1, null, null);
-      const nodeID = '2c5ae6807e9179cb2174d0265867c63abce48dfb';
-      const points = 10;
-      reportsRouter.updateReputation(nodeID, points);
-      expect(contact.recordPoints.callCount).to.equal(0);
-    });
-  });
-
   describe('#validateExchangeReport', function() {
     var sandbox = sinon.sandbox.create();
     afterEach(() => sandbox.restore());
@@ -355,15 +318,11 @@ describe('ReportsRouter', function() {
         save: sandbox.stub().callsArgWith(0, null)
       };
       sandbox.stub(reportsRouter, '_handleExchangeReport');
-      sandbox.stub(reportsRouter, 'updateReputation');
       sandbox.stub(
         reportsRouter.storage.models.StorageEvent,
         'findOne'
       ).callsArgWith(1, null, event);
       response.on('end', function() {
-        expect(reportsRouter.updateReputation.callCount).to.equal(1);
-        expect(reportsRouter.updateReputation.args[0][0]).to.equal('nodeid');
-        expect(reportsRouter.updateReputation.args[0][1]).to.equal(10);
         expect(event.save.callCount).to.equal(1);
         expect(response.statusCode).to.equal(201);
         done();
@@ -396,15 +355,11 @@ describe('ReportsRouter', function() {
         save: sandbox.stub().callsArgWith(0, null)
       };
       sandbox.stub(reportsRouter, '_handleExchangeReport');
-      sandbox.stub(reportsRouter, 'updateReputation');
       sandbox.stub(
         reportsRouter.storage.models.StorageEvent,
         'findOne'
       ).callsArgWith(1, null, event);
       response.on('end', function() {
-        expect(reportsRouter.updateReputation.callCount).to.equal(1);
-        expect(reportsRouter.updateReputation.args[0][0]).to.equal('nodeid');
-        expect(reportsRouter.updateReputation.args[0][1]).to.equal(-10);
         expect(event.save.callCount).to.equal(1);
         expect(response.statusCode).to.equal(201);
         done();
