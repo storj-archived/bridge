@@ -1200,6 +1200,105 @@ describe('ReportsRouter', function() {
       });
     });
 
+    it('should not not tear hole in universe', function(done) {
+      const event = {};
+      const shardhash = storj.utils.rmd160('shardhash');
+
+      const item = storj.StorageItem({
+        hash: storj.utils.rmd160('shardhash'),
+        contracts: {
+          'b6ab2770de1c02df049f8c62e1a69b163c43f70f': {
+            data_hash: shardhash
+          },
+          '90529afcc6a80cb62b22bd2a5319c332ce5d9fcf': {
+            data_hash: shardhash
+          },
+          '4248149ce35aa6f1f7485cc74f5d2d59fb24e59f': {
+            data_hash: shardhash
+          }
+        }
+      });
+
+      const mirrors = [
+        new reportsRouter.storage.models.Mirror({
+          shardHash: shardhash,
+          contact: new reportsRouter.storage.models.Contact({
+            _id: '4248149ce35aa6f1f7485cc74f5d2d59fb24e59f',
+            address: '127.0.0.1',
+            port: 1234,
+            protocol: '1.1.0',
+            lastSeen: Date.now(),
+            userAgent: 'test'
+          }),
+          contract: {
+            data_hash: storj.utils.rmd160('shardhash')
+          },
+          isEstablished: false
+        })
+      ];
+
+      sandbox.stub(
+        reportsRouter.contracts,
+        'load'
+      ).callsArgWith(1, null, item);
+
+      sandbox.stub(
+        reportsRouter.storage.models.Mirror,
+        'find'
+      ).returns({
+        populate: () => {
+          return {
+            exec: sandbox.stub().callsArgWith(0, null, mirrors)
+          };
+        }
+      });
+
+      sandbox.stub(
+        reportsRouter,
+        'getContactById'
+      ).callsArgWith(1, null, new reportsRouter.storage.models.Contact({
+        _id: '90529afcc6a80cb62b22bd2a5319c332ce5d9fcf',
+        address: '127.0.0.1',
+        port: 1234,
+        protocol: '1.1.0',
+        lastSeen: Date.now(),
+        userAgent: 'test'
+      }));
+
+      sandbox.stub(
+        reportsRouter.network,
+        'getRetrievalPointer'
+      ).callsArgWith(2, null, {
+        farmer: {
+          nodeID: '90529afcc6a80cb62b22bd2a5319c332ce5d9fcf'
+        },
+        token: '87e7450cbeb3b1652bfb156987993b3ff11e6242'
+      });
+
+      sandbox.stub(reportsRouter, '_createStorageEvent');
+
+      sandbox.stub(
+        reportsRouter.network,
+        'getMirrorNodes'
+      ).callsArgWith(2, null);
+
+      sandbox.stub(
+        reportsRouter.contracts,
+        'save'
+      ).callsArgWith(1, null);
+
+      reportsRouter._triggerMirrorEstablish(n, hash, event, function(err) {
+        if (err) {
+          console.log('err', err);
+          return done(err);
+        }
+        expect(reportsRouter.getContactById.args[0][0])
+          .to.equal('90529afcc6a80cb62b22bd2a5319c332ce5d9fcf');
+
+        done();
+      });
+    });
+
   });
 
 });
