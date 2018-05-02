@@ -48,10 +48,9 @@ describe('StorageEventsCron', function() {
         }
       };
       const user = {};
-      const {success, successModified, unknown} = cron._resolveCodes(event, user);
+      const {success, unknown} = cron._resolveCodes(event, user);
       expect(success).to.equal(false);
       expect(unknown).to.equal(false);
-      expect(successModified).to.equal(false);
     });
 
     it('failed: farmer(false), client(false)', function() {
@@ -66,10 +65,9 @@ describe('StorageEventsCron', function() {
         }
       };
       const user = {};
-      const {success, successModified, unknown} = cron._resolveCodes(event, user);
+      const {success, unknown} = cron._resolveCodes(event, user);
       expect(success).to.equal(false);
       expect(unknown).to.equal(false);
-      expect(successModified).to.equal(false);
     });
 
     it('failed: farmer(unknown), client(false)', function() {
@@ -82,10 +80,9 @@ describe('StorageEventsCron', function() {
         farmerReport: {}
       };
       const user = {};
-      const {success, successModified, unknown} = cron._resolveCodes(event, user);
+      const {success, unknown} = cron._resolveCodes(event, user);
       expect(success).to.equal(false);
       expect(unknown).to.equal(false);
-      expect(successModified).to.equal(false);
     });
 
     it('success: farmer(true), client(false), > threshold', function() {
@@ -102,10 +99,9 @@ describe('StorageEventsCron', function() {
       const user = {
         exceedsUnknownReportsThreshold: sinon.stub().returns(true)
       };
-      const {success, successModified, unknown} = cron._resolveCodes(event, user);
+      const {success, unknown} = cron._resolveCodes(event, user);
       expect(success).to.equal(true);
       expect(unknown).to.equal(true);
-      expect(successModified).to.equal(true);
     });
 
     it('success: farmer(unknown), client(unknown), > threshold', function() {
@@ -118,10 +114,9 @@ describe('StorageEventsCron', function() {
       const user = {
         exceedsUnknownReportsThreshold: sinon.stub().returns(true)
       };
-      const {success, successModified, unknown} = cron._resolveCodes(event, user);
+      const {success, unknown} = cron._resolveCodes(event, user);
       expect(success).to.equal(true);
       expect(unknown).to.equal(true);
-      expect(successModified).to.equal(true);
     });
 
     it('success: farmer(true), client(false), > threshold', function() {
@@ -138,10 +133,9 @@ describe('StorageEventsCron', function() {
       const user = {
         exceedsUnknownReportsThreshold: sinon.stub().returns(true)
       };
-      const {success, successModified, unknown} = cron._resolveCodes(event, user);
+      const {success, unknown} = cron._resolveCodes(event, user);
       expect(success).to.equal(true);
       expect(unknown).to.equal(true);
-      expect(successModified).to.equal(true);
     });
 
     it('failed: farmer(true), client(false), < threshold', function() {
@@ -158,10 +152,9 @@ describe('StorageEventsCron', function() {
       const user = {
         exceedsUnknownReportsThreshold: sinon.stub().returns(false)
       };
-      const {success, successModified, unknown} = cron._resolveCodes(event, user);
+      const {success, unknown} = cron._resolveCodes(event, user);
       expect(success).to.equal(false);
       expect(unknown).to.equal(true);
-      expect(successModified).to.equal(false);
     });
 
     it('failed: farmer(unknown), client(unknown), < threshold', function() {
@@ -174,10 +167,9 @@ describe('StorageEventsCron', function() {
       const user = {
         exceedsUnknownReportsThreshold: sinon.stub().returns(false)
       };
-      const {success, successModified, unknown} = cron._resolveCodes(event, user);
+      const {success, unknown} = cron._resolveCodes(event, user);
       expect(success).to.equal(false);
       expect(unknown).to.equal(true);
-      expect(successModified).to.equal(false);
     });
 
     it('failed: farmer(true), client(unknown), < threshold', function() {
@@ -192,10 +184,9 @@ describe('StorageEventsCron', function() {
       const user = {
         exceedsUnknownReportsThreshold: sinon.stub().returns(false)
       };
-      const {success, successModified, unknown} = cron._resolveCodes(event, user);
+      const {success, unknown} = cron._resolveCodes(event, user);
       expect(success).to.equal(false);
       expect(unknown).to.equal(true);
-      expect(successModified).to.equal(false);
     });
 
   });
@@ -237,7 +228,6 @@ describe('StorageEventsCron', function() {
       };
       cron._resolveCodes = sandbox.stub().returns({
         success: true,
-        successModified: true,
         unknown: false
       });
       const now = new Date();
@@ -254,6 +244,7 @@ describe('StorageEventsCron', function() {
         expect(event.save.callCount).to.equal(1);
         expect(event.success).to.equal(true);
         expect(timestamp).to.equal(now);
+        expect(event.processed).to.equal(true);
         done();
       });
     });
@@ -271,7 +262,6 @@ describe('StorageEventsCron', function() {
       };
       cron._resolveCodes = sandbox.stub().returns({
         success: true,
-        successModified: true,
         unknown: false
       });
       const now = new Date();
@@ -304,7 +294,6 @@ describe('StorageEventsCron', function() {
       const unknown = false;
       cron._resolveCodes = sandbox.stub().returns({
         success: true,
-        successModified: true,
         unknown: unknown
       });
       const now = new Date();
@@ -339,7 +328,6 @@ describe('StorageEventsCron', function() {
       const unknown = false;
       cron._resolveCodes = sandbox.stub().returns({
         success: true,
-        successModified: true,
         unknown: unknown
       });
       const now = new Date();
@@ -374,7 +362,6 @@ describe('StorageEventsCron', function() {
       const unknown = false;
       cron._resolveCodes = sandbox.stub().returns({
         success: true,
-        successModified: true,
         unknown: unknown
       });
       const now = new Date();
