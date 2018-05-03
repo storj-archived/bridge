@@ -134,7 +134,7 @@ describe('Monitor Config', function() {
         minInterval: '5m',
         queryNumber: 100,
         pingConcurrency: 10,
-        timeoutRateThreshold: 0.04
+        timeoutRateThreshold: 0.1585
       }
     };
 
