@@ -610,6 +610,10 @@ describe('BucketsRouter', function() {
         bucketsRouter.storage.models.BucketEntry,
         'remove'
       ).callsArgWith(1, new Error('test'));
+      sandbox.stub(
+        bucketsRouter.storage.models.StorageEvent,
+        'update'
+      ).callsArgWith(3, null);
       bucketsRouter.destroyBucketById(request, response, function(err) {
         expect(err).to.be.instanceOf(Error);
         done();
@@ -702,6 +706,10 @@ describe('BucketsRouter', function() {
         bucketsRouter.storage.models.BucketEntry,
         'remove'
       ).callsArgWith(1, new Error('test'));
+      sandbox.stub(
+        bucketsRouter.storage.models.StorageEvent,
+        'update'
+      ).callsArgWith(3, null);
       bucketsRouter.destroyBucketById(request, response, function(err) {
         expect(err).to.be.instanceOf(Error);
         expect(err.message).to.equal('test');
@@ -730,6 +738,10 @@ describe('BucketsRouter', function() {
         bucketsRouter.storage.models.Bucket,
         'findOne'
       ).callsArgWith(1, null, bucket);
+      sandbox.stub(
+        bucketsRouter.storage.models.StorageEvent,
+        'update'
+      ).callsArgWith(3, null);
       sandbox.stub(bucketsRouter.storage.models.BucketEntry, 'remove')
         .callsArgWith(1, null);
       sandbox.stub(bucket, 'remove').callsArgWith(0, new Error('test'));
@@ -767,6 +779,10 @@ describe('BucketsRouter', function() {
         bucketsRouter.storage.models.BucketEntry,
         'remove'
       ).callsArgWith(1, null);
+      sandbox.stub(
+        bucketsRouter.storage.models.StorageEvent,
+        'update'
+      ).callsArgWith(3, null);
       sandbox.stub(
         bucketsRouter.storage.models.StorageEvent.collection,
         'insert'
@@ -4066,6 +4082,10 @@ describe('BucketsRouter', function() {
         },
         remove: sinon.stub().callsArg(0)
       });
+      sandbox.stub(
+        bucketsRouter.storage.models.StorageEvent,
+        'update'
+      ).callsArgWith(3, null);
       const hashes = ['hash'];
       sandbox.stub(bucketsRouter, '_getShardHashesByBucketEntryId')
         .callsArgWith(2, null, hashes);
