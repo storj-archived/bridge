@@ -1,6 +1,7 @@
 'use strict';
 
 const fs = require('fs');
+const crypto = require('crypto');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 const EventEmitter = require('events').EventEmitter;
@@ -23,7 +24,9 @@ describe('Monitor', function() {
   });
   afterEach(() => sandbox.restore());
 
-  const config = new MonitorConfig('/tmp/storj-monitor-test.json');
+  const config = new MonitorConfig(
+    '/tmp/storj-monitor-test-' +
+      crypto.randomBytes(4).toString('hex') + '.json');
 
   describe('@constructor', function() {
 
