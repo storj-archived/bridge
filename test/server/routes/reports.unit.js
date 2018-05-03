@@ -234,6 +234,35 @@ describe('ReportsRouter', function() {
       });
     });
 
+    it('should give not authorized if event closed', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'POST',
+        url: '/reports/exchanges',
+        body: {
+          token: 'f4c0fcfcc818e162c39b9b678a54124c847c0f9a',
+          exchangeStart: Date.now(),
+          exchangeEnd: Date.now(),
+          exchangeResultCode: 1000,
+          exchangeResultMessage: 'SUCCESS'
+        }
+      });
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      const event = {
+        processed: true
+      };
+      sandbox.stub(
+        reportsRouter.storage.models.StorageEvent,
+        'findOne'
+      ).callsArgWith(1, null, event);
+      reportsRouter.createExchangeReport(request, response, function(err) {
+        expect(err).to.be.instanceOf(errors.NotAuthorizedError);
+        done();
+      });
+    });
+
     it('should give bad request error with invalid report', function(done) {
       var request = httpMocks.createRequest({
         method: 'POST',
