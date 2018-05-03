@@ -3,18 +3,21 @@
 This tool iterates over a list of nodeIDs and for each nodeID, it downloads a random selection of shards from the given node (aka farmer aka contact).
 Could potentially be used to check shard challenges to ensure shard integrity.
 
-To test with mongo, we first made a temporary mongo directory:
+-----------------
+### Final Usage
+
+For the audit tool:
+
+First create the directory `/tmp/storj` as an output directory, then:
 ```
-mkdir /tmp/mongo
+cat contacts.csv | node storj-audit-tool.js -o /tmp/storj -c /path/to/config.json
 ```
-Then we set the db path:
+
+To run the report tool on the data saved in leveldb:
 ```
-mongod --dbpath /tmp/mongo
+node storj-audit-report -o /tmp/storj -c /path/to/config.json
 ```
-After you have mongo running, you can pipe your document of nodeIds to the audit tool with this command:
-```
-cat nodeIds.txt | node storj-audit-tool -o <outputpath>
-```
+
 -----------------
 ### Testing in Integration
 
@@ -30,15 +33,3 @@ Then back inside `/root/node_modules/storj-bridge/bin/`, run:
 cat nodeIds.txt | node storj-audit-tool -o <outputpath> -c /root/config/storj-bridge/config.json
 ```
 
------------------
-### Final Usage
-
-For the audit tool:
-```
-cat contacts.csv | node storj-audit-tool.js -o /tmp/storj -c /path/to/config.json
-```
-
-To run the report tool on the data saved in leveldb:
-```
-node storj-audit-report -o /tmp/storj -c /path/to/config.json
-```
