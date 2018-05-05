@@ -20,6 +20,7 @@ const logger = require('../lib/logger');
 const assert = require('assert');
 
 // SHARD STATUS ERROR STATUS
+const ERROR_SIZE = 6;
 const ERROR_STREAM = 5;
 const ERROR_HASH = 4;
 const ERROR_TOKEN = 3;
@@ -49,7 +50,7 @@ const stream = db.createReadStream({
   lte: MAX_KEY
 });
 
-console.log('NodeID, Audit Success Percentage, Audit Success Shards, Audit Total Shards, Fail Stream, Fail Hash, Fail Token, Fail Contract, Fail Contact, Bytes Transferred');
+console.log('NodeID, Audit Success Percentage, Audit Success Shards, Audit Total Shards, Fail Stream, Fail Hash, Fail Size, Fail Token, Fail Contract, Fail Contact, Bytes Transferred');
 
 stream.on('data', function (data) {
   const nodeID = data.key.toString('hex');
@@ -58,6 +59,7 @@ stream.on('data', function (data) {
   let total = 0;
   let success = 0;
   let hash = 0;
+  let size = 0;
   let token = 0;
   let contract = 0;
   let contact = 0;
@@ -75,6 +77,9 @@ stream.on('data', function (data) {
         break;
       case ERROR_HASH:
         hash++;
+        break;
+      case ERROR_SIZE:
+        size++;
         break;
       case ERROR_TOKEN:
         token++;
@@ -94,7 +99,7 @@ stream.on('data', function (data) {
   if (total > 0) {
     percentage = success / total * 100;
   }
-  console.log('%s, %s, %s, %s, %s, %s, %s, %s, %s, %s', nodeID, percentage.toFixed(0), success, total, stream, hash, token, contract, contact, totalBytes);
+  console.log('%s, %s, %s, %s, %s, %s, %s, %s, %s, %s', nodeID, percentage.toFixed(0), success, total, stream, hash, size, token, contract, contact, totalBytes);
 })
 
 stream.on('error', function (err) {
