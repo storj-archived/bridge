@@ -23,6 +23,7 @@ const assert = require('assert');
 const {Transform} = require('stream');
 
 // SHARD STATUS ERROR STATUS
+const ERROR_SIZE = 6;
 const ERROR_STREAM = 5;
 const ERROR_HASH = 4;
 const ERROR_TOKEN = 3;
@@ -310,6 +311,7 @@ stream.on('data', function(line) {
                           shard.hash, pointer.token, nodeID)
 
               const hasher = crypto.createHash('sha256');
+              var size = 0;
 
               const shardRequest = http.get({
                 protocol: 'http:',
@@ -346,26 +348,34 @@ stream.on('data', function(line) {
                 }
 
                 res.on('data', (chunk) => {
+                  size += chunk.length;
                   hasher.update(chunk);
                   file.write(chunk);
                 });
 
                 res.on('end', () => {
                   const actual = storj.utils.rmd160b(hasher.digest()).toString('hex');
-                  if (actual == shard.hash) {
-                    shardResults[sanitizeNodeID(shard.hash)] = {
-                      status: SUCCESS,
-                      contract: contract.toObject()
-                    };
-                    logger.info('shard %s successfully downloaded', shard.hash);
-                    shardFinish();
-                  } else {
+                  if (actual !== shard.hash) {
                     shardResults[sanitizeNodeID(shard.hash)] = {
                       status: ERROR_HASH,
                       contract: contract.toObject()
                     }
                     logger.info('shard %s failed to download, actual: %s', shard.hash, actual);
                     shardFinish(new Error('unexpected data'))
+                  } else if (size !== contract.get('data_size')) {
+                    shardResults[sanitizeNodeID(shard.hash)] = {
+                      status: ERROR_SIZE,
+                      contract: contract.toObject()
+                    }
+                    logger.info('shard %s wrong size, actual: %s', contract.get('data_size'), size);
+                    shardFinish(new Error('unexpected size'))
+                  } else {
+                    shardResults[sanitizeNodeID(shard.hash)] = {
+                      status: SUCCESS,
+                      contract: contract.toObject()
+                    };
+                    logger.info('shard %s successfully downloaded', shard.hash);
+                    shardFinish();
                   }
                 });
 
