@@ -343,7 +343,7 @@ describe('StorageEventsCron', function() {
         expect(event.success).to.equal(true);
         expect(cron._updateReputation.callCount).to.equal(1);
         expect(cron._updateReputation.args[0][0]).to.equal(farmerID);
-        expect(cron._updateReputation.args[0][1]).to.equal(10);
+        expect(cron._updateReputation.args[0][1]).to.equal(1);
         expect(timestamp).to.equal(now);
         expect(event.processed).to.equal(true);
         done();
@@ -383,7 +383,7 @@ describe('StorageEventsCron', function() {
         expect(event.success).to.equal(false);
         expect(cron._updateReputation.callCount).to.equal(1);
         expect(cron._updateReputation.args[0][0]).to.equal(farmerID);
-        expect(cron._updateReputation.args[0][1]).to.equal(-10);
+        expect(cron._updateReputation.args[0][1]).to.equal(-1);
         expect(timestamp).to.equal(now);
         expect(event.processed).to.equal(true);
         done();
