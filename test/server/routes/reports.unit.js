@@ -9,172 +9,12 @@ const errors = require('storj-service-error-types');
 const EventEmitter = require('events').EventEmitter;
 const ReportsRouter = require('../../../lib/server/routes/reports');
 const utils = require('../../../lib/utils');
-const farmerMiddleware = require('../../../lib/server/middleware/farmer-auth');
 
 describe('ReportsRouter', function() {
+
   var reportsRouter = new ReportsRouter(
     require('../../_fixtures/router-opts')
   );
-
-  describe('#authMiddleware', function() {
-    var sandbox = sinon.sandbox.create();
-    afterEach(() => sandbox.restore());
-
-    it('it will auth user with user auth headers', function(done) {
-      var request = httpMocks.createRequest({
-        method: 'POST',
-        url: '/reports/exchanges',
-        body: {},
-        headers: {
-          'authorization': 'base64authstring'
-        }
-      });
-      var response = httpMocks.createResponse({
-        req: request,
-        eventEmitter: EventEmitter
-      });
-      var testReportsRouter = new ReportsRouter(
-        require('../../_fixtures/router-opts')
-      );
-      const bodyParser = sinon.stub().callsArgWith(2, null);
-      const userAuth = sinon.stub().callsArgWith(2, null);
-      testReportsRouter.userAuthMiddlewares = [
-        bodyParser,
-        userAuth
-      ];
-      testReportsRouter.authMiddleware(request, response, function(err) {
-        if (err) {
-          return done(err);
-        }
-        expect(bodyParser.callCount).to.equal(0);
-        expect(userAuth.callCount).to.equal(1);
-        done();
-      });
-    });
-    it('it will auth farmer with farmer auth headers', function(done) {
-      var request = httpMocks.createRequest({
-        method: 'POST',
-        url: '/reports/exchanges',
-        body: {},
-        headers: {
-          'x-node-id': '14fe443f9bfe4936fb70dd97298cc6a34c88cfba'
-        }
-      });
-      var response = httpMocks.createResponse({
-        req: request,
-        eventEmitter: EventEmitter
-      });
-      sandbox.stub(farmerMiddleware, 'authFarmer').callsArgWith(2, null);
-      reportsRouter.authMiddleware(request, response, function(err) {
-        if (err) {
-          return done(err);
-        }
-        expect(farmerMiddleware.authFarmer.callCount).to.equal(1);
-        done();
-      });
-    });
-    it('it will error if no auth', function(done) {
-      var request = httpMocks.createRequest({
-        method: 'POST',
-        url: '/reports/exchanges',
-        body: {},
-        headers: {}
-      });
-      var response = httpMocks.createResponse({
-        req: request,
-        eventEmitter: EventEmitter
-      });
-      reportsRouter.authMiddleware(request, response, function(err) {
-        expect(err).to.be.instanceOf(errors.NotAuthorizedError);
-        done();
-      });
-    });
-  });
-
-  describe('#validateExchangeReport', function() {
-    var sandbox = sinon.sandbox.create();
-    afterEach(() => sandbox.restore());
-
-    const validReports = [{
-      token: '91e1fc2fd3a4c5244945e49c6f68ca1bd444d14c',
-      exchangeStart: 1509156812066,
-      exchangeEnd: 1509156822420,
-      exchangeResultCode: 1100,
-      exchangeResultMessage: 'FAILED_INTEGRITY'
-    }, {
-      token: 'fe081d837b4c6bbb0e416b8acd7b04ed29203f08',
-      exchangeStart: 1509156792819,
-      exchangeEnd: 1509156801731,
-      exchangeResultCode: 1000,
-      exchangeResultMessage: 'SHARD_DOWNLOADED'
-    }, {
-      token: 'a9d2c8cee65ad1b6ddb7cd574a18081f44ab8391',
-      exchangeStart: 1509156773796,
-      exchangeEnd: 1509156782011,
-      exchangeResultCode: 1100,
-      exchangeResultMessage: 'SHARD_UPLOADED'
-    }, {
-      token: 'b345adbe445452b6b451e4b8ca4beac2a548e22d',
-      exchangeStart: 1509156753155,
-      exchangeEnd: 1509156763347,
-      exchangeResultCode: 1000,
-      exchangeResultMessage: 'DOWNLOAD_ERROR'
-    }, {
-      token: '6563ac73bee62df44880da382cd352e3e2fe3374',
-      exchangeStart: 1509156731683,
-      exchangeEnd: 1509156742560,
-      exchangeResultCode: 1100,
-      exchangeResultMessage: 'TRANSFER_FAILED'
-    }, {
-      token: '518252128d9eb93b717618558ac64cf0bb882b36',
-      exchangeStart: 1509156731883,
-      exchangeEnd: 1509156732883,
-      exchangeResultCode: 1100,
-      exchangeResultMessage: 'MIRROR_SUCCESS'
-    }];
-
-    const invalidReports = [{
-      token: '91e1fc2fd3a4c5244945e49c6f68ca1bd444d14c',
-      exchangeStart: 1509156812066,
-      exchangeEnd: 1509156822420,
-      exchangeResultCode: 1100,
-      exchangeResultMessage: 'NOT_A_VALID_MESSAGE' // invalid
-    }, {
-      token: 'fe081d837b4c6bbb0e416b8acd7b04ed29203f08',
-      exchangeStart: 'tuesday', // invalid
-      exchangeEnd: 1509156822421,
-      exchangeResultCode: 1000,
-      exchangeResultMessage: 'SHARD_DOWNLOADED'
-    }, {
-      token: 'fe081d837b4c6bbb0e416b8acd7b04ed29203f08',
-      exchangeStart: 1509156812068,
-      exchangeEnd: 'wednesday', // invalid
-      exchangeResultCode: 1000,
-      exchangeResultMessage: 'SHARD_DOWNLOADED'
-    }, {
-      token: 'a9d2c8cee65ad1b6ddb7cd574a18081f44ab8391',
-      exchangeStart: 1509156773796,
-      exchangeEnd: 1509156782011,
-      exchangeResultCode: 1234567890, // invalid
-      exchangeResultMessage: 'SHARD_UPLOADED'
-    }];
-
-    let i = 0;
-    validReports.forEach((report) => {
-      it('will validate report (' + i + ')', function() {
-        expect(reportsRouter.validateExchangeReport(report)).to.equal(true);
-      });
-      i++;
-    });
-
-    invalidReports.forEach((report) => {
-      it('will invalidate report (' + i + ')', function() {
-        expect(reportsRouter.validateExchangeReport(report)).to.equal(false);
-      });
-      i++;
-    });
-
-  });
 
   describe('#createExchangeReport', function() {
     var sandbox = sinon.sandbox.create();
@@ -182,12 +22,15 @@ describe('ReportsRouter', function() {
       sandbox.restore();
     });
 
-    it('should give internal error', function(done) {
+    it('should return internal error if save fails', function(done) {
       var request = httpMocks.createRequest({
         method: 'POST',
         url: '/reports/exchanges',
         body: {
-          token: 'f4c0fcfcc818e162c39b9b678a54124c847c0f9a',
+          reporterId: storj.utils.rmd160('client'),
+          farmerId: storj.utils.rmd160('farmer'),
+          clientId: storj.utils.rmd160('client'),
+          dataHash: storj.utils.rmd160('data'),
           exchangeStart: Date.now(),
           exchangeEnd: Date.now(),
           exchangeResultCode: 1000,
@@ -199,308 +42,155 @@ describe('ReportsRouter', function() {
         eventEmitter: EventEmitter
       });
       sandbox.stub(
-        reportsRouter.storage.models.StorageEvent,
-        'findOne'
-      ).callsArgWith(1, new Error('test'));
-      reportsRouter.createExchangeReport(request, response, function(err) {
-        expect(err).to.be.instanceOf(errors.InternalError);
-        done();
-      });
-    });
+        reportsRouter.storage.models.Shard,
+        'find'
+      ).callsArgWith(2, null, [{}]);
 
-    it('should give not found without matching token', function(done) {
-      var request = httpMocks.createRequest({
-        method: 'POST',
-        url: '/reports/exchanges',
-        body: {
-          token: 'f4c0fcfcc818e162c39b9b678a54124c847c0f9a',
-          exchangeStart: Date.now(),
-          exchangeEnd: Date.now(),
-          exchangeResultCode: 1000,
-          exchangeResultMessage: 'SUCCESS'
-        }
-      });
-      var response = httpMocks.createResponse({
-        req: request,
-        eventEmitter: EventEmitter
-      });
       sandbox.stub(
-        reportsRouter.storage.models.StorageEvent,
-        'findOne'
-      ).callsArgWith(1, null, null);
-      reportsRouter.createExchangeReport(request, response, function(err) {
-        expect(err).to.be.instanceOf(errors.NotFoundError);
-        done();
-      });
-    });
-
-    it('should give not authorized if event closed', function(done) {
-      var request = httpMocks.createRequest({
-        method: 'POST',
-        url: '/reports/exchanges',
-        body: {
-          token: 'f4c0fcfcc818e162c39b9b678a54124c847c0f9a',
-          exchangeStart: Date.now(),
-          exchangeEnd: Date.now(),
-          exchangeResultCode: 1000,
-          exchangeResultMessage: 'SUCCESS'
-        }
-      });
-      var response = httpMocks.createResponse({
-        req: request,
-        eventEmitter: EventEmitter
-      });
-      const event = {
-        processed: true
-      };
-      sandbox.stub(
-        reportsRouter.storage.models.StorageEvent,
-        'findOne'
-      ).callsArgWith(1, null, event);
-      reportsRouter.createExchangeReport(request, response, function(err) {
-        expect(err).to.be.instanceOf(errors.NotAuthorizedError);
-        done();
-      });
-    });
-
-    it('should give bad request error with invalid report', function(done) {
-      var request = httpMocks.createRequest({
-        method: 'POST',
-        url: '/reports/exchanges',
-        body: {
-          token: 'f4c0fcfcc818e162c39b9b678a54124c847c0f9a',
-          exchangeStart: Date.now(),
-          exchangeEnd: Date.now(),
-          exchangeResultCode: 1234567890,
-          exchangeResultMessage: 'NOT_A_MESSAGE'
-        }
-      });
-      var response = httpMocks.createResponse({
-        req: request,
-        eventEmitter: EventEmitter
-      });
-      const event = {};
-      sandbox.stub(
-        reportsRouter.storage.models.StorageEvent,
-        'findOne'
-      ).callsArgWith(1, null, event);
+        reportsRouter.storage.models.ExchangeReport.prototype,
+        'save'
+      ).callsArgWith(0, new Error('Failed to save report'));
       reportsRouter.createExchangeReport(request, response, function(err) {
         expect(err).to.be.instanceOf(errors.BadRequestError);
+        expect(err.message).to.equal('Failed to save report');
         done();
       });
     });
 
-    it('should give not authorized if not valid reporter', function(done) {
+    it('should give error if datahash does not exist', function(done) {
       var request = httpMocks.createRequest({
         method: 'POST',
         url: '/reports/exchanges',
         body: {
-          token: 'f4c0fcfcc818e162c39b9b678a54124c847c0f9a',
+          reporterId: storj.utils.rmd160('client'),
+          farmerId: storj.utils.rmd160('farmer'),
+          clientId: storj.utils.rmd160('client'),
+          dataHash: storj.utils.rmd160('data'),
           exchangeStart: Date.now(),
           exchangeEnd: Date.now(),
           exchangeResultCode: 1000,
-          exchangeResultMessage: 'SHARD_DOWNLOADED'
+          exchangeResultMessage: 'SUCCESS'
         }
       });
-      request.user = {
-        _id: 'userid1'
-      };
       var response = httpMocks.createResponse({
         req: request,
         eventEmitter: EventEmitter
       });
-      const event = {
-        client: 'userid2'
-      };
       sandbox.stub(
-        reportsRouter.storage.models.StorageEvent,
-        'findOne'
-      ).callsArgWith(1, null, event);
+        reportsRouter.storage.models.ExchangeReport.prototype,
+        'save'
+      ).callsArgWith(0, null);
+      sandbox.stub(
+        reportsRouter.storage.models.Shard,
+        'find'
+      ).callsArgWith(2, null, []);
       reportsRouter.createExchangeReport(request, response, function(err) {
-        expect(err).to.be.instanceOf(errors.NotAuthorizedError);
+        expect(err).to.be.instanceOf(errors.NotFoundError);
+        var save = reportsRouter.storage.models.ExchangeReport.prototype.save;
+        expect(save.callCount).to.equal(0);
         done();
       });
     });
 
-    it('will update storage event with client (success)', function(done) {
+    it('should give error if datahash does not exist', function(done) {
       var request = httpMocks.createRequest({
         method: 'POST',
         url: '/reports/exchanges',
         body: {
-          token: 'f4c0fcfcc818e162c39b9b678a54124c847c0f9a',
+          reporterId: storj.utils.rmd160('client'),
+          farmerId: storj.utils.rmd160('farmer'),
+          clientId: storj.utils.rmd160('client'),
+          dataHash: storj.utils.rmd160('data'),
           exchangeStart: Date.now(),
           exchangeEnd: Date.now(),
           exchangeResultCode: 1000,
-          exchangeResultMessage: 'SHARD_DOWNLOADED'
+          exchangeResultMessage: 'SUCCESS'
         }
       });
-      request.user = {
-        _id: 'userid1'
-      };
       var response = httpMocks.createResponse({
         req: request,
         eventEmitter: EventEmitter
       });
-      const event = {
-        client: 'userid1',
-        farmer: 'nodeid',
-        save: sandbox.stub().callsArgWith(0, null)
-      };
-      sandbox.stub(reportsRouter, '_handleExchangeReport');
       sandbox.stub(
-        reportsRouter.storage.models.StorageEvent,
-        'findOne'
-      ).callsArgWith(1, null, event);
+        reportsRouter.storage.models.ExchangeReport.prototype,
+        'save'
+      ).callsArgWith(0, null);
+      sandbox.stub(
+        reportsRouter.storage.models.Shard,
+        'find'
+      ).callsArgWith(2, null, null);
+      reportsRouter.createExchangeReport(request, response, function(err) {
+        expect(err).to.be.instanceOf(errors.NotFoundError);
+        var save = reportsRouter.storage.models.ExchangeReport.prototype.save;
+        expect(save.callCount).to.equal(0);
+        done();
+      });
+    });
+
+    it('should give error if datahash does not exist', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'POST',
+        url: '/reports/exchanges',
+        body: {
+          reporterId: storj.utils.rmd160('client'),
+          farmerId: storj.utils.rmd160('farmer'),
+          clientId: storj.utils.rmd160('client'),
+          dataHash: storj.utils.rmd160('data'),
+          exchangeStart: Date.now(),
+          exchangeEnd: Date.now(),
+          exchangeResultCode: 1000,
+          exchangeResultMessage: 'SUCCESS'
+        }
+      });
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      sandbox.stub(
+        reportsRouter.storage.models.Shard,
+        'find'
+      ).callsArgWith(2, new Error('Internal error'));
+      sandbox.stub(
+        reportsRouter.storage.models.ExchangeReport.prototype,
+        'save'
+      ).callsArgWith(0, null);
+      reportsRouter.createExchangeReport(request, response, function(err) {
+        expect(err).to.be.instanceOf(errors.InternalError);
+        var save = reportsRouter.storage.models.ExchangeReport.prototype.save;
+        expect(save.callCount).to.equal(0);
+        done();
+      });
+    });
+
+    it('should send 201 if report saved', function(done) {
+      var request = httpMocks.createRequest({
+        method: 'POST',
+        url: '/reports/exchanges',
+        body: {
+          reporterId: storj.utils.rmd160('client'),
+          farmerId: storj.utils.rmd160('farmer'),
+          clientId: storj.utils.rmd160('client'),
+          dataHash: storj.utils.rmd160('data'),
+          exchangeStart: Date.now(),
+          exchangeEnd: Date.now(),
+          exchangeResultCode: 1000,
+          exchangeResultMessage: 'SUCCESS'
+        }
+      });
+      var response = httpMocks.createResponse({
+        req: request,
+        eventEmitter: EventEmitter
+      });
+      sandbox.stub(
+        reportsRouter.storage.models.Shard,
+        'find'
+      ).callsArgWith(2, null, [{}]);
+      sandbox.stub(
+        reportsRouter.storage.models.ExchangeReport.prototype,
+        'save'
+      ).callsArgWith(0, null);
       response.on('end', function() {
-        expect(event.save.callCount).to.equal(1);
         expect(response.statusCode).to.equal(201);
-        done();
-      });
-      reportsRouter.createExchangeReport(request, response);
-    });
-
-    it('will update storage event with client (failure)', function(done) {
-      var request = httpMocks.createRequest({
-        method: 'POST',
-        url: '/reports/exchanges',
-        body: {
-          token: 'f4c0fcfcc818e162c39b9b678a54124c847c0f9a',
-          exchangeStart: Date.now(),
-          exchangeEnd: Date.now(),
-          exchangeResultCode: 1100,
-          exchangeResultMessage: 'SHARD_DOWNLOADED'
-        }
-      });
-      request.user = {
-        _id: 'userid1'
-      };
-      var response = httpMocks.createResponse({
-        req: request,
-        eventEmitter: EventEmitter
-      });
-      const event = {
-        client: 'userid1',
-        farmer: 'nodeid',
-        save: sandbox.stub().callsArgWith(0, null)
-      };
-      sandbox.stub(reportsRouter, '_handleExchangeReport');
-      sandbox.stub(
-        reportsRouter.storage.models.StorageEvent,
-        'findOne'
-      ).callsArgWith(1, null, event);
-      response.on('end', function() {
-        expect(event.save.callCount).to.equal(1);
-        expect(response.statusCode).to.equal(201);
-        done();
-      });
-      reportsRouter.createExchangeReport(request, response);
-    });
-
-    it('will update storage event with client (idempotence)', function(done) {
-      var request = httpMocks.createRequest({
-        method: 'POST',
-        url: '/reports/exchanges',
-        body: {
-          token: 'f4c0fcfcc818e162c39b9b678a54124c847c0f9a',
-          exchangeStart: Date.now(),
-          exchangeEnd: Date.now(),
-          exchangeResultCode: 1000,
-          exchangeResultMessage: 'SHARD_DOWNLOADED'
-        }
-      });
-      request.user = {
-        _id: 'userid1'
-      };
-      var response = httpMocks.createResponse({
-        req: request,
-        eventEmitter: EventEmitter
-      });
-      const event = {
-        client: 'userid1',
-        save: sandbox.stub().callsArgWith(0, null),
-        clientReport: {
-          exchangeResultCode: 1100 // already has report
-        }
-      };
-      sandbox.stub(reportsRouter, '_handleExchangeReport');
-      sandbox.stub(
-        reportsRouter.storage.models.StorageEvent,
-        'findOne'
-      ).callsArgWith(1, null, event);
-      response.on('end', function() {
-        expect(event.save.callCount).to.equal(0);
-        expect(response.statusCode).to.equal(200);
-        done();
-      });
-      reportsRouter.createExchangeReport(request, response);
-    });
-
-    it('will update storage event with farmer', function(done) {
-      var request = httpMocks.createRequest({
-        method: 'POST',
-        url: '/reports/exchanges',
-        body: {
-          token: 'f4c0fcfcc818e162c39b9b678a54124c847c0f9a',
-          exchangeStart: Date.now(),
-          exchangeEnd: Date.now(),
-          exchangeResultCode: 1000,
-          exchangeResultMessage: 'SHARD_DOWNLOADED'
-        }
-      });
-      request.farmerNodeID = '4b449e6445daf4bfe0e7add6ca10bd66e27e1663';
-      var response = httpMocks.createResponse({
-        req: request,
-        eventEmitter: EventEmitter
-      });
-      const event = {
-        farmer: '4b449e6445daf4bfe0e7add6ca10bd66e27e1663',
-        save: sandbox.stub().callsArgWith(0, null)
-      };
-      sandbox.stub(reportsRouter, '_handleExchangeReport');
-      sandbox.stub(
-        reportsRouter.storage.models.StorageEvent,
-        'findOne'
-      ).callsArgWith(1, null, event);
-      response.on('end', function() {
-        expect(event.save.callCount).to.equal(1);
-        expect(response.statusCode).to.equal(201);
-        done();
-      });
-      reportsRouter.createExchangeReport(request, response);
-    });
-
-    it('will update storage event with farmer (idempotence)', function(done) {
-      var request = httpMocks.createRequest({
-        method: 'POST',
-        url: '/reports/exchanges',
-        body: {
-          token: 'f4c0fcfcc818e162c39b9b678a54124c847c0f9a',
-          exchangeStart: Date.now(),
-          exchangeEnd: Date.now(),
-          exchangeResultCode: 1000,
-          exchangeResultMessage: 'SHARD_DOWNLOADED'
-        }
-      });
-      request.farmerNodeID = '4b449e6445daf4bfe0e7add6ca10bd66e27e1663';
-      var response = httpMocks.createResponse({
-        req: request,
-        eventEmitter: EventEmitter
-      });
-      const event = {
-        farmer: '4b449e6445daf4bfe0e7add6ca10bd66e27e1663',
-        save: sandbox.stub().callsArgWith(0, null),
-        farmerReport: {
-          exchangeResultCode: 1100 // already has report
-        }
-      };
-      sandbox.stub(reportsRouter, '_handleExchangeReport');
-      sandbox.stub(
-        reportsRouter.storage.models.StorageEvent,
-        'findOne'
-      ).callsArgWith(1, null, event);
-      response.on('end', function() {
-        expect(event.save.callCount).to.equal(0);
-        expect(response.statusCode).to.equal(200);
         done();
       });
       reportsRouter.createExchangeReport(request, response);
@@ -516,16 +206,15 @@ describe('ReportsRouter', function() {
       _triggerMirrorEstablish = sinon.stub(
         reportsRouter,
         '_triggerMirrorEstablish'
-      ).callsArg(3);
+      ).callsArg(2);
     });
     after(() => _triggerMirrorEstablish.restore());
 
     it('should callback error if not valid report type', function(done) {
-      const event = {};
       reportsRouter._handleExchangeReport({
         shardHash: 'hash',
         exchangeResultMessage: 'NOT_VALID'
-      }, event, (err) => {
+      }, (err) => {
         expect(err.message).to.equal(
           'Exchange result type will not trigger action'
         );
@@ -534,27 +223,24 @@ describe('ReportsRouter', function() {
     });
 
     it('should trigger a mirror on SHARD_UPLOADED', function(done) {
-      const event = {};
       reportsRouter._handleExchangeReport({
         shardHash: 'hash',
         exchangeResultMessage: 'SHARD_UPLOADED'
-      }, event, done);
+      }, done);
     });
 
     it('should trigger a mirror on MIRROR_SUCCESS', function(done) {
-      const event = {};
       reportsRouter._handleExchangeReport({
         shardHash: 'hash',
         exchangeResultMessage: 'MIRROR_SUCCESS'
-      }, event, done);
+      }, done);
     });
 
     it('should trigger a mirror on DOWNLOAD_ERROR', function(done) {
-      const event = {};
       reportsRouter._handleExchangeReport({
         shardHash: 'hash',
         exchangeResultMessage: 'DOWNLOAD_ERROR'
-      }, event, done);
+      }, done);
     });
 
   });
@@ -722,11 +408,7 @@ describe('ReportsRouter', function() {
       sandbox.stub(
         reportsRouter.network,
         'getRetrievalPointer'
-      ).callsArgWith(2, null, {
-        farmer: {
-          nodeID: '9fbe85050ecf276e3f47a979cb33bc55172ad241'
-        }
-      });
+      ).callsArgWith(2, null, { /* pointer */ });
       sandbox.stub(
         reportsRouter.network,
         'getMirrorNodes'
@@ -735,9 +417,7 @@ describe('ReportsRouter', function() {
         reportsRouter.contracts,
         'save'
       ).callsArgWith(1, null);
-      const event = {};
-      sandbox.stub(reportsRouter, '_createStorageEvent');
-      reportsRouter._triggerMirrorEstablish(n, hash, event, function(err) {
+      reportsRouter._triggerMirrorEstablish(n, hash, function(err) {
         expect(err).to.equal(null);
         expect(Array.prototype.sort.callCount).to.equal(1);
         expect(Array.prototype.sort.args[0][0])
@@ -747,7 +427,7 @@ describe('ReportsRouter', function() {
     });
 
     it('should error if net mirroring fails', function(done) {
-      sandbox.stub(
+      var _mirrorFind = sinon.stub(
         reportsRouter.storage.models.Mirror,
         'find'
       ).returns({
@@ -796,11 +476,11 @@ describe('ReportsRouter', function() {
           }
         }
       });
-      sandbox.stub(
+      var _contractsLoad = sinon.stub(
         reportsRouter.contracts,
         'load'
       ).callsArgWith(1, null, item);
-      sandbox.stub(
+      var _getContactById = sinon.stub(
         reportsRouter,
         'getContactById'
       ).callsArgWith(1, null, new reportsRouter.storage.models.Contact({
@@ -811,32 +491,32 @@ describe('ReportsRouter', function() {
         lastSeen: Date.now(),
         userAgent: 'test'
       }));
-      sandbox.stub(
+      var _getRetrievalPointer = sinon.stub(
         reportsRouter.network,
         'getRetrievalPointer'
-      ).callsArgWith(2, null, {
-        farmer: {
-          nodeID: '9fbe85050ecf276e3f47a979cb33bc55172ad241'
-        }
-      });
-      sandbox.stub(
+      ).callsArgWith(2, null, { /* pointer */ });
+      var _getMirrorNodes = sinon.stub(
         reportsRouter.network,
         'getMirrorNodes'
       ).callsArgWith(2, new Error('Failed to mirror data'));
-      sandbox.stub(
+      var _contractsSave = sinon.stub(
         reportsRouter.contracts,
         'save'
       ).callsArgWith(1, null);
-      const event = {};
-      sandbox.stub(reportsRouter, '_createStorageEvent');
-      reportsRouter._triggerMirrorEstablish(n, hash, event, function(err) {
+      reportsRouter._triggerMirrorEstablish(n, hash, function(err) {
+        _mirrorFind.restore();
+        _contractsLoad.restore();
+        _getContactById.restore();
+        _getRetrievalPointer.restore();
+        _getMirrorNodes.restore();
+        _contractsSave.restore();
         expect(err.message).to.equal('Failed to mirror data');
         done();
       });
     });
 
     it('should error if no pointer can be retrieved', function(done) {
-      sandbox.stub(
+      var _mirrorFind = sinon.stub(
         reportsRouter.storage.models.Mirror,
         'find'
       ).returns({
@@ -885,11 +565,11 @@ describe('ReportsRouter', function() {
           }
         }
       });
-      sandbox.stub(
+      var _contractsLoad = sinon.stub(
         reportsRouter.contracts,
         'load'
       ).callsArgWith(1, null, item);
-      sandbox.stub(
+      var _getContactById = sinon.stub(
         reportsRouter,
         'getContactById'
       ).callsArgWith(1, null, new reportsRouter.storage.models.Contact({
@@ -900,28 +580,32 @@ describe('ReportsRouter', function() {
         lastSeen: Date.now(),
         userAgent: 'test'
       }));
-      sandbox.stub(
+      var _getRetrievalPointer = sinon.stub(
         reportsRouter.network,
         'getRetrievalPointer'
       ).callsArgWith(2, new Error('Failed to retrieve pointer'));
-      sandbox.stub(
+      var _getMirrorNodes = sinon.stub(
         reportsRouter.network,
         'getMirrorNodes'
       ).callsArgWith(2, null);
-      sandbox.stub(
+      var _contractsSave = sinon.stub(
         reportsRouter.contracts,
         'save'
       ).callsArgWith(1, null);
-      const event = {};
-      sandbox.stub(reportsRouter, '_createStorageEvent');
-      reportsRouter._triggerMirrorEstablish(n, hash, event, function(err) {
+      reportsRouter._triggerMirrorEstablish(n, hash, function(err) {
+        _mirrorFind.restore();
+        _contractsLoad.restore();
+        _getContactById.restore();
+        _getRetrievalPointer.restore();
+        _getMirrorNodes.restore();
+        _contractsSave.restore();
         expect(err.message).to.equal('Failed to get pointer');
         done();
       });
     });
 
     it('should error if no pointer can be retrieved', function(done) {
-      sandbox.stub(
+      var _mirrorFind = sinon.stub(
         reportsRouter.storage.models.Mirror,
         'find'
       ).returns({
@@ -970,35 +654,39 @@ describe('ReportsRouter', function() {
           }
         }
       });
-      sandbox.stub(
+      var _contractsLoad = sinon.stub(
         reportsRouter.contracts,
         'load'
       ).callsArgWith(1, null, item);
-      sandbox.stub(
+      var _getContactById = sinon.stub(
         reportsRouter,
         'getContactById'
       ).callsArgWith(1, new Error('Contact not found'));
-      sandbox.stub(
+      var _getRetrievalPointer = sinon.stub(
         reportsRouter.network,
         'getRetrievalPointer'
       ).callsArgWith(2, null, { /* pointer */ });
-      sandbox.stub(
+      var _getMirrorNodes = sinon.stub(
         reportsRouter.network,
         'getMirrorNodes'
       ).callsArgWith(2, null);
-      sandbox.stub(
+      var _contractsSave = sinon.stub(
         reportsRouter.contracts,
         'save'
       ).callsArgWith(1, null);
-      const event = {};
-      sandbox.stub(reportsRouter, '_createStorageEvent');
-      reportsRouter._triggerMirrorEstablish(n, hash, event, function(err) {
+      reportsRouter._triggerMirrorEstablish(n, hash, function(err) {
+        _mirrorFind.restore();
+        _contractsLoad.restore();
+        _getContactById.restore();
+        _getRetrievalPointer.restore();
+        _getMirrorNodes.restore();
+        _contractsSave.restore();
         expect(err.message).to.equal('Failed to get pointer');
         done();
       });
     });
     it('should error if the contract cannot load', function(done) {
-      sandbox.stub(
+      var _mirrorFind = sinon.stub(
         reportsRouter.storage.models.Mirror,
         'find'
       ).returns({
@@ -1039,11 +727,11 @@ describe('ReportsRouter', function() {
           };
         }
       });
-      sandbox.stub(
+      var _contractsLoad = sinon.stub(
         reportsRouter.contracts,
         'load'
       ).callsArgWith(1, new Error('Failed to load contract'));
-      sandbox.stub(
+      var _getContactById = sinon.stub(
         reportsRouter,
         'getContactById'
       ).callsArgWith(1, null, new reportsRouter.storage.models.Contact({
@@ -1054,28 +742,32 @@ describe('ReportsRouter', function() {
         lastSeen: Date.now(),
         userAgent: 'test'
       }));
-      sandbox.stub(
+      var _getRetrievalPointer = sinon.stub(
         reportsRouter.network,
         'getRetrievalPointer'
       ).callsArgWith(2, null, { /* pointer */ });
-      sandbox.stub(
+      var _getMirrorNodes = sinon.stub(
         reportsRouter.network,
         'getMirrorNodes'
       ).callsArgWith(2, null);
-      sandbox.stub(
+      var _contractsSave = sinon.stub(
         reportsRouter.contracts,
         'save'
       ).callsArgWith(1, null);
-      const event = {};
-      sandbox.stub(reportsRouter, '_createStorageEvent');
-      reportsRouter._triggerMirrorEstablish(n, hash, event, function(err) {
+      reportsRouter._triggerMirrorEstablish(n, hash, function(err) {
+        _mirrorFind.restore();
+        _contractsLoad.restore();
+        _getContactById.restore();
+        _getRetrievalPointer.restore();
+        _getMirrorNodes.restore();
+        _contractsSave.restore();
         expect(err.message).to.equal('Failed to load contract');
         done();
       });
     });
 
     it('should error if the mirror limit is reached', function(done) {
-      sandbox.stub(
+      var _mirrorFind = sinon.stub(
         reportsRouter.storage.models.Mirror,
         'find'
       ).returns({
@@ -1140,11 +832,11 @@ describe('ReportsRouter', function() {
           }
         }
       });
-      sandbox.stub(
+      var _contractsLoad = sinon.stub(
         reportsRouter.contracts,
         'load'
       ).callsArgWith(1, null, item);
-      sandbox.stub(
+      var _getContactById = sinon.stub(
         reportsRouter,
         'getContactById'
       ).callsArgWith(1, null, new reportsRouter.storage.models.Contact({
@@ -1155,28 +847,32 @@ describe('ReportsRouter', function() {
         lastSeen: Date.now(),
         userAgent: 'test'
       }));
-      sandbox.stub(
+      var _getRetrievalPointer = sinon.stub(
         reportsRouter.network,
         'getRetrievalPointer'
       ).callsArgWith(2, null, { /* pointer */ });
-      sandbox.stub(
+      var _getMirrorNodes = sinon.stub(
         reportsRouter.network,
         'getMirrorNodes'
       ).callsArgWith(2, null);
-      sandbox.stub(
+      var _contractsSave = sinon.stub(
         reportsRouter.contracts,
         'save'
       ).callsArgWith(1, null);
-      const event = {};
-      sandbox.stub(reportsRouter, '_createStorageEvent');
-      reportsRouter._triggerMirrorEstablish(2, hash, event, function(err) {
+      reportsRouter._triggerMirrorEstablish(2, hash, function(err) {
+        _mirrorFind.restore();
+        _contractsLoad.restore();
+        _getContactById.restore();
+        _getRetrievalPointer.restore();
+        _getMirrorNodes.restore();
+        _contractsSave.restore();
         expect(err.message).to.equal('Auto mirroring limit is reached');
         done();
       });
     });
 
     it('should error if no mirrors are available', function(done) {
-      sandbox.stub(
+      var _mirrorFind = sinon.stub(
         reportsRouter.storage.models.Mirror,
         'find'
       ).returns({
@@ -1194,11 +890,11 @@ describe('ReportsRouter', function() {
           }
         }
       });
-      sandbox.stub(
+      var _contractsLoad = sinon.stub(
         reportsRouter.contracts,
         'load'
       ).callsArgWith(1, null, item);
-      sandbox.stub(
+      var _getContactById = sinon.stub(
         reportsRouter,
         'getContactById'
       ).callsArgWith(1, null, new reportsRouter.storage.models.Contact({
@@ -1209,121 +905,26 @@ describe('ReportsRouter', function() {
         lastSeen: Date.now(),
         userAgent: 'test'
       }));
-      sandbox.stub(
+      var _getRetrievalPointer = sinon.stub(
         reportsRouter.network,
         'getRetrievalPointer'
       ).callsArgWith(2, null, { /* pointer */ });
-      sandbox.stub(
+      var _getMirrorNodes = sinon.stub(
         reportsRouter.network,
         'getMirrorNodes'
       ).callsArgWith(2, null);
-      sandbox.stub(
+      var _contractsSave = sinon.stub(
         reportsRouter.contracts,
         'save'
       ).callsArgWith(1, null);
-      const event = {};
-      sandbox.stub(reportsRouter, '_createStorageEvent');
-      reportsRouter._triggerMirrorEstablish(n, hash, event, function(err) {
+      reportsRouter._triggerMirrorEstablish(n, hash, function(err) {
+        _mirrorFind.restore();
+        _contractsLoad.restore();
+        _getContactById.restore();
+        _getRetrievalPointer.restore();
+        _getMirrorNodes.restore();
+        _contractsSave.restore();
         expect(err.message).to.equal('No available mirrors');
-        done();
-      });
-    });
-
-    it('should not not tear hole in universe', function(done) {
-      const event = {};
-      const shardhash = storj.utils.rmd160('shardhash');
-
-      const item = storj.StorageItem({
-        hash: storj.utils.rmd160('shardhash'),
-        contracts: {
-          'b6ab2770de1c02df049f8c62e1a69b163c43f70f': {
-            data_hash: shardhash
-          },
-          '90529afcc6a80cb62b22bd2a5319c332ce5d9fcf': {
-            data_hash: shardhash
-          },
-          '4248149ce35aa6f1f7485cc74f5d2d59fb24e59f': {
-            data_hash: shardhash
-          }
-        }
-      });
-
-      const mirrors = [
-        new reportsRouter.storage.models.Mirror({
-          shardHash: shardhash,
-          contact: new reportsRouter.storage.models.Contact({
-            _id: '4248149ce35aa6f1f7485cc74f5d2d59fb24e59f',
-            address: '127.0.0.1',
-            port: 1234,
-            protocol: '1.1.0',
-            lastSeen: Date.now(),
-            userAgent: 'test'
-          }),
-          contract: {
-            data_hash: storj.utils.rmd160('shardhash')
-          },
-          isEstablished: false
-        })
-      ];
-
-      sandbox.stub(
-        reportsRouter.contracts,
-        'load'
-      ).callsArgWith(1, null, item);
-
-      sandbox.stub(
-        reportsRouter.storage.models.Mirror,
-        'find'
-      ).returns({
-        populate: () => {
-          return {
-            exec: sandbox.stub().callsArgWith(0, null, mirrors)
-          };
-        }
-      });
-
-      sandbox.stub(
-        reportsRouter,
-        'getContactById'
-      ).callsArgWith(1, null, new reportsRouter.storage.models.Contact({
-        _id: '90529afcc6a80cb62b22bd2a5319c332ce5d9fcf',
-        address: '127.0.0.1',
-        port: 1234,
-        protocol: '1.1.0',
-        lastSeen: Date.now(),
-        userAgent: 'test'
-      }));
-
-      sandbox.stub(
-        reportsRouter.network,
-        'getRetrievalPointer'
-      ).callsArgWith(2, null, {
-        farmer: {
-          nodeID: '90529afcc6a80cb62b22bd2a5319c332ce5d9fcf'
-        },
-        token: '87e7450cbeb3b1652bfb156987993b3ff11e6242'
-      });
-
-      sandbox.stub(reportsRouter, '_createStorageEvent');
-
-      sandbox.stub(
-        reportsRouter.network,
-        'getMirrorNodes'
-      ).callsArgWith(2, null);
-
-      sandbox.stub(
-        reportsRouter.contracts,
-        'save'
-      ).callsArgWith(1, null);
-
-      reportsRouter._triggerMirrorEstablish(n, hash, event, function(err) {
-        if (err) {
-          console.log('err', err);
-          return done(err);
-        }
-        expect(reportsRouter.getContactById.args[0][0])
-          .to.equal('90529afcc6a80cb62b22bd2a5319c332ce5d9fcf');
-
         done();
       });
     });

@@ -21,10 +21,8 @@ node('node') {
       def commit_id = readFile('.git/commit-id').trim()
       sh "./dockerfiles/build-bridge.sh storjlabs/bridge:${env.BUILD_ID} storjlabs/bridge:${commit_id} storjlabs/bridge:latest"
       sh "./dockerfiles/build-storj-monitor.sh storjlabs/storj-monitor:${env.BUILD_ID} storjlabs/storj-monitor:${commit_id} storjlabs/storj-monitor:latest"
-      sh "./dockerfiles/build-storj-cron.sh storjlabs/storj-cron:${env.BUILD_ID} storjlabs/storj-cron:${commit_id} storjlabs/storj-cron:latest"
       sh "./dockerfiles/push.sh storjlabs/bridge:${env.BUILD_ID} storjlabs/bridge:${commit_id} storjlabs/bridge:latest"
       sh "./dockerfiles/push.sh storjlabs/storj-monitor:${env.BUILD_ID} storjlabs/storj-monitor:${commit_id} storjlabs/storj-monitor:latest"
-      sh "./dockerfiles/push.sh storjlabs/storj-cron:${env.BUILD_ID} storjlabs/storj-cron:${commit_id} storjlabs/storj-cron:latest"
 
     stage 'Deploy'
 
@@ -33,7 +31,6 @@ node('node') {
         echo 'Push to Repo'
         sh "./dockerfiles/deploy.staging.sh bridge-api storjlabs/bridge:${commit_id}"
         sh "./dockerfiles/deploy.staging.sh storj-monitor storjlabs/storj-monitor:${commit_id}"
-        sh "./dockerfiles/deploy.staging.sh storj-cron storjlabs/storj-cron:${commit_id}"
       }
 
     stage 'Cleanup'

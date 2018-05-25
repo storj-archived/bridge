@@ -1,7 +1,6 @@
 'use strict';
 
 const fs = require('fs');
-const crypto = require('crypto');
 const sinon = require('sinon');
 const expect = require('chai').expect;
 const EventEmitter = require('events').EventEmitter;
@@ -24,9 +23,7 @@ describe('Monitor', function() {
   });
   afterEach(() => sandbox.restore());
 
-  const config = new MonitorConfig(
-    '/tmp/storj-monitor-test-' +
-      crypto.randomBytes(4).toString('hex') + '.json');
+  const config = new MonitorConfig('/tmp/storj-monitor-test.json');
 
   describe('@constructor', function() {
 
@@ -186,50 +183,6 @@ describe('Monitor', function() {
       monitor._fetchDestinations(shard, (err) => {
         expect(err).to.be.instanceOf(Error);
         done();
-      });
-    });
-  });
-
-  describe('#_giveOfflinePenalty', function() {
-    it('it will record offline points', function() {
-      const monitor = new Monitor(config);
-      const contact = {
-        recordPoints: sandbox.stub(),
-        save: sandbox.stub()
-      };
-      monitor._giveOfflinePenalty(contact);
-      expect(contact.recordPoints.callCount).to.equal(1);
-      expect(contact.recordPoints.args[0][0]).to.equal(-1000);
-      expect(contact.save.callCount).to.equal(1);
-    });
-  });
-
-  describe('#_markStorageEventsEnded', function() {
-    it('it will update events as ended', function() {
-      const monitor = new Monitor(config);
-      const update = sandbox.stub().callsArgWith(3, null);
-      monitor.storage = {
-        models: {
-          StorageEvent: {
-            update: update
-          }
-        }
-      };
-      const contact = {
-        _id: 'e211c3b8a710f50bd26644de5128b194be3904e1',
-      };
-      monitor._markStorageEventsEnded(contact);
-      expect(update.callCount).to.equal(1);
-      expect(update.args[0][0]).to.eql({
-        farmer: 'e211c3b8a710f50bd26644de5128b194be3904e1',
-        farmerEnd: {
-          $exists: false
-        }
-      });
-      expect(update.args[0][1]).to.eql({
-        $currentDate: {
-          farmerEnd: true
-        }
       });
     });
   });
@@ -395,45 +348,6 @@ describe('Monitor', function() {
     });
   });
 
-  describe('#_createStorageEvent', function() {
-    const sandbox = sinon.sandbox.create();
-    afterEach(() => sandbox.restore());
-
-    it('it will create event and save', function() {
-      function StorageEvent(options) {
-        expect(options).to.eql({
-          token: '527b83da713c30e56b3b0dd74a14152f24475909',
-          user: null,
-          client: 'cec5a2d61f4e82f6c73f44388b5798c64784d68f',
-          farmer: 'b0789385f486a0d0d07f32b0a96b313202cf4031',
-          timestamp: 1509141238388,
-          downloadBandwidth: 0,
-          storage: 1024,
-          shardHash: '88c99bf39dcc693fe1a2a232601a37fec8d466b3',
-          success: false
-        });
-      }
-      const save = sinon.stub();
-      StorageEvent.prototype.save = save;
-      const monitor = new Monitor(config);
-      monitor.storage = {
-        models: {
-          StorageEvent: StorageEvent
-        }
-      };
-      let token = '527b83da713c30e56b3b0dd74a14152f24475909';
-      let shardHash = '88c99bf39dcc693fe1a2a232601a37fec8d466b3';
-      let shardBytes = 1024;
-      let source = 'cec5a2d61f4e82f6c73f44388b5798c64784d68f';
-      let destination = 'b0789385f486a0d0d07f32b0a96b313202cf4031';
-      const clock = sandbox.useFakeTimers();
-      clock.tick(1509141238388);
-      monitor._createStorageEvent(token, shardHash,
-                                  shardBytes, source, destination);
-      expect(save.callCount).to.equal(1);
-    });
-  });
-
   describe('#_transferShard', function() {
     const sandbox = sinon.sandbox.create();
     afterEach(() => sandbox.restore());
@@ -521,7 +435,6 @@ describe('Monitor', function() {
         getRetrievalPointer: sinon.stub().callsArgWith(2, null, pointer),
         getMirrorNodes: sinon.stub().callsArgWith(2, new Error('timeout'))
       };
-      monitor._createStorageEvent = sinon.stub();
       const contract = new storj.Contract();
       const shard = {
         getContract: sandbox.stub().returns(contract)
@@ -551,7 +464,6 @@ describe('Monitor', function() {
           .to.equal(pointer);
         expect(monitor.network.getMirrorNodes.args[0][1][0])
           .to.be.instanceOf(storj.Contact);
-        expect(monitor._createStorageEvent.callCount).to.equal(1);
         expect(log.warn.callCount).to.equal(1);
         expect(monitor._transferShard.callCount).to.equal(2);
         expect(monitor._saveShard.callCount).to.equal(0);
@@ -565,30 +477,22 @@ describe('Monitor', function() {
       sandbox.stub(log, 'warn');
       const monitor = new Monitor(config);
       monitor._saveShard = sinon.stub().callsArg(2);
-      const pointer = {
-        token: 'token'
-      };
+      const pointer = {};
       monitor.network = {
         getRetrievalPointer: sinon.stub().callsArgWith(2, null, pointer),
         getMirrorNodes: sinon.stub().callsArgWith(2, null, {})
       };
-      monitor._createStorageEvent = sinon.stub();
-      const contract = new storj.Contract({
-        data_size: 1337
-      });
+      const contract = new storj.Contract();
       const shard = {
-        getContract: sandbox.stub().returns(contract),
-        hash: 'hash'
+        getContract: sandbox.stub().returns(contract)
       };
       const contact = storj.Contact({
-        nodeID: '27d71722a9843831b22964ebcf42e6bc5b8624de',
         address: '127.0.0.1',
         port: 100000
       });
       const mirror = {
         contract: {},
         contact: {
-          nodeID: '0c764f44017688a5ee54af195939260331341114',
           address: '128.0.0.1',
           port: 100000
         }
@@ -605,20 +509,14 @@ describe('Monitor', function() {
         expect(log.error.callCount).to.equal(0);
         expect(log.warn.callCount).to.equal(0);
         expect(monitor._transferShard.callCount).to.equal(1);
-        expect(monitor._createStorageEvent.callCount).to.equal(1);
-        expect(monitor._createStorageEvent.args[0][0]).to.equal('token');
-        expect(monitor._createStorageEvent.args[0][1]).to.equal('hash');
-        expect(monitor._createStorageEvent.args[0][2]).to.equal(1337);
-        expect(monitor._createStorageEvent.args[0][3])
-          .to.equal(state.sources[0].nodeID);
-        expect(monitor._createStorageEvent.args[0][4])
-          .to.equal(state.destinations[0].contact.nodeID);
         expect(monitor._saveShard.callCount).to.equal(1);
         expect(monitor._saveShard.args[0][0]).to.equal(shard);
         expect(monitor._saveShard.args[0][1]).to.equal(state.destinations[0]);
         done();
       });
+
     });
+
   });
 
   describe('#_replicateShard', function() {
@@ -819,11 +717,13 @@ describe('Monitor', function() {
       expect(monitor.wait.callCount).to.equal(1);
     });
 
+
     it('will log error when querying contacts', function() {
       const monitor = new Monitor(config);
 
       sandbox.stub(log, 'error');
       sandbox.stub(log, 'info');
+
 
       const exec = sandbox.stub().callsArgWith(0, new Error('Mongo error'));
       const sort = sandbox.stub().returns({
@@ -910,19 +810,19 @@ describe('Monitor', function() {
         address: '127.0.0.1',
         port: 1337,
         recordTimeoutFailure: recordTimeoutFailure,
-        timeoutRate: 0.159
+        timeoutRate: 0.05
       }, {
         nodeID: 'dd985ca22f19858257b3328a56f8f4aabee1d4a1',
         address: '127.0.0.1',
         port: 1337,
         recordTimeoutFailure: recordTimeoutFailure,
-        timeoutRate: 0.12
+        timeoutRate: 0.02
       }, {
         nodeID: '6ae62b18fc9d20139c933e66f3b2fd2f8d04c20d',
         address: '127.0.0.1',
         port: 1337,
         recordTimeoutFailure: recordTimeoutFailure,
-        timeoutRate: 0.13
+        timeoutRate: 0.03
       }];
 
       const exec = sandbox.stub().callsArgWith(0, null, contacts);
@@ -944,14 +844,12 @@ describe('Monitor', function() {
       };
       monitor.wait = sandbox.stub();
       monitor._replicateFarmer = sinon.stub();
-      monitor._giveOfflinePenalty = sinon.stub();
-      monitor._markStorageEventsEnded = sinon.stub();
       monitor.run();
 
       expect(find.callCount).to.equal(1);
       expect(find.args[0][0]).to.eql({
         $or: [
-          { timeoutRate: { $lt: 0.1585 } },
+          { timeoutRate: { $lt: 0.04 } },
           { timeoutRate: { $exists: false } }
         ]
       });
@@ -988,16 +886,10 @@ describe('Monitor', function() {
       expect(log.warn.args[0][1])
         .to.equal('7b8b30132e930c7827ee47efebfb197d6a3246d4');
       expect(log.warn.args[0][2])
-        .to.equal(0.159);
+        .to.equal(0.05);
       expect(monitor._replicateFarmer.callCount).to.equal(1);
       expect(monitor._replicateFarmer.args[0][0])
         .to.be.instanceOf(storj.Contact);
-
-      expect(monitor._giveOfflinePenalty.callCount).to.equal(1);
-      expect(monitor._giveOfflinePenalty.args[0][0].recordPoints);
-
-      expect(monitor._markStorageEventsEnded.callCount).to.equal(1);
-      expect(monitor._markStorageEventsEnded.args[0][0]._id);
 
       expect(monitor.network.ping.callCount).to.equal(3);
       expect(monitor.network.ping.args[0][0]).to.be.instanceOf(storj.Contact);
